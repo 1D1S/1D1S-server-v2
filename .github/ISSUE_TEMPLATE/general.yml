@@ -1,0 +1,29 @@
+name: General
+description: 문서 정리, 기능 아이디어 등 그 외 상황을 위한 이슈
+title: "[Report / Tag] "
+body:
+body:
+  - type: textarea
+    attributes:
+      label: 💡 목적 및 기능 요약
+      placeholder: ex) 기능 분리 이유, API 성격 구분 등
+
+  - type: textarea
+    attributes:
+      label: ✅ TODO
+      description: 작업할 내용 및 할 일을 체크박스 형태로 작성해주세요. 체크박스 기준으로 커밋을 날려도 좋습니다.
+      placeholder: |
+        - [ ] 기능 1 구현
+        - [ ] 기능 2 구현
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: 🙋🏻 참고 자료 및 비고
+      description: 문서, 링크 등 공유할 참고자료가 있다면 첨부해주세요. 또한 특이사항이 있다면 기재해주세요.
+
+  - type: input
+    attributes:
+      label: 🌿 브랜치명
+      placeholder: feat/99-something-task
