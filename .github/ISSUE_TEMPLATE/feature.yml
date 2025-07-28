@@ -5,13 +5,13 @@ body:
   - type: textarea
     attributes:
       label: 💡 목적 및 기능 요약
-      placeholder: 예: 기능 분리 이유, API 성격 구분 등
+      placeholder: ex) 기능 분리 이유, API 성격 구분 등
 
   - type: textarea
     attributes:
       label: 📝 기능 상세 설명
       description: 기능별로 나누어서 상세히 설명해주세요.
-      placeholder: ex: CommonStudyController는 공개 API입니다.
+      placeholder: ex) CommonStudyController는 공개 API입니다.
 
   - type: textarea
     attributes:
