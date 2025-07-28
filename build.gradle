@@ -2,6 +2,7 @@ plugins {
 	id 'java'
 	id 'org.springframework.boot' version '3.5.4'
 	id 'io.spring.dependency-management' version '1.1.7'
+	id 'com.diffplug.spotless' version '7.0.3'
 }
 
 group = 'com.odos'
@@ -10,6 +11,33 @@ version = '0.0.1-SNAPSHOT'
 java {
 	toolchain {
 		languageVersion = JavaLanguageVersion.of(17)
+	}
+}
+
+spotless {
+	java {
+		// import 순서 정의
+		importOrder(
+				"java",
+				"javax",
+				"lombok",
+				"org.springframework",
+				"",
+				"\\#",
+				"org.junit",
+				"\\#org.junit",
+				"com.guide",
+				"\\#com.guide"
+		)
+		// 사용하지 않는 import 제거
+		removeUnusedImports()
+		// 구글 자바 포맷 적용
+		googleJavaFormat()
+
+		// 공백 제거
+		trimTrailingWhitespace()
+		// 끝부분 New Line 처리
+		endWithNewline()
 	}
 }
 
