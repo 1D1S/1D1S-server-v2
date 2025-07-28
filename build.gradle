@@ -66,3 +66,16 @@ dependencies {
 tasks.named('test') {
 	useJUnitPlatform()
 }
+tasks.register("updateGitHooks", Copy) {
+	from "scripts/pre-commit"
+	into ".git/hooks"
+}
+tasks.register("executableGitHooks", Exec) {
+	commandLine "chmod", "ug+x", ".git/hooks/pre-commit"
+	dependsOn(updateGitHooks)
+	onlyIf {
+		file("${projectDir}/.git/hooks/pre-commit").exists()
+	}
+}
+
+compileJava.dependsOn(executableGitHooks)
