@@ -8,8 +8,5 @@ public class OdosServerV2Application {
 
   public static void main(String[] args) {
     SpringApplication.run(OdosServerV2Application.class, args);
-
-
-
   }
 }
