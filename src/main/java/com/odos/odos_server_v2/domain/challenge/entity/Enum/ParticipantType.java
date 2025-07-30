@@ -1,3 +1,8 @@
 package com.odos.odos_server_v2.domain.challenge.entity.Enum;
 
-public enum ParticipantType {}
+public enum ParticipantType {
+  PENDING,
+  REJECTED,
+  ACCEPTED,
+  NONE
+}
