@@ -1,3 +1,8 @@
 package com.odos.odos_server_v2.domain.challenge.repository;
 
-public interface ParticipantRepository {}
+import com.odos.odos_server_v2.domain.challenge.entity.Participant;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+@Repository
+public interface ParticipantRepository extends JpaRepository<Participant, Long> {}
