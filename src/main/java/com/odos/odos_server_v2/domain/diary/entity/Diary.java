@@ -19,6 +19,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @Getter
 @Builder
 @EntityListeners(AuditingEntityListener.class)
+@Table(name = "Diary")
 public class Diary {
 
   @Id
