@@ -29,7 +29,7 @@ public class DiaryGoal {
   @JoinColumn(name = "challengeGoalId")
   private ChallengeGoal challengeGoal;
 
-  //    @ManyToOne
+  //    @ManyToOne : 나중에 필요하면 칼럼에 넣기 (의논후 주석 빼기)
   //    @JoinColumn(name = "participantId")
   //    private Participant participant;
 
