@@ -24,8 +24,4 @@ public class Response {
   public static Response success(String msg, Object data) {
     return new Response(msg, data);
   }
-
-  public static Response failure(String msg) {
-    return new Response(msg);
-  }
 }
