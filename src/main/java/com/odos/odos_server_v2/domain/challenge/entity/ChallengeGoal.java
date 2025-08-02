@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
-@Table(name = "ChallengeGoal")
+@Table(name = "challenge_goal")
 @Builder
 public class ChallengeGoal {
 
@@ -26,6 +26,6 @@ public class ChallengeGoal {
   private List<DiaryGoal> diaryGoals;
 
   @ManyToOne
-  @JoinColumn(name = "memberChallengeId")
+  @JoinColumn(name = "participant_id")
   private Participant participant;
 }

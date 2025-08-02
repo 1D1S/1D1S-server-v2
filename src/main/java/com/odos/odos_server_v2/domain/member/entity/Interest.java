@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Getter
 @Builder
-@Table(name = "Interest")
+@Table(name = "interest")
 public class Interest {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -23,6 +23,6 @@ public class Interest {
   private Category category;
 
   @ManyToOne
-  @JoinColumn(name = "memberId")
+  @JoinColumn(name = "member_id")
   private Member member;
 }

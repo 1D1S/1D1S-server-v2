@@ -1,7 +1,7 @@
 package com.odos.odos_server_v2.domain.challenge.entity;
 
+import com.odos.odos_server_v2.domain.challenge.entity.Enum.ParticipantStatus;
 import com.odos.odos_server_v2.domain.challenge.entity.Enum.ParticipantType;
-import com.odos.odos_server_v2.domain.member.entity.Enum.MemberRole;
 import com.odos.odos_server_v2.domain.member.entity.Member;
 import jakarta.persistence.*;
 import java.util.List;
@@ -14,7 +14,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
-@Table(name = "Participant")
+@Table(name = "participant")
 @Builder
 public class Participant {
 
@@ -24,18 +24,18 @@ public class Participant {
 
   @Column
   @Enumerated(EnumType.STRING)
-  private MemberRole memberChallengeRole;
+  private ParticipantStatus status;
 
   @Column
   @Enumerated(EnumType.STRING)
-  private ParticipantType status;
+  private ParticipantType type;
 
   @ManyToOne
   @JoinColumn(name = "memberId")
   private Member member;
 
   @ManyToOne
-  @JoinColumn(name = "challengeId")
+  @JoinColumn(name = "challenge_id")
   private Challenge challenge;
 
   @OneToMany(mappedBy = "participant", cascade = CascadeType.ALL)

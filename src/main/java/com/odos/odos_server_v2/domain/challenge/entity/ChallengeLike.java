@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
-@Table(name = "ChallengeLike")
+@Table(name = "challenge_like")
 @Builder
 public class ChallengeLike {
 
@@ -20,10 +20,10 @@ public class ChallengeLike {
   private Long id;
 
   @ManyToOne
-  @JoinColumn(name = "memberId")
+  @JoinColumn(name = "member_id")
   private Member member;
 
   @ManyToOne
-  @JoinColumn(name = "challengeId")
+  @JoinColumn(name = "challenge_id")
   private Challenge challenge;
 }

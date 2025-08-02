@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Getter
 @Builder
-@Table(name = "DiaryGoal")
+@Table(name = "diary_goal")
 public class DiaryGoal {
 
   @Id
@@ -22,11 +22,11 @@ public class DiaryGoal {
   @Column private Boolean isCompleted = false; // 기본값 false로 설정
 
   @ManyToOne
-  @JoinColumn(name = "diaryId")
+  @JoinColumn(name = "diary_id")
   private Diary diary;
 
   @ManyToOne
-  @JoinColumn(name = "challengeGoalId")
+  @JoinColumn(name = "challenge_goal_id")
   private ChallengeGoal challengeGoal;
 
   //    @ManyToOne : 나중에 필요하면 칼럼에 넣기 (의논후 주석 빼기)

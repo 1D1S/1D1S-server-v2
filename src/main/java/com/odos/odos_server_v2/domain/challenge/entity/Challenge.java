@@ -17,7 +17,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Getter
 @Builder
-@Table(name = "Challenge")
+@Table(name = "challenge")
 public class Challenge {
 
   @Id
@@ -32,7 +32,7 @@ public class Challenge {
 
   @Column private LocalDate endDate;
 
-  @Column private int participantsCnt;
+  @Column private int maxParticipantsCnt;
 
   @Column
   @Enumerated(EnumType.STRING)
@@ -41,11 +41,11 @@ public class Challenge {
   @Column private String description;
 
   @ManyToOne
-  @JoinColumn(name = "challengeHost")
+  @JoinColumn(name = "host_member_id")
   private Member hostMember;
 
   @OneToMany(mappedBy = "challenge", cascade = CascadeType.ALL)
-  private List<Participant> memberChallenges;
+  private List<Participant> participants;
 
   @OneToMany(mappedBy = "challenge", cascade = CascadeType.ALL)
   private List<ChallengeLike> likes;
