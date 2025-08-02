@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
-@Table(name = "DiaryImage")
+@Table(name = "diary_image")
 @Builder
 public class DiaryImage {
 
@@ -21,6 +21,6 @@ public class DiaryImage {
   @Column private String url;
 
   @ManyToOne
-  @JoinColumn(name = "diaryId")
+  @JoinColumn(name = "diary_id")
   private Diary diary;
 }

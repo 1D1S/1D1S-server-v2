@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
-@Table(name = "DiaryLike")
+@Table(name = "diary_like")
 public class DiaryLike {
 
   @Id
@@ -18,10 +18,10 @@ public class DiaryLike {
   private Long id;
 
   @ManyToOne
-  @JoinColumn(name = "memberId")
+  @JoinColumn(name = "member_id")
   private Member member;
 
   @ManyToOne
-  @JoinColumn(name = "diaryId")
+  @JoinColumn(name = "diary_id")
   private Diary diary;
 }

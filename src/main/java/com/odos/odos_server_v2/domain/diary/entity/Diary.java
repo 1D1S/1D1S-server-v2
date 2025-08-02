@@ -19,7 +19,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @Getter
 @Builder
 @EntityListeners(AuditingEntityListener.class)
-@Table(name = "Diary")
+@Table(name = "diary")
 public class Diary {
 
   @Id
@@ -49,19 +49,19 @@ public class Diary {
   private List<DiaryGoal> diaryGoals;
 
   @OneToMany(mappedBy = "diary", cascade = CascadeType.ALL)
-  private List<DiaryImage> diaryImages;
+  private List<DiaryImage> images;
 
   @OneToMany(mappedBy = "diary", cascade = CascadeType.ALL)
-  private List<DiaryLike> diaryLikes;
+  private List<DiaryLike> likes;
 
   @ManyToOne
-  @JoinColumn(name = "memberId")
+  @JoinColumn(name = "member_id")
   private Member member;
 
   @ManyToOne
-  @JoinColumn(name = "challengeId")
+  @JoinColumn(name = "challenge_id")
   private Challenge challenge;
 
   @OneToMany(mappedBy = "diary", cascade = CascadeType.ALL)
-  private List<DiaryReport> diaryReports;
+  private List<DiaryReport> reports;
 }

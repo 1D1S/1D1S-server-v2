@@ -24,12 +24,12 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
-@Table(name = "Member")
+@Table(name = "member")
 public class Member {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
-  @Column(name = "memberId")
+  @Column(name = "member_id")
   private Long id;
 
   @Column(nullable = false, unique = true)
@@ -45,7 +45,7 @@ public class Member {
   private MemberRole role;
 
   private String nickname;
-  private String profileImageKey;
+  private String profileUrl;
 
   @Enumerated(EnumType.STRING)
   private Job job;
