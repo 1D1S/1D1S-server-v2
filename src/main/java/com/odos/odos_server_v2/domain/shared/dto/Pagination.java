@@ -1,3 +1,8 @@
 package com.odos.odos_server_v2.domain.shared.dto;
 
-public class Pagination {}
+import java.util.List;
+
+public class Pagination<T> {
+  private List<T> items;
+  private PageInfo pageInfo;
+}
