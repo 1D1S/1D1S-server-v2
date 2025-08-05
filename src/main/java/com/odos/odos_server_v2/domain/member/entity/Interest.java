@@ -25,4 +25,9 @@ public class Interest {
   @ManyToOne
   @JoinColumn(name = "member_id")
   private Member member;
+
+  public Interest(Member member, Category category) {
+    this.member = member;
+    this.category = category;
+  }
 }
