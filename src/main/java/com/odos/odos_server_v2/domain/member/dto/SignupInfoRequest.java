@@ -26,5 +26,5 @@ public class SignupInfoRequest {
 
   @NotNull private Boolean isPublic;
 
-  @NotNull private List<Category> category; // ChallengeCategory
+  @NotNull private List<Category> category;
 }

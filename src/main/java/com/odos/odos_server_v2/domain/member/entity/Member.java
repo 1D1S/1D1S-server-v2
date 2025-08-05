@@ -103,7 +103,7 @@ public class Member {
   }
 
   public void updateCategories(List<Category> categories) {
-    this.memberInterests.clear(); // ChallengeCategory
+    this.memberInterests.clear();
 
     for (Category category : categories) {
       this.memberInterests.add(new Interest(this, category));
