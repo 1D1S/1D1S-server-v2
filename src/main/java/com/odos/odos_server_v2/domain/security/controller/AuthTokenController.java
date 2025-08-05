@@ -12,39 +12,39 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/auth")
 @RequiredArgsConstructor
 public class AuthTokenController {
-    private final JwtTokenProvider jwtTokenProvider;
-    private final MemberRepository memberRepository;
+  private final JwtTokenProvider jwtTokenProvider;
+  private final MemberRepository memberRepository;
 
-    @GetMapping("/token")
-    @ResponseBody
-    public ResponseEntity<TokenResponse> reissueAccessToken(
-            @RequestHeader("Authorization-Refresh") String refreshHeader) {
+  @GetMapping("/token")
+  @ResponseBody
+  public ResponseEntity<TokenResponse> reissueAccessToken(
+      @RequestHeader("Authorization-Refresh") String refreshHeader) {
 
-        String refreshToken =
-                jwtTokenProvider
-                        .extractTokenFromHeader(refreshHeader)
-                        .orElseThrow(() -> new JwtException("RefreshToken is missing or invalid format"));
+    String refreshToken =
+        jwtTokenProvider
+            .extractTokenFromHeader(refreshHeader)
+            .orElseThrow(() -> new JwtException("RefreshToken is missing or invalid format"));
 
-        if (!jwtTokenProvider.isValidToken(refreshToken) || jwtTokenProvider.isExpired(refreshToken)) {
-            throw new JwtException("RefreshToken is invalid or expired");
-        }
-
-        return memberRepository
-                .findByRefreshToken(refreshToken)
-                .map(
-                        member -> {
-                            String newAccessToken = jwtTokenProvider.createAccessToken(member);
-                            String newRefreshToken = jwtTokenProvider.createRefreshToken();
-                            jwtTokenProvider.updateRefreshToken(member.getEmail(), newRefreshToken);
-
-                            TokenResponse response =
-                                    TokenResponse.builder()
-                                            .accessToken(newAccessToken)
-                                            .refreshToken(newRefreshToken)
-                                            .build();
-
-                            return ResponseEntity.ok(response);
-                        })
-                .orElseThrow(() -> new JwtException("RefreshToken does not match any user"));
+    if (!jwtTokenProvider.isValidToken(refreshToken) || jwtTokenProvider.isExpired(refreshToken)) {
+      throw new JwtException("RefreshToken is invalid or expired");
     }
+
+    return memberRepository
+        .findByRefreshToken(refreshToken)
+        .map(
+            member -> {
+              String newAccessToken = jwtTokenProvider.createAccessToken(member);
+              String newRefreshToken = jwtTokenProvider.createRefreshToken();
+              jwtTokenProvider.updateRefreshToken(member.getEmail(), newRefreshToken);
+
+              TokenResponse response =
+                  TokenResponse.builder()
+                      .accessToken(newAccessToken)
+                      .refreshToken(newRefreshToken)
+                      .build();
+
+              return ResponseEntity.ok(response);
+            })
+        .orElseThrow(() -> new JwtException("RefreshToken does not match any user"));
+  }
 }

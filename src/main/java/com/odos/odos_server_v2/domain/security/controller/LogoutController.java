@@ -12,20 +12,20 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/auth")
 @RequiredArgsConstructor
 public class LogoutController {
-    private final MemberRepository memberRepository;
+  private final MemberRepository memberRepository;
 
-    @PostMapping("/logout")
-    public ResponseEntity<Void> logout() {
-        Long memberId = CurrentUserContext.getCurrentMemberId();
+  @PostMapping("/logout")
+  public ResponseEntity<Void> logout() {
+    Long memberId = CurrentUserContext.getCurrentMemberId();
 
-        memberRepository
-                .findById(memberId)
-                .ifPresent(
-                        member -> {
-                            member.updateRefreshToken(null);
-                            memberRepository.save(member);
-                        });
+    memberRepository
+        .findById(memberId)
+        .ifPresent(
+            member -> {
+              member.updateRefreshToken(null);
+              memberRepository.save(member);
+            });
 
-        return ResponseEntity.ok().build();
-    }
+    return ResponseEntity.ok().build();
+  }
 }

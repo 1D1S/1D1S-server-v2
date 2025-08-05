@@ -86,12 +86,12 @@ public class Member {
   }
 
   public void completeProfile(
-          String nickname,
-          String profileImageKey,
-          Job job,
-          LocalDate birth,
-          Gender gender,
-          Boolean isPublic) {
+      String nickname,
+      String profileImageKey,
+      Job job,
+      LocalDate birth,
+      Gender gender,
+      Boolean isPublic) {
     this.nickname = nickname;
     this.profileUrl = profileUrl;
     this.job = job;
@@ -103,7 +103,7 @@ public class Member {
   }
 
   public void updateCategories(List<Category> categories) {
-    this.memberInterests.clear(); //ChallengeCategory
+    this.memberInterests.clear(); // ChallengeCategory
 
     for (Category category : categories) {
       this.memberInterests.add(new Interest(this, category));

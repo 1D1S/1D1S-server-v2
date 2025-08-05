@@ -15,14 +15,14 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/signup")
 @RequiredArgsConstructor
 public class SignupController {
-    private final SignupService signupService;
+  private final SignupService signupService;
 
-    @PutMapping("/info")
-    public ResponseEntity<Void> completeSignupInfo(
-            @RequestBody SignupInfoRequest request, @AuthenticationPrincipal MemberPrincipal principal) {
+  @PutMapping("/info")
+  public ResponseEntity<Void> completeSignupInfo(
+      @RequestBody SignupInfoRequest request, @AuthenticationPrincipal MemberPrincipal principal) {
 
-        signupService.completeSignupInfo(principal.getId(), request);
+    signupService.completeSignupInfo(principal.getId(), request);
 
-        return ResponseEntity.ok(null);
-    }
+    return ResponseEntity.ok(null);
+  }
 }

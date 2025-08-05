@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class OAuth2LoginResponse {
-    private String accessToken;
-    private String refreshToken;
-    private boolean isProfileComplete;
+  private String accessToken;
+  private String refreshToken;
+  private boolean isProfileComplete;
 }
