@@ -58,13 +58,14 @@ public class SecurityConfig {
   @Bean
   public CorsConfigurationSource corsConfigurationSource() {
     CorsConfiguration config = new CorsConfiguration();
+    config.addAllowedOriginPattern("*");
     config.addAllowedMethod("*");
     config.addAllowedHeader("*");
     config.addExposedHeader("Authorization");
     config.addExposedHeader("Authorization-Refresh");
 
     UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-    source.registerCorsConfiguration("/oauth2/**", config);
+    source.registerCorsConfiguration("/oauth/**", config);
     return source;
   }
 }
