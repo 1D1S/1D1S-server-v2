@@ -37,6 +37,8 @@ public class SignupService {
       throw new CustomException(ErrorCode.INVALID_NICKNAME_FORMAT);
     }
 
+    // profile url 부분 코드 수정
+
     member.completeProfile(
         request.getNickname(),
         request.getProfileUrl(),

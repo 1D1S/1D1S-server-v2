@@ -16,7 +16,7 @@ public class SignupInfoRequest {
 
   @NotNull private String nickname;
 
-  private String profileUrl;
+  private String profileUrl; // s3 도입 후 제거
 
   @NotNull private Job job;
 
