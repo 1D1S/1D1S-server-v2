@@ -5,23 +5,23 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-@AllArgsConstructor
 @Getter
 @NoArgsConstructor
+@AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class Response {
+public class ApiResponse<T> {
   private String message;
-  private Object data;
+  private T data;
 
-  public Response(String msg) {
+  public ApiResponse(String msg) {
     this.message = msg;
   }
 
-  public static Response success(String msg) {
-    return new Response(msg);
+  public static <T> ApiResponse<T> success(String msg) {
+    return new ApiResponse<>(msg);
   }
 
-  public static Response success(String msg, Object data) {
-    return new Response(msg, data);
+  public static <T> ApiResponse<T> success(String msg, T data) {
+    return new ApiResponse<>(msg, data);
   }
 }
