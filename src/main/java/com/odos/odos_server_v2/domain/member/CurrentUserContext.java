@@ -1,4 +1,4 @@
-package com.odos.odos_server_v2.domain.security.util;
+package com.odos.odos_server_v2.domain.member;
 
 import com.odos.odos_server_v2.domain.security.jwt.MemberPrincipal;
 import com.odos.odos_server_v2.exception.CustomException;
@@ -13,7 +13,6 @@ public class CurrentUserContext {
 
   public static MemberPrincipal getCurrentMemberPrincipal() {
     Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-    System.out.println(">>>> principal class = " + auth.getPrincipal().getClass());
     if (auth == null) {
       throw new CustomException(ErrorCode.UNAUTHORIZED);
     }

@@ -41,7 +41,7 @@ public class SignupService {
 
     member.completeProfile(
         request.getNickname(),
-        request.getProfileUrl(),
+        request.getProfileUrl(), // s3 도입 후 제거
         request.getJob(),
         request.getBirth(),
         request.getGender(),

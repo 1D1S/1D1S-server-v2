@@ -7,6 +7,8 @@ import com.odos.odos_server_v2.domain.member.repository.MemberRepository;
 import com.odos.odos_server_v2.domain.security.jwt.MemberPrincipal;
 import com.odos.odos_server_v2.domain.security.oauth2.info.OAuth2UserInfo;
 import com.odos.odos_server_v2.domain.security.oauth2.info.OAuth2UserInfoFactory;
+import com.odos.odos_server_v2.exception.CustomException;
+import com.odos.odos_server_v2.exception.ErrorCode;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -14,7 +16,6 @@ import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserServ
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserService;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
-import org.springframework.security.oauth2.core.OAuth2Error;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -39,8 +40,7 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
     String email = userInfo.getEmail();
 
     if (email == null || email.isBlank()) {
-      throw new OAuth2AuthenticationException(
-          new OAuth2Error("invalid_email"), "This is an invalid_email.");
+      throw new CustomException(ErrorCode.INVALID_OAUTH_EMAIL);
     }
 
     Member member =
@@ -48,9 +48,10 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
             .findByEmail(email)
             .orElseGet(() -> createMember(email, signupRoute, userInfo.getId()));
 
-    log.debug(">>> OAuth2 attributes: {}", attributes);
-    log.info(
-        "OAuth2UserService provider = {}", userRequest.getClientRegistration().getRegistrationId());
+    //    log.debug(">>> OAuth2 attributes: {}", attributes);
+    //    log.info(
+    //        "OAuth2UserService provider = {}",
+    // userRequest.getClientRegistration().getRegistrationId());
 
     return new MemberPrincipal(
         member.getId(), member.getEmail(), member.getRole().name(), member.getSignupRoute());
@@ -66,11 +67,11 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
             .build();
 
     Member saved = memberRepository.save(newMember);
-    log.info(
-        "new member saved : id={}, email={}, provider={}",
-        saved.getId(),
-        saved.getEmail(),
-        saved.getSignupRoute());
+    //    log.info(
+    //        "new member saved : id={}, email={}, provider={}",
+    //        saved.getId(),
+    //        saved.getEmail(),
+    //        saved.getSignupRoute());
     return saved;
   }
 }
