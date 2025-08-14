@@ -69,7 +69,8 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
 
     response.setStatus(HttpServletResponse.SC_OK);
     response.setContentType("application/json;charset=UTF-8");
-    response.getWriter().write(objectMapper.writeValueAsString(dto));
+    ApiResponse<OAuth2LoginResponse> apiResponse = ApiResponse.success(LOGIN_SUCCESS, dto);
+    response.getWriter().write(objectMapper.writeValueAsString(apiResponse));
 
     // log.debug("OAuth2 login success - {} (profileComplete={})", email, isProfileComplete);
   }
