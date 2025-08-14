@@ -6,4 +6,5 @@ public class Message {
   // security
   public static String TOKEN_REFRESH = "토큰 재발급 성공했습니다.";
   public static String LOGOUT = "로그아웃 성공했습니다.";
+  public static String LOGIN_SUCCESS = "소셜 로그인 연결 성공했습니다.";
 }
