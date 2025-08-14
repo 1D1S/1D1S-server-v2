@@ -1,10 +1,13 @@
 package com.odos.odos_server_v2.domain.member.controller;
 
+import static com.odos.odos_server_v2.response.Message.SIGN_UP_INFO;
+import static com.odos.odos_server_v2.response.Response.success;
+
 import com.odos.odos_server_v2.domain.member.dto.SignupInfoRequest;
 import com.odos.odos_server_v2.domain.member.service.SignupService;
 import com.odos.odos_server_v2.domain.security.jwt.MemberPrincipal;
+import com.odos.odos_server_v2.response.Response;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -18,11 +21,11 @@ public class SignupController {
   private final SignupService signupService;
 
   @PutMapping("/info")
-  public ResponseEntity<Void> completeSignupInfo(
+  public Response completeSignupInfo(
       @RequestBody SignupInfoRequest request, @AuthenticationPrincipal MemberPrincipal principal) {
 
     signupService.completeSignupInfo(principal.getId(), request);
 
-    return ResponseEntity.ok(null);
+    return success(SIGN_UP_INFO);
   }
 }
