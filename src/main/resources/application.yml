@@ -1,10 +1,12 @@
 spring:
   application:
     name: odos-server-v2
+  config:
+    import:
+      - classpath:application-security.yml
 
   datasource:
     url: jdbc:mysql://${MYSQL_URL}:${MYSQL_PORT}/${MYSQL_NAME}
-    driver-class-name: com.mysql.cj.jdbc.Driver
     username: ${MYSQL_USER}
     password: ${MYSQL_PASSWORD}
 

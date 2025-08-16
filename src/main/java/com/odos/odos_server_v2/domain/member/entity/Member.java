@@ -10,6 +10,7 @@ import com.odos.odos_server_v2.domain.member.entity.Enum.Gender;
 import com.odos.odos_server_v2.domain.member.entity.Enum.Job;
 import com.odos.odos_server_v2.domain.member.entity.Enum.MemberRole;
 import com.odos.odos_server_v2.domain.member.entity.Enum.SignupRoute;
+import com.odos.odos_server_v2.domain.shared.Enum.Category;
 import jakarta.persistence.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -79,4 +80,33 @@ public class Member {
 
   @OneToMany(mappedBy = "member", cascade = CascadeType.ALL)
   private List<Diary> diaries;
+
+  public void updateRefreshToken(String updateRefreshToken) {
+    this.refreshToken = updateRefreshToken;
+  }
+
+  public void completeProfile(
+      String nickname,
+      String profileImageKey,
+      Job job,
+      LocalDate birth,
+      Gender gender,
+      Boolean isPublic) {
+    this.nickname = nickname;
+    this.profileUrl = profileUrl;
+    this.job = job;
+    this.birth = birth;
+    this.gender = gender;
+    this.isPublic = isPublic;
+    this.role = MemberRole.USER;
+    this.nicknameLastModifiedAt = LocalDateTime.now();
+  }
+
+  public void updateCategories(List<Category> categories) {
+    this.memberInterests.clear();
+
+    for (Category category : categories) {
+      this.memberInterests.add(new Interest(this, category));
+    }
+  }
 }
