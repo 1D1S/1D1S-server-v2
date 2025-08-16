@@ -3,10 +3,10 @@ spring:
     name: odos-server-v2
 
   datasource:
-    url: jdbc:mysql://${MYSQL_URL}:${MYSQL_PORT}/${MYSQL_NAME}
+    url: jdbc:mysql://localhost:3306/odos2
     driver-class-name: com.mysql.cj.jdbc.Driver
-    username: ${MYSQL_USER}
-    password: ${MYSQL_PASSWORD}
+    username: root
+    password: 11111111
 
   jpa:
     database-platform: org.hibernate.dialect.MySQLDialect
