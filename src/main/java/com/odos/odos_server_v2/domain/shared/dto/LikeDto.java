@@ -9,5 +9,5 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class LikeDto {
   private boolean likedByMe;
-  private int likeCnt;
+  private long likeCnt;
 }

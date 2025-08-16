@@ -25,8 +25,10 @@ public enum ErrorCode {
   CATEGORY_TOO_MANY(HttpStatus.BAD_REQUEST, "USER-002", "관심 카테고리는 최대 3개까지 선택할 수 있습니다."),
   MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "USER-003", "회원을 찾을 수 없습니다."),
   INVALID_NICKNAME_FORMAT(
-      HttpStatus.BAD_REQUEST, "USER-004", "닉네임은 한글 또는 영어로 8자 이내이며, 특수문자는 사용할 수 없습니다.");
+      HttpStatus.BAD_REQUEST, "USER-004", "닉네임은 한글 또는 영어로 8자 이내이며, 특수문자는 사용할 수 없습니다."),
 
+  // diary
+  DIARY_NOT_CREATED(HttpStatus.NOT_FOUND, "DIARY-001", "다이어리를 생성하는것에 실패하였습니다.");
   private final HttpStatus status;
   private final String code;
   private final String message;
