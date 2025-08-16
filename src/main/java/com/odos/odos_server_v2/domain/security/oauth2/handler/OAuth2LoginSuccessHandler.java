@@ -1,5 +1,7 @@
 package com.odos.odos_server_v2.domain.security.oauth2.handler;
 
+import static com.odos.odos_server_v2.response.Message.LOGIN_SUCCESS;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.odos.odos_server_v2.domain.member.entity.Member;
 import com.odos.odos_server_v2.domain.member.repository.MemberRepository;
@@ -8,6 +10,7 @@ import com.odos.odos_server_v2.domain.security.jwt.MemberPrincipal;
 import com.odos.odos_server_v2.domain.security.oauth2.OAuth2LoginResponse;
 import com.odos.odos_server_v2.exception.CustomException;
 import com.odos.odos_server_v2.exception.ErrorCode;
+import com.odos.odos_server_v2.response.ApiResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
