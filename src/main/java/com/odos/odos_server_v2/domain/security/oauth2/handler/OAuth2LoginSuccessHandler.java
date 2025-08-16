@@ -1,5 +1,8 @@
 package com.odos.odos_server_v2.domain.security.oauth2.handler;
 
+import static com.odos.odos_server_v2.response.ApiResponse;
+import static com.odos.odos_server_v2.response.Message.LOGIN_SUCCESS;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.odos.odos_server_v2.domain.member.entity.Member;
 import com.odos.odos_server_v2.domain.member.repository.MemberRepository;
