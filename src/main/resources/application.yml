@@ -17,3 +17,11 @@ spring:
     hibernate:
       format_sql: true
       ddl-auto: update
+
+
+logging:
+  level:
+    root: INFO
+    com.odos.odos_server_v2: DEBUG
+    com.odos.odos_server_v2.domain.diary.service.DiaryService: DEBUG
+

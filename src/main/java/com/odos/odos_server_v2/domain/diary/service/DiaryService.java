@@ -35,7 +35,7 @@ public class DiaryService {
             // .diaryGoals(null)
             .build();
 
-    diaryRepository.save(diary);
-    return DiaryResponse.from(member, diary);
+    Diary newDiary = diaryRepository.save(diary);
+    return DiaryResponse.from(member, newDiary);
   }
 }

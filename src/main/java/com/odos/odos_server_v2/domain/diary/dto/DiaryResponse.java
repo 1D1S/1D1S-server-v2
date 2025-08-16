@@ -2,10 +2,13 @@ package com.odos.odos_server_v2.domain.diary.dto;
 
 import com.odos.odos_server_v2.domain.diary.entity.Diary;
 import com.odos.odos_server_v2.domain.member.entity.Member;
+import com.odos.odos_server_v2.domain.shared.dto.LikeDto;
 import java.util.List;
 import lombok.Builder;
+import lombok.Getter;
 
 @Builder
+@Getter
 public class DiaryResponse {
   private Long id;
   // private ChallengeResponse challenge;
@@ -14,29 +17,28 @@ public class DiaryResponse {
   private String content;
   private List<String> imgUrl;
   private Boolean isPublic;
-  private Boolean likedByMe;
-  private int likeCount;
+  private LikeDto likeInfo;
   private DiaryInfo diaryInfo;
 
   public static DiaryResponse from(Member member, Diary diary) {
-    //      List<Long> achievements = diary.getDiaryGoals() == null
-    //              ? Collections.emptyList()
-    //              : diary.getDiaryGoals().stream()
-    //              .map(DiaryGoal::getId)
-    //              .toList();
+    //          List<Long> achievements = diary.getDiaryGoals() == null
+    //                  ? Collections.emptyList()
+    //                  : diary.getDiaryGoals().stream()
+    //                  .map(DiaryGoal::getId)
+    //                  .toList();
     //
-    //      int totalGoal = diary.getDiaryGoals().size();
-    //      long achievedGalsCount =
-    //        diary.getDiaryGoals().stream().filter(DiaryGoal::getIsCompleted).count();
-    //      int achievementRate = (int) (achievedGalsCount * 100) / totalGoal;
+    //          int totalGoal = diary.getDiaryGoals().size();
+    //          long achievedGalsCount =
+    //            diary.getDiaryGoals().stream().filter(DiaryGoal::getIsCompleted).count();
+    //          int achievementRate = (int) (achievedGalsCount * 100) / totalGoal;
 
-    //    DiaryInfo info =
-    //        DiaryInfo.builder()
-    //            .challengedDate(diary.getCompletedDate().toString())
-    //            .achievement(achievements)
-    //            .achievementRate(achievementRate)
-    //            .feeling(diary.getFeeling())
-    //            .build();
+    DiaryInfo info =
+        DiaryInfo.builder()
+            .challengedDate(diary.getCompletedDate().toString())
+            // .achievement(achievements)
+            // .achievementRate(achievementRate)
+            .feeling(diary.getFeeling())
+            .build();
 
     AuthorInfo author =
         AuthorInfo.builder()
@@ -45,10 +47,17 @@ public class DiaryResponse {
             .profileImage(member.getProfileUrl())
             .build();
 
-    //    Boolean isLiked =
-    //        diary.getLikes().stream().anyMatch(like ->
-    // like.getMember().getId().equals(member.getId()));
-    //    int likeCount = diary.getLikes().size();
+    //    long likeCount;
+    //    if (diary.getLikes().isEmpty()) {
+    //        likeCount = 0L;
+    //    } else {
+    //        likeCount = diary.getLikes().size();
+    //    }
+    //    Boolean isLikedByMe = false;
+    //    LikeDto like = LikeDto.builder()
+    //            .likedByMe(isLikedByMe) // 임의 넣기, 나중에 수정해야햄
+    //            .likeCnt(likeCount)
+    //            .build();
 
     //    List<String> imgUrl =
     //        diary.getImages().stream().map(DiaryImage::getUrl).collect(Collectors.toList());
@@ -59,9 +68,8 @@ public class DiaryResponse {
         .title(diary.getTitle())
         .isPublic(diary.getIsPublic())
         .authorInfo(author)
-        // .diaryInfo(info)
-        // .likedByMe(isLiked)
-        // .likeCount(likeCount)
+        .diaryInfo(info)
+        // .likeInfo(like)
         // .imgUrl(imgUrl)
         .build();
   }
