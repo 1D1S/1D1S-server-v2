@@ -1,12 +1,14 @@
 spring:
   application:
     name: odos-server-v2
+  config:
+    import:
+      - classpath:application-security.yml
 
   datasource:
-    url: jdbc:mysql://localhost:3306/odos2
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    username: root
-    password: 11111111
+    url: jdbc:mysql://${MYSQL_URL}:${MYSQL_PORT}/${MYSQL_NAME}
+    username: ${MYSQL_USER}
+    password: ${MYSQL_PASSWORD}
 
   jpa:
     database-platform: org.hibernate.dialect.MySQLDialect
