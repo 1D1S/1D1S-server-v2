@@ -4,12 +4,15 @@ import com.odos.odos_server_v2.domain.challenge.repository.ChallengeRepository;
 import com.odos.odos_server_v2.domain.diary.dto.DiaryRequest;
 import com.odos.odos_server_v2.domain.diary.dto.DiaryResponse;
 import com.odos.odos_server_v2.domain.diary.entity.Diary;
+import com.odos.odos_server_v2.domain.diary.entity.DiaryLike;
 import com.odos.odos_server_v2.domain.diary.repository.DiaryGoalRepository;
+import com.odos.odos_server_v2.domain.diary.repository.DiaryLikeRepository;
 import com.odos.odos_server_v2.domain.diary.repository.DiaryRepository;
 import com.odos.odos_server_v2.domain.member.entity.Member;
 import com.odos.odos_server_v2.domain.member.repository.MemberRepository;
 import com.odos.odos_server_v2.exception.CustomException;
 import com.odos.odos_server_v2.exception.ErrorCode;
+import jakarta.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +25,7 @@ import org.springframework.stereotype.Service;
 public class DiaryService {
   private final DiaryRepository diaryRepository;
   private final MemberRepository memberRepository;
+  private final DiaryLikeRepository diaryLikeRepository;
   private final ChallengeRepository challengeRepository;
   private final DiaryGoalRepository diaryGoalRepository;
 
@@ -38,7 +42,7 @@ public class DiaryService {
             .content(request.getContent())
             .feeling(request.getFeeling())
             .isPublic(request.getIsPublic())
-            // .likes(null)
+            .likes(new ArrayList<>())
             .build();
 
     Diary newDiary = diaryRepository.save(diary);
@@ -95,5 +99,22 @@ public class DiaryService {
     } catch (CustomException e) {
       return false;
     }
+  }
+
+  @Transactional
+  public Integer addDiaryLike(Long memberId, Long diaryId) {
+    Diary diary =
+        diaryRepository
+            .findById(diaryId)
+            .orElseThrow(() -> new CustomException(ErrorCode.DIARY_NOT_FOUND));
+    Member pressedMember =
+        memberRepository
+            .findById(memberId)
+            .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+    DiaryLike diaryLike = DiaryLike.builder().diary(diary).member(pressedMember).build();
+    diaryLike.setDiary(diary);
+    diaryLikeRepository.save(diaryLike);
+    List<DiaryLike> likes = diaryLikeRepository.getDiaryLikeCountByDiaryId(diaryId);
+    return likes.size();
   }
 }

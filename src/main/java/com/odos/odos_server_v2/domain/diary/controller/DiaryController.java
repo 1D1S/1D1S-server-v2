@@ -51,4 +51,11 @@ public class DiaryController {
     Boolean result = diaryService.deleteDiary(diaryId);
     return ApiResponse.success(Message.DIARY_DELETE_SUCCESS, result);
   }
+
+  @PostMapping("/{id}/likes")
+  public ApiResponse<Integer> addLike(@PathVariable(name = "id") Long diaryId) {
+    Long memberId = CurrentUserContext.getCurrentMemberId();
+    Integer likeCount = diaryService.addDiaryLike(memberId, diaryId);
+    return ApiResponse.success(Message.DIARY_ADDED_LIKE, likeCount);
+  }
 }

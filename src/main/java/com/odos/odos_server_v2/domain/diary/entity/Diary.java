@@ -75,4 +75,8 @@ public class Diary {
     //    this.challenge = challenge;
     //    this.diaryGoals = goal;
   }
+
+  public void addLike(DiaryLike diaryLike) {
+    this.likes.add(diaryLike);
+  }
 }

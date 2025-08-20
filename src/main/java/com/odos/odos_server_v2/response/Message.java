@@ -12,4 +12,5 @@ public class Message {
   public static String DIARY_GET_SUCCESS = "다이어리 단일조회를 성공했습니다.";
   public static String DIARY_GET_ALL_SUCCESS = "다이어리 모든 조회를 성공했습니다.";
   public static String DIARY_DELETE_SUCCESS = "다이어리 삭제를 성공했습니다.";
+  public static String DIARY_ADDED_LIKE = "다이어리에 좋아요 누르기 성공했습니다.";
 }
