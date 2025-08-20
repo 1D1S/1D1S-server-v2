@@ -8,4 +8,6 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface DiaryLikeRepository extends JpaRepository<DiaryLike, Long> {
   List<DiaryLike> getDiaryLikeCountByDiaryId(Long diaryId);
+
+  DiaryLike findDiaryLikeByDiaryIdAndMemberId(Long diaryId, Long memberId);
 }

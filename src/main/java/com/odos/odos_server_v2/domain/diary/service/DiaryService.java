@@ -111,10 +111,15 @@ public class DiaryService {
         memberRepository
             .findById(memberId)
             .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
-    DiaryLike diaryLike = DiaryLike.builder().diary(diary).member(pressedMember).build();
-    diaryLike.setDiary(diary);
-    diaryLikeRepository.save(diaryLike);
-    List<DiaryLike> likes = diaryLikeRepository.getDiaryLikeCountByDiaryId(diaryId);
-    return likes.size();
+    DiaryLike like = diaryLikeRepository.findDiaryLikeByDiaryIdAndMemberId(diaryId, memberId);
+    if (like == null) {
+      DiaryLike diaryLike = DiaryLike.builder().diary(diary).member(pressedMember).build();
+      diaryLike.setDiary(diary);
+      diaryLikeRepository.save(diaryLike);
+      List<DiaryLike> likes = diaryLikeRepository.getDiaryLikeCountByDiaryId(diaryId);
+      return likes.size();
+    } else {
+      throw new CustomException(ErrorCode.DIARYLIKE_ALREADY_EXISTS);
+    }
   }
 }
