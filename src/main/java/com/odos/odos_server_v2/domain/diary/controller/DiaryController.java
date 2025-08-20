@@ -58,4 +58,11 @@ public class DiaryController {
     Integer likeCount = diaryService.addDiaryLike(memberId, diaryId);
     return ApiResponse.success(Message.DIARY_ADDED_LIKE, likeCount);
   }
+
+  @DeleteMapping("/{id}/likes")
+  public ApiResponse<Integer> cancelLike(@PathVariable(name = "id") Long diaryId) {
+    Long memberId = CurrentUserContext.getCurrentMemberId();
+    Integer likeCount = diaryService.cancelDiaryLike(memberId, diaryId);
+    return ApiResponse.success(Message.DIARY_CANCELED_LIKE, likeCount);
+  }
 }

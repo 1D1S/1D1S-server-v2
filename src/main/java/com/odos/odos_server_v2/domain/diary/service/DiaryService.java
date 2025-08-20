@@ -15,6 +15,7 @@ import com.odos.odos_server_v2.exception.ErrorCode;
 import jakarta.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -111,8 +112,9 @@ public class DiaryService {
         memberRepository
             .findById(memberId)
             .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
-    DiaryLike like = diaryLikeRepository.findDiaryLikeByDiaryIdAndMemberId(diaryId, memberId);
-    if (like == null) {
+    Optional<DiaryLike> like =
+        diaryLikeRepository.findDiaryLikeByDiaryIdAndMemberId(diaryId, memberId);
+    if (like.isEmpty()) {
       DiaryLike diaryLike = DiaryLike.builder().diary(diary).member(pressedMember).build();
       diaryLike.setDiary(diary);
       diaryLikeRepository.save(diaryLike);
@@ -120,6 +122,23 @@ public class DiaryService {
       return likes.size();
     } else {
       throw new CustomException(ErrorCode.DIARYLIKE_ALREADY_EXISTS);
+    }
+  }
+
+  public Integer cancelDiaryLike(Long memberId, Long diaryId) {
+    diaryRepository
+        .findById(diaryId)
+        .orElseThrow(() -> new CustomException(ErrorCode.DIARY_NOT_FOUND));
+    memberRepository
+        .findById(memberId)
+        .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+    Optional<DiaryLike> like =
+        diaryLikeRepository.findDiaryLikeByDiaryIdAndMemberId(diaryId, memberId);
+    if (like.isEmpty()) {
+      throw new CustomException(ErrorCode.DIARYLIKE_NOT_EXISTS);
+    } else {
+      diaryLikeRepository.delete(like.get());
+      return diaryLikeRepository.getDiaryLikeCountByDiaryId(diaryId).size();
     }
   }
 }
