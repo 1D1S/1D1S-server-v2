@@ -62,4 +62,13 @@ public class DiaryService {
     diaryRepository.save(diary);
     return DiaryResponse.from(member, diary);
   }
+
+  public DiaryResponse getDiary(Long diaryId) {
+    Diary diary =
+        diaryRepository
+            .findById(diaryId)
+            .orElseThrow(() -> new CustomException(ErrorCode.DIARY_NOT_FOUND));
+    Member member = diary.getMember();
+    return DiaryResponse.from(member, diary);
+  }
 }
