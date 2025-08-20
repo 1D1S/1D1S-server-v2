@@ -84,4 +84,16 @@ public class DiaryService {
     }
     return diaryResponses;
   }
+
+  public Boolean deleteDiary(Long diaryId) {
+    diaryRepository
+        .findById(diaryId)
+        .orElseThrow(() -> new CustomException(ErrorCode.DIARY_NOT_FOUND));
+    try {
+      diaryRepository.deleteById(diaryId);
+      return true;
+    } catch (CustomException e) {
+      return false;
+    }
+  }
 }

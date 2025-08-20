@@ -45,4 +45,10 @@ public class DiaryController {
     List<DiaryResponse> result = diaryService.getAllPublicDiaries();
     return ApiResponse.success(Message.DIARY_GET_ALL_SUCCESS, result);
   }
+
+  @DeleteMapping("/{id}")
+  public ApiResponse<Boolean> deleteDiary(@PathVariable(name = "id") Long diaryId) {
+    Boolean result = diaryService.deleteDiary(diaryId);
+    return ApiResponse.success(Message.DIARY_DELETE_SUCCESS, result);
+  }
 }

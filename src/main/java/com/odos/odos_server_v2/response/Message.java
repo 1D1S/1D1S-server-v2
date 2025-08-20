@@ -11,4 +11,5 @@ public class Message {
   public static String DIARY_UPDATE_SUCCESS = "다이어리 수정을 성공했습니다.";
   public static String DIARY_GET_SUCCESS = "다이어리 단일조회를 성공했습니다.";
   public static String DIARY_GET_ALL_SUCCESS = "다이어리 모든 조회를 성공했습니다.";
+  public static String DIARY_DELETE_SUCCESS = "다이어리 삭제를 성공했습니다.";
 }
