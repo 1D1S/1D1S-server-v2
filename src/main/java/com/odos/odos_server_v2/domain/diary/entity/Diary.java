@@ -1,10 +1,12 @@
 package com.odos.odos_server_v2.domain.diary.entity;
 
 import com.odos.odos_server_v2.domain.challenge.entity.Challenge;
+import com.odos.odos_server_v2.domain.diary.dto.DiaryRequest;
 import com.odos.odos_server_v2.domain.diary.entity.Enum.Feeling;
 import com.odos.odos_server_v2.domain.member.entity.Member;
 import jakarta.persistence.*;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -46,13 +48,13 @@ public class Diary {
   @Column private Boolean isDeleted;
 
   @OneToMany(mappedBy = "diary", cascade = CascadeType.ALL)
-  private List<DiaryGoal> diaryGoals;
+  private List<DiaryGoal> diaryGoals = new ArrayList<>();
 
   @OneToMany(mappedBy = "diary", cascade = CascadeType.ALL)
-  private List<DiaryImage> images;
+  private List<DiaryImage> images = new ArrayList<>();
 
   @OneToMany(mappedBy = "diary", cascade = CascadeType.ALL)
-  private List<DiaryLike> likes;
+  private List<DiaryLike> likes = new ArrayList<>();
 
   @ManyToOne
   @JoinColumn(name = "member_id")
@@ -63,5 +65,14 @@ public class Diary {
   private Challenge challenge;
 
   @OneToMany(mappedBy = "diary", cascade = CascadeType.ALL)
-  private List<DiaryReport> reports;
+  private List<DiaryReport> reports = new ArrayList<>();
+
+  public void updateDiary(DiaryRequest request /*, Challenge challenge, List<DiaryGoal> goal*/) {
+    this.title = request.getTitle();
+    this.feeling = request.getFeeling();
+    this.content = request.getContent();
+    this.isPublic = request.getIsPublic();
+    //    this.challenge = challenge;
+    //    this.diaryGoals = goal;
+  }
 }

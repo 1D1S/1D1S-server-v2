@@ -28,7 +28,9 @@ public enum ErrorCode {
       HttpStatus.BAD_REQUEST, "USER-004", "닉네임은 한글 또는 영어로 8자 이내이며, 특수문자는 사용할 수 없습니다."),
 
   // diary
-  DIARY_NOT_CREATED(HttpStatus.NOT_FOUND, "DIARY-001", "다이어리를 생성하는것에 실패하였습니다.");
+  DIARY_NOT_CREATED(HttpStatus.NOT_FOUND, "DIARY-001", "다이어리를 생성하는것에 실패하였습니다."),
+  DIARY_NOT_FOUND(HttpStatus.NOT_FOUND, "DIARY-001", "다이어리를 생성하는것에 실패하였습니다.");
+  // DIARY_NOT_CREATED(HttpStatus.NOT_FOUND, "DIARY-001", "다이어리를 생성하는것에 실패하였습니다.");
   private final HttpStatus status;
   private final String code;
   private final String message;

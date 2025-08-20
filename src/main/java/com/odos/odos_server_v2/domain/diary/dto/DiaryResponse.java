@@ -34,6 +34,7 @@ public class DiaryResponse {
 
     DiaryInfo info =
         DiaryInfo.builder()
+            .createdAt(diary.getCreatedDate().toString())
             .challengedDate(diary.getCompletedDate().toString())
             // .achievement(achievements)
             // .achievementRate(achievementRate)

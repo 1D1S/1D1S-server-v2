@@ -8,4 +8,5 @@ public class Message {
   public static String LOGOUT = "로그아웃 성공했습니다.";
   public static String LOGIN_SUCCESS = "소셜 로그인 연결 성공했습니다.";
   public static String DIARY_CREATE_SUCCESS = "다이어리 생성을 성공했습니다.";
+  public static String DIARY_UPDATE_SUCCESS = "다이어리 수정을 성공했습니다.";
 }
