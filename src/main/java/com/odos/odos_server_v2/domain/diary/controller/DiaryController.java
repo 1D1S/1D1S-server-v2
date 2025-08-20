@@ -26,16 +26,16 @@ public class DiaryController {
     return ApiResponse.success(Message.DIARY_CREATE_SUCCESS, result);
   }
 
-  @PutMapping("/{diaryId}")
+  @PutMapping("/{Id}")
   public ApiResponse<DiaryResponse> updateDiary(
-      @PathVariable(name = "diaryId") Long diaryId, @RequestBody DiaryRequest request) {
+      @PathVariable(name = "Id") Long diaryId, @RequestBody DiaryRequest request) {
     Long memberId = CurrentUserContext.getCurrentMemberId();
     DiaryResponse result = diaryService.updateDiary(memberId, diaryId, request);
     return ApiResponse.success(Message.DIARY_UPDATE_SUCCESS, result);
   }
 
-  @GetMapping("/{diaryId}")
-  public ApiResponse<DiaryResponse> getDiary(@PathVariable(name = "diaryId") Long diaryId) {
+  @GetMapping("/{Id}")
+  public ApiResponse<DiaryResponse> getDiary(@PathVariable(name = "Id") Long diaryId) {
     DiaryResponse result = diaryService.getDiary(diaryId);
     return ApiResponse.success(Message.DIARY_GET_SUCCESS, result);
   }
