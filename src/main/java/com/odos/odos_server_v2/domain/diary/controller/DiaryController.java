@@ -6,6 +6,7 @@ import com.odos.odos_server_v2.domain.diary.service.DiaryService;
 import com.odos.odos_server_v2.domain.member.CurrentUserContext;
 import com.odos.odos_server_v2.response.ApiResponse;
 import com.odos.odos_server_v2.response.Message;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/diaries")
 @Slf4j
 public class DiaryController {
+
   private final DiaryService diaryService;
 
   @PostMapping("")
@@ -36,5 +38,11 @@ public class DiaryController {
   public ApiResponse<DiaryResponse> getDiary(@PathVariable(name = "diaryId") Long diaryId) {
     DiaryResponse result = diaryService.getDiary(diaryId);
     return ApiResponse.success(Message.DIARY_GET_SUCCESS, result);
+  }
+
+  @GetMapping("")
+  public ApiResponse<List<DiaryResponse>> getAllDiary() {
+    List<DiaryResponse> result = diaryService.getAllPublicDiaries();
+    return ApiResponse.success(Message.DIARY_GET_ALL_SUCCESS, result);
   }
 }

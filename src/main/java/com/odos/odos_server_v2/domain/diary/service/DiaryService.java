@@ -10,11 +10,15 @@ import com.odos.odos_server_v2.domain.member.entity.Member;
 import com.odos.odos_server_v2.domain.member.repository.MemberRepository;
 import com.odos.odos_server_v2.exception.CustomException;
 import com.odos.odos_server_v2.exception.ErrorCode;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class DiaryService {
   private final DiaryRepository diaryRepository;
   private final MemberRepository memberRepository;
@@ -70,5 +74,14 @@ public class DiaryService {
             .orElseThrow(() -> new CustomException(ErrorCode.DIARY_NOT_FOUND));
     Member member = diary.getMember();
     return DiaryResponse.from(member, diary);
+  }
+
+  public List<DiaryResponse> getAllPublicDiaries() {
+    List<Diary> diaries = diaryRepository.findDiariesByIsPublic(Boolean.TRUE);
+    List<DiaryResponse> diaryResponses = new ArrayList<>();
+    for (Diary diary : diaries) {
+      diaryResponses.add(DiaryResponse.from(diary.getMember(), diary));
+    }
+    return diaryResponses;
   }
 }
