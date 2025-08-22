@@ -10,6 +10,7 @@ import com.odos.odos_server_v2.domain.challenge.repository.ChallengeGoalReposito
 import com.odos.odos_server_v2.domain.challenge.repository.ChallengeLikeRepository;
 import com.odos.odos_server_v2.domain.challenge.repository.ParticipantRepository;
 import com.odos.odos_server_v2.domain.diary.repository.DiaryGoalRepository;
+import com.odos.odos_server_v2.domain.diary.repository.DiaryRepository;
 import com.odos.odos_server_v2.domain.member.entity.Member;
 import com.odos.odos_server_v2.domain.shared.dto.LikeDto;
 import com.odos.odos_server_v2.domain.shared.service.ImageService;
@@ -28,6 +29,7 @@ public class ChallengeService {
   private final ChallengeLikeRepository challengeLikeRepository;
   private final ChallengeGoalRepository challengeGoalRepository;
   private final DiaryGoalRepository diaryGoalRepository;
+  private final DiaryRepository diaryRepository;
   private final ImageService imageService;
 
   private ChallengeResponse toChallengeResponse(Challenge challenge, Member member) {
@@ -125,12 +127,27 @@ public class ChallengeService {
   }
 
   private double getParticipationRate(Challenge challenge) {
-    // 더미
     LocalDate startDate = challenge.getStartDate();
     LocalDate endDate = challenge.getEndDate();
     LocalDate today = LocalDate.now();
     if (today.isBefore(startDate)) return -1;
-    return -1;
+
+    Long challengeId = challenge.getId();
+    long allGoalsCompletedDiaryCnt =
+        diaryRepository.countByChallengeIdAndIsAllGoalsCompletedTrue(challengeId);
+
+    long participantCnt = getParticipantCnt(challengeId);
+    if (participantCnt == 0) return 0;
+
+    long days;
+    if (today.isBefore(endDate)) {
+      days = ChronoUnit.DAYS.between(startDate, today) + 1; // 오늘 포함
+    } else {
+      days = ChronoUnit.DAYS.between(startDate, endDate) + 1; // 종료일 포함
+    }
+    if (days == 0) return 0;
+
+    return (double) allGoalsCompletedDiaryCnt / ((double) participantCnt * (double) days);
   }
 
   private double getGoalCompletionRate(Challenge challenge) {
