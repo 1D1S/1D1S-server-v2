@@ -8,6 +8,7 @@ import com.odos.odos_server_v2.domain.diary.entity.DiaryLike;
 import com.odos.odos_server_v2.domain.diary.repository.DiaryGoalRepository;
 import com.odos.odos_server_v2.domain.diary.repository.DiaryLikeRepository;
 import com.odos.odos_server_v2.domain.diary.repository.DiaryRepository;
+import com.odos.odos_server_v2.domain.member.CurrentUserContext;
 import com.odos.odos_server_v2.domain.member.entity.Member;
 import com.odos.odos_server_v2.domain.member.repository.MemberRepository;
 import com.odos.odos_server_v2.exception.CustomException;
@@ -50,6 +51,7 @@ public class DiaryService {
     return DiaryResponse.from(member, newDiary);
   }
 
+  @Transactional
   public DiaryResponse updateDiary(Long memberId, Long diaryId, DiaryRequest request) {
     Member member =
         memberRepository
@@ -81,13 +83,21 @@ public class DiaryService {
     return DiaryResponse.from(member, diary);
   }
 
+  @Transactional
   public List<DiaryResponse> getAllPublicDiaries() {
-    List<Diary> diaries = diaryRepository.findDiariesByIsPublic(Boolean.TRUE);
-    List<DiaryResponse> diaryResponses = new ArrayList<>();
-    for (Diary diary : diaries) {
-      diaryResponses.add(DiaryResponse.from(diary.getMember(), diary));
+    try {
+      Long memberId = CurrentUserContext.getCurrentMemberId();
+      Member member = memberRepository.findById(memberId).orElseThrow();
+      List<Diary> diaries = diaryRepository.findDiariesByIsPublic(Boolean.TRUE);
+      List<DiaryResponse> diaryResponses = new ArrayList<>();
+      for (Diary diary : diaries) {
+        diaryResponses.add(DiaryResponse.from(member, diary));
+      }
+      return diaryResponses;
+    } catch (Exception e) {
+      log.info(e.getMessage());
+      return null;
     }
-    return diaryResponses;
   }
 
   public Boolean deleteDiary(Long diaryId) {

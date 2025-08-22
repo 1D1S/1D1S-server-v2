@@ -30,4 +30,17 @@ public class DiaryLike {
   public void setDiary(Diary diary) {
     diary.getLikes().add(this);
   }
+
+  //    public Boolean likedByMe(Member member) {
+  //        if (this.getMember().equals(member)) {
+  //            return true;
+  //        } else {
+  //            return false;
+  //        }
+  //    }
+  public boolean likedByMe(Member me) {
+    if (this.member == null || me == null) return false;
+    if (this.member.getId() == null || me.getId() == null) return false;
+    return this.member.getId().equals(me.getId());
+  }
 }

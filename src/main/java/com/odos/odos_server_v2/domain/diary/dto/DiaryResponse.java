@@ -1,6 +1,7 @@
 package com.odos.odos_server_v2.domain.diary.dto;
 
 import com.odos.odos_server_v2.domain.diary.entity.Diary;
+import com.odos.odos_server_v2.domain.diary.entity.DiaryLike;
 import com.odos.odos_server_v2.domain.member.entity.Member;
 import com.odos.odos_server_v2.domain.shared.dto.LikeDto;
 import java.util.List;
@@ -10,6 +11,7 @@ import lombok.Getter;
 @Builder
 @Getter
 public class DiaryResponse {
+
   private Long id;
   // private ChallengeResponse challenge;
   private AuthorInfo authorInfo;
@@ -21,6 +23,7 @@ public class DiaryResponse {
   private DiaryInfo diaryInfo;
 
   public static DiaryResponse from(Member member, Diary diary) {
+
     //          List<Long> achievements = diary.getDiaryGoals() == null
     //                  ? Collections.emptyList()
     //                  : diary.getDiaryGoals().stream()
@@ -48,17 +51,25 @@ public class DiaryResponse {
             .profileImage(member.getProfileUrl())
             .build();
 
-    //    long likeCount;
-    //    if (diary.getLikes().isEmpty()) {
-    //        likeCount = 0L;
-    //    } else {
-    //        likeCount = diary.getLikes().size();
-    //    }
-    //    Boolean isLikedByMe = false;
-    //    LikeDto like = LikeDto.builder()
-    //            .likedByMe(isLikedByMe) // 임의 넣기, 나중에 수정해야햄
-    //            .likeCnt(likeCount)
-    //            .build();
+    List<DiaryLike> likes = diary.getLikes() == null ? List.of() : diary.getLikes();
+
+    long likeCount = likes.size();
+
+    boolean likedByMe =
+        likes.stream()
+            .anyMatch(
+                like ->
+                    like.getMember() != null
+                        && like.getMember().getId() != null
+                        && member != null
+                        && member.getId() != null
+                        && like.getMember().getId().equals(member.getId()));
+
+    LikeDto like =
+        LikeDto.builder()
+            .likedByMe(likedByMe) // 임의 넣기, 나중에 수정해야햄
+            .likeCnt(likeCount)
+            .build();
 
     //    List<String> imgUrl =
     //        diary.getImages().stream().map(DiaryImage::getUrl).collect(Collectors.toList());
@@ -70,7 +81,7 @@ public class DiaryResponse {
         .isPublic(diary.getIsPublic())
         .authorInfo(author)
         .diaryInfo(info)
-        // .likeInfo(like)
+        .likeInfo(like)
         // .imgUrl(imgUrl)
         .build();
   }
