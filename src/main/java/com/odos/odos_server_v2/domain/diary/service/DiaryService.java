@@ -191,4 +191,17 @@ public class DiaryService {
       return false;
     }
   }
+
+  // 마이페이지 다이어리 조회를 위한 서비스 메서드
+  @Transactional
+  public List<DiaryResponse> getMyDiaries() {
+    Long memberId = CurrentUserContext.getCurrentMemberId();
+    Member member = memberRepository.findById(memberId).orElseThrow();
+    List<Diary> diaries = diaryRepository.findDiariesByMember_Id(memberId);
+    List<DiaryResponse> diaryResponses = new ArrayList<>();
+    for (Diary diary : diaries) {
+      diaryResponses.add(DiaryResponse.from(member, diary));
+    }
+    return diaryResponses;
+  }
 }

@@ -84,4 +84,17 @@ public class DiaryController {
     Boolean result = diaryService.reportDiary(request, memberId);
     return ApiResponse.success(Message.DIARY_REPORT_CREATED, result);
   }
+
+  /* 메서드 test를 위한 테스트 컨트롤러
+  @GetMapping("/my")
+  public ApiResponse<List<DiaryResponse>> getMyDiaries() {
+      try {
+          List<DiaryResponse> result = diaryService.getMyDiaries();
+          return ApiResponse.success(Message.DIARY_GET_ALL_SUCCESS, result);
+      } catch (Exception e) {
+          log.info(e.getMessage());
+          return null;
+      }
+  }
+   */
 }

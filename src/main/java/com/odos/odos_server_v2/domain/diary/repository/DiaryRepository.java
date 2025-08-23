@@ -8,4 +8,6 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface DiaryRepository extends JpaRepository<Diary, Long> {
   List<Diary> findDiariesByIsPublic(Boolean isPublic);
+
+  List<Diary> findDiariesByMember_Id(Long memberId);
 }
