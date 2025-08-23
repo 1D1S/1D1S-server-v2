@@ -46,6 +46,17 @@ public class DiaryController {
     return ApiResponse.success(Message.DIARY_GET_ALL_SUCCESS, result);
   }
 
+  @GetMapping("/random")
+  public ApiResponse<List<DiaryResponse>> randomDiary(@RequestParam("size") Long size) {
+    try {
+      List<DiaryResponse> result = diaryService.getRandomDiaries(size);
+      return ApiResponse.success(Message.DIARY_VIEW_RANDOM, result);
+    } catch (Exception e) {
+      log.info(e.getMessage());
+      return null;
+    }
+  }
+
   @DeleteMapping("/{id}")
   public ApiResponse<Boolean> deleteDiary(@PathVariable(name = "id") Long diaryId) {
     Boolean result = diaryService.deleteDiary(diaryId);
@@ -65,4 +76,7 @@ public class DiaryController {
     Integer likeCount = diaryService.cancelDiaryLike(memberId, diaryId);
     return ApiResponse.success(Message.DIARY_CANCELED_LIKE, likeCount);
   }
+
+  // TODO : member와 diary.getMember()의 차이점으로 발생하는 점 다듬기
+
 }

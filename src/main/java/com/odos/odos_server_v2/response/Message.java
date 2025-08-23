@@ -14,4 +14,5 @@ public class Message {
   public static String DIARY_DELETE_SUCCESS = "다이어리 삭제를 성공했습니다.";
   public static String DIARY_ADDED_LIKE = "다이어리에 좋아요 누르기 성공했습니다.";
   public static String DIARY_CANCELED_LIKE = "다이어리에 좋아요 누르기 취소 성공했습니다.";
+  public static String DIARY_VIEW_RANDOM = "다이어리 랜덤 조회 성공했습니다.";
 }

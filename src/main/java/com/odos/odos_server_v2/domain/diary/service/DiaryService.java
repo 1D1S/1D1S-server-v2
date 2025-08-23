@@ -15,6 +15,7 @@ import com.odos.odos_server_v2.exception.CustomException;
 import com.odos.odos_server_v2.exception.ErrorCode;
 import jakarta.transaction.Transactional;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
@@ -150,5 +151,22 @@ public class DiaryService {
       diaryLikeRepository.delete(like.get());
       return diaryLikeRepository.getDiaryLikeCountByDiaryId(diaryId).size();
     }
+  }
+
+  @Transactional
+  public List<DiaryResponse> getRandomDiaries(Long size) {
+    Long memberId = CurrentUserContext.getCurrentMemberId();
+    Member member =
+        memberRepository
+            .findById(memberId)
+            .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+
+    List<Diary> diaries = diaryRepository.findDiariesByIsPublic(Boolean.TRUE);
+    if (diaries.isEmpty()) {
+      return Collections.emptyList();
+    }
+
+    Collections.shuffle(diaries);
+    return diaries.stream().limit(size).map(diary -> DiaryResponse.from(member, diary)).toList();
   }
 }

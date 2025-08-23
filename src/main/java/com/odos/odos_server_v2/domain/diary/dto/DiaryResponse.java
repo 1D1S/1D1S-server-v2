@@ -46,9 +46,9 @@ public class DiaryResponse {
 
     AuthorInfo author =
         AuthorInfo.builder()
-            .id(member.getId())
-            .nickname(member.getNickname())
-            .profileImage(member.getProfileUrl())
+            .id(diary.getMember().getId())
+            .nickname(diary.getMember().getNickname())
+            .profileImage(diary.getMember().getProfileUrl())
             .build();
 
     List<DiaryLike> likes = diary.getLikes() == null ? List.of() : diary.getLikes();
