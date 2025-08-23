@@ -3,10 +3,13 @@ package com.odos.odos_server_v2.domain.diary.service;
 import com.odos.odos_server_v2.domain.challenge.repository.ChallengeRepository;
 import com.odos.odos_server_v2.domain.diary.dto.DiaryRequest;
 import com.odos.odos_server_v2.domain.diary.dto.DiaryResponse;
+import com.odos.odos_server_v2.domain.diary.dto.ReportRequest;
 import com.odos.odos_server_v2.domain.diary.entity.Diary;
 import com.odos.odos_server_v2.domain.diary.entity.DiaryLike;
+import com.odos.odos_server_v2.domain.diary.entity.DiaryReport;
 import com.odos.odos_server_v2.domain.diary.repository.DiaryGoalRepository;
 import com.odos.odos_server_v2.domain.diary.repository.DiaryLikeRepository;
+import com.odos.odos_server_v2.domain.diary.repository.DiaryReportRepository;
 import com.odos.odos_server_v2.domain.diary.repository.DiaryRepository;
 import com.odos.odos_server_v2.domain.member.CurrentUserContext;
 import com.odos.odos_server_v2.domain.member.entity.Member;
@@ -29,6 +32,7 @@ public class DiaryService {
   private final DiaryRepository diaryRepository;
   private final MemberRepository memberRepository;
   private final DiaryLikeRepository diaryLikeRepository;
+  private final DiaryReportRepository diaryReportRepository;
   private final ChallengeRepository challengeRepository;
   private final DiaryGoalRepository diaryGoalRepository;
 
@@ -168,5 +172,23 @@ public class DiaryService {
 
     Collections.shuffle(diaries);
     return diaries.stream().limit(size).map(diary -> DiaryResponse.from(member, diary)).toList();
+  }
+
+  public Boolean reportDiary(ReportRequest request, Long memberId) {
+    try {
+      Member member = memberRepository.findById(memberId).orElseThrow();
+      Diary diary = diaryRepository.findById(request.getDiaryId()).orElseThrow();
+      DiaryReport diaryReport =
+          DiaryReport.builder()
+              .member(member)
+              .diary(diary)
+              .type(request.getReportType())
+              .content(request.getContent())
+              .build();
+      diaryReportRepository.save(diaryReport);
+      return true;
+    } catch (Exception e) {
+      return false;
+    }
   }
 }

@@ -2,6 +2,7 @@ package com.odos.odos_server_v2.domain.diary.controller;
 
 import com.odos.odos_server_v2.domain.diary.dto.DiaryRequest;
 import com.odos.odos_server_v2.domain.diary.dto.DiaryResponse;
+import com.odos.odos_server_v2.domain.diary.dto.ReportRequest;
 import com.odos.odos_server_v2.domain.diary.service.DiaryService;
 import com.odos.odos_server_v2.domain.member.CurrentUserContext;
 import com.odos.odos_server_v2.response.ApiResponse;
@@ -77,6 +78,10 @@ public class DiaryController {
     return ApiResponse.success(Message.DIARY_CANCELED_LIKE, likeCount);
   }
 
-  // TODO : member와 diary.getMember()의 차이점으로 발생하는 점 다듬기
-
+  @PostMapping("/report")
+  public ApiResponse<Boolean> reportDiary(@RequestBody ReportRequest request) {
+    Long memberId = CurrentUserContext.getCurrentMemberId();
+    Boolean result = diaryService.reportDiary(request, memberId);
+    return ApiResponse.success(Message.DIARY_REPORT_CREATED, result);
+  }
 }
