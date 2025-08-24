@@ -5,5 +5,6 @@ public enum ParticipantStatus {
   REJECTED,
   PARTICIPANT,
   HOST,
+  LEAVE,
   NONE
 }
