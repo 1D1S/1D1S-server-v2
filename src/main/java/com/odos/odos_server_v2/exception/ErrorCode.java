@@ -31,7 +31,10 @@ public enum ErrorCode {
   CHALLENGE_NOT_FOUND(HttpStatus.NOT_FOUND, "CHALLENGE_001", "챌린지를 찾을 수 없습니다."),
   ALREADY_APPLIED(HttpStatus.CONFLICT, "CHALLENGE_002", "이미 해당 챌린지에 신청한 상태입니다."),
   PARTICIPANT_NOT_FOUND(HttpStatus.NOT_FOUND, "CHALLENGE_003", "참여자를 찾을 수 없습니다."),
-  NO_AUTHORITY(HttpStatus.UNAUTHORIZED, "CHALLENGE_004", "권한이 없습니다.");
+  NO_AUTHORITY(HttpStatus.UNAUTHORIZED, "CHALLENGE_004", "권한이 없습니다."),
+  ALREADY_LIKED(HttpStatus.BAD_REQUEST, "CHALLENGE_005", "이미 좋아요를 눌렀습니다."),
+  CHALLENGE_LIKE_NOT_FOUND(HttpStatus.BAD_REQUEST, "CHALLENGE_006", "챌린지 좋아요 정보가 없습니다."),
+  CANNOT_LEAVE_CHALLENGE(HttpStatus.BAD_REQUEST, "CHALLENGE_007", "챌린치 탈퇴가 불가능합니다.");
 
   private final HttpStatus status;
   private final String code;
