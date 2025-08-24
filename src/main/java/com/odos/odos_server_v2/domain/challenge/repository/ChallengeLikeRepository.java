@@ -9,4 +9,6 @@ public interface ChallengeLikeRepository extends JpaRepository<ChallengeLike, Lo
   long countByChallengeId(Long challengeId);
 
   boolean existsByChallengeIdAndMemberId(Long challengeId, Long memberId);
+
+  ChallengeLike findByChallengeIdAndMemberId(Long challengeId, Long memberId);
 }
