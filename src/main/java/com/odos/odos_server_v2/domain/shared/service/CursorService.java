@@ -1,7 +1,10 @@
 package com.odos.odos_server_v2.domain.shared.service;
 
+import org.springframework.stereotype.Service;
+
 import java.util.Base64;
 
+@Service
 public class CursorService {
   public String encodeCursor(Long id) {
     return Base64.getEncoder().encodeToString(("cursor:" + id).getBytes());
