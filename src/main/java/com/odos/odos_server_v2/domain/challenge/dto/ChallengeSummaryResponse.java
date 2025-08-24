@@ -6,9 +6,11 @@ import com.odos.odos_server_v2.domain.shared.dto.LikeDto;
 import java.time.LocalDate;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Getter;
 
 @Builder
 @AllArgsConstructor
+@Getter
 public class ChallengeSummaryResponse {
   private Long challengeId;
   private String title;
