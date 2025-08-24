@@ -35,4 +35,8 @@ public class Participant {
 
   @OneToMany(mappedBy = "participant", cascade = CascadeType.ALL)
   private List<ChallengeGoal> challengeGoals;
+
+  public void setStatus(ParticipantStatus status) {
+    this.status = status;
+  }
 }
