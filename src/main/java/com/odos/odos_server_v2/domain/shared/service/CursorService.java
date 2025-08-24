@@ -1,8 +1,7 @@
 package com.odos.odos_server_v2.domain.shared.service;
 
-import org.springframework.stereotype.Service;
-
 import java.util.Base64;
+import org.springframework.stereotype.Service;
 
 @Service
 public class CursorService {
