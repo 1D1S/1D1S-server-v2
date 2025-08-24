@@ -8,22 +8,27 @@ import com.odos.odos_server_v2.domain.challenge.entity.Enum.ParticipantStatus;
 import com.odos.odos_server_v2.domain.challenge.entity.Participant;
 import com.odos.odos_server_v2.domain.challenge.repository.ChallengeGoalRepository;
 import com.odos.odos_server_v2.domain.challenge.repository.ChallengeLikeRepository;
+import com.odos.odos_server_v2.domain.challenge.repository.ChallengeRepository;
 import com.odos.odos_server_v2.domain.challenge.repository.ParticipantRepository;
 import com.odos.odos_server_v2.domain.diary.repository.DiaryGoalRepository;
 import com.odos.odos_server_v2.domain.diary.repository.DiaryRepository;
 import com.odos.odos_server_v2.domain.member.entity.Member;
+import com.odos.odos_server_v2.domain.member.repository.MemberRepository;
 import com.odos.odos_server_v2.domain.shared.dto.LikeDto;
 import com.odos.odos_server_v2.domain.shared.service.ImageService;
-import java.awt.*;
+import com.odos.odos_server_v2.exception.CustomException;
+import com.odos.odos_server_v2.exception.ErrorCode;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.Collections;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class ChallengeService {
   private final ParticipantRepository participantRepository;
   private final ChallengeLikeRepository challengeLikeRepository;
@@ -31,8 +36,111 @@ public class ChallengeService {
   private final DiaryGoalRepository diaryGoalRepository;
   private final DiaryRepository diaryRepository;
   private final ImageService imageService;
+  private final ChallengeRepository challengeRepository;
+  private final MemberRepository memberRepository;
 
-  private ChallengeResponse toChallengeResponse(Challenge challenge, Member member) {
+  @Transactional
+  public ChallengeSummaryResponse createChallenge(
+      ChallengeRequest challengeRequest, Long memberId) {
+    Member member =
+        memberRepository
+            .findById(memberId)
+            .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+    Challenge challenge =
+        Challenge.builder()
+            .title(challengeRequest.getTitle())
+            .category(challengeRequest.getCategory())
+            .startDate(challengeRequest.getStartDate())
+            .endDate(challengeRequest.getEndDate())
+            .maxParticipantsCnt(challengeRequest.getMaxParticipantCnt())
+            .type(challengeRequest.getChallengeType())
+            .description(challengeRequest.getDescription())
+            .hostMember(member)
+            .build();
+
+    challengeRepository.save(challenge);
+    Participant participant =
+        Participant.builder()
+            .member(member)
+            .challenge(challenge)
+            .status(ParticipantStatus.HOST)
+            .build();
+    participantRepository.save(participant);
+    for (String g : challengeRequest.getGoals()) {
+      ChallengeGoal challengeGoal =
+          ChallengeGoal.builder().content(g).participant(participant).build();
+      challengeGoalRepository.save(challengeGoal);
+    }
+    return toChallengeSummary(challenge, memberId);
+  }
+
+  public ChallengeResponse getChallenge(Long challengeId, Long memberId) {
+    Challenge challenge =
+        challengeRepository
+            .findById(challengeId)
+            .orElseThrow(() -> new CustomException(ErrorCode.CHALLENGE_NOT_FOUND));
+    Member member =
+        memberRepository
+            .findById(memberId)
+            .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+    return toChallengeResponse(challenge, member);
+  }
+
+  @Transactional
+  public ParticipantResponse applyParticipant(Long challengeId, Long memberId, List<String> goals) {
+    Challenge challenge =
+        challengeRepository
+            .findById(challengeId)
+            .orElseThrow(() -> new CustomException(ErrorCode.CHALLENGE_NOT_FOUND));
+    Member member =
+        memberRepository
+            .findById(memberId)
+            .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+
+    if (participantRepository.existsByChallengeIdAndMemberId(challengeId, memberId)) {
+      throw new CustomException(ErrorCode.ALREADY_APPLIED);
+    }
+    Participant participant =
+        Participant.builder()
+            .member(member)
+            .challenge(challenge)
+            .status(ParticipantStatus.PENDING)
+            .build();
+    participantRepository.save(participant);
+
+    if (challenge.getType().equals(ChallengeType.FLEXIBLE)) {
+      for (String g : goals) {
+        ChallengeGoal goal = ChallengeGoal.builder().content(g).participant(participant).build();
+        challengeGoalRepository.save(goal);
+      }
+    } else {
+      Participant hostParticipant =
+          participantRepository.findByMemberIdAndChallengeId(
+              challenge.getHostMember().getId(), challengeId);
+      List<ChallengeGoal> challengeGoals = hostParticipant.getChallengeGoals();
+      for (ChallengeGoal cg : challengeGoals) {
+        challengeGoalRepository.save(
+            ChallengeGoal.builder().participant(participant).content(cg.getContent()).build());
+      }
+    }
+    return toParticipant(participant);
+  }
+
+  @Transactional
+  public void acceptParticipant(Long participantId, Long memberId) {
+    Participant participant =
+        participantRepository
+            .findById(participantId)
+            .orElseThrow(() -> new CustomException(ErrorCode.PARTICIPANT_NOT_FOUND));
+    if (participant.getChallenge().getHostMember().getId().equals(memberId)) {
+      participant.setStatus(ParticipantStatus.PARTICIPANT);
+      participantRepository.save(participant);
+    } else {
+      throw new CustomException(ErrorCode.NO_AUTHORITY);
+    }
+  }
+
+  public ChallengeResponse toChallengeResponse(Challenge challenge, Member member) {
     Long challengeId = challenge.getId();
     Long memberId = member.getId();
     // 챌린지 목표
@@ -102,13 +210,19 @@ public class ChallengeService {
     return new ChallengeGoalDto(challengeGoal.getId(), challengeGoal.getContent());
   }
 
-  private final ParticipantDto toParticipant(Participant participant) {
+  private final ParticipantResponse toParticipant(Participant participant) {
     Member member = participant.getMember();
-    return new ParticipantDto(
+    String profileUrl;
+    if (member.getProfileUrl() == null) {
+      profileUrl = "";
+    } else {
+      profileUrl = imageService.getFileUrl(member.getProfileUrl());
+    }
+    return new ParticipantResponse(
         member.getId(),
         participant.getId(),
         member.getNickname(),
-        imageService.getFileUrl(member.getProfileUrl()),
+        profileUrl,
         participant.getStatus());
   }
 
@@ -147,7 +261,7 @@ public class ChallengeService {
     }
     if (days == 0) return 0;
 
-    return (double) allGoalsCompletedDiaryCnt / ((double) participantCnt * (double) days);
+    return (double) allGoalsCompletedDiaryCnt / ((double) participantCnt * (double) days) * 100;
   }
 
   private double getGoalCompletionRate(Challenge challenge) {
