@@ -1,0 +1,26 @@
+# Dockerfile.db.env
+FROM gradle:jdk17-alpine AS builder
+WORKDIR /app
+
+# 의존성 캐시를 위해 gradle 관련 파일을 먼저 복사
+COPY build.gradle settings.gradle gradlew /app/
+COPY gradle /app/gradle
+RUN chmod +x gradlew
+RUN ./gradlew dependencies --no-daemon
+
+# 소스 복사 후 빌드
+COPY . /app
+RUN ./gradlew clean bootJar --no-daemon
+
+# 경량 런타임 이미지
+FROM openjdk:17-jre-slim
+WORKDIR /app
+
+# 빌드 산출물만 복사
+COPY --from=builder /app/build/libs/*.jar app.jar
+
+ENV TZ=Asia/Seoul
+EXPOSE 8080
+ENTRYPOINT ["java","-jar","/app/app.jar"]
+
+
