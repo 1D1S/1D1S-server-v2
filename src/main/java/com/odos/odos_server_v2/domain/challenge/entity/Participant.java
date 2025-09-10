@@ -1,7 +1,6 @@
 package com.odos.odos_server_v2.domain.challenge.entity;
 
 import com.odos.odos_server_v2.domain.challenge.entity.Enum.ParticipantStatus;
-import com.odos.odos_server_v2.domain.challenge.entity.Enum.ParticipantType;
 import com.odos.odos_server_v2.domain.member.entity.Member;
 import jakarta.persistence.*;
 import java.util.List;
@@ -26,10 +25,6 @@ public class Participant {
   @Enumerated(EnumType.STRING)
   private ParticipantStatus status;
 
-  @Column
-  @Enumerated(EnumType.STRING)
-  private ParticipantType type;
-
   @ManyToOne
   @JoinColumn(name = "memberId")
   private Member member;
@@ -40,4 +35,8 @@ public class Participant {
 
   @OneToMany(mappedBy = "participant", cascade = CascadeType.ALL)
   private List<ChallengeGoal> challengeGoals;
+
+  public void setStatus(ParticipantStatus status) {
+    this.status = status;
+  }
 }

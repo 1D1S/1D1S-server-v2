@@ -26,13 +26,14 @@ public class Challenge {
 
   @Column private String title;
 
-  @Column private Category category;
+  @Column
+  private @Enumerated(EnumType.STRING) Category category;
 
   @Column private LocalDate startDate;
 
   @Column private LocalDate endDate;
 
-  @Column private int maxParticipantsCnt;
+  @Column private long maxParticipantsCnt;
 
   @Column
   @Enumerated(EnumType.STRING)
