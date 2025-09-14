@@ -10,3 +10,6 @@ services:
     restart: always
     volumes:
       - /var/log/oneday:/app/logs   # 운영 서버 로그 확인 가능
+    env_file:
+      - .env/security.env
+      - .env/db.env

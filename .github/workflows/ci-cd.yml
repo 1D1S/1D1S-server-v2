@@ -68,6 +68,14 @@ jobs:
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
+            # 1. EC2 서버에서 애플리케이션 배포 디렉토리로 이동
+            # 'ec2-user'의 홈 디렉토리를 사용합니다.
+            APP_DIR="/home/ec2-user/oneday-onestreak"
+            if [ ! -d "$APP_DIR" ]; then
+              mkdir -p "$APP_DIR"
+            fi
+            cd "$APP_DIR"
+            
             TAG=${{ github.ref == 'refs/heads/main' && 'main' || 'dev' }}
             IMAGE=${{ secrets.DOCKERHUB_USERNAME }}/oneday-onestreak:${TAG}
 
