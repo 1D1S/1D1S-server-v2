@@ -1,5 +1,4 @@
 .env/
-docker-compose.prod.yml
 HELP.md
 .gradle
 build/
