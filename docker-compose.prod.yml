@@ -1,15 +1,13 @@
 # docker-compose.prod.yml
 services:
   app:
-    # Docker Hub에 푸시된 이미지를 사용합니다.
-    # 태그는 GitHub Actions에서 동적으로 지정됩니다.
     image: 1d1s/oneday-onestreak:${TAG}
     container_name: oneday-onestreak-prod
     ports:
       - "8080:8080"
     restart: always
     volumes:
-      - /var/log/oneday:/app/logs   # 운영 서버 로그 확인 가능
+      - /var/log/oneday:/app/logs
     env_file:
       - .env/security.env
       - .env/db.env

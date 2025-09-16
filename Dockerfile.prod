@@ -2,17 +2,14 @@
 FROM openjdk:17-jre-slim
 WORKDIR /app
 
-# 빌드 산출물만 복사 (GitHub Actions에서 이미 build/libs/*.jar 생성됨)
 COPY build/libs/*.jar app.jar
 
-# 타임존 & 로깅 유틸 설치
 RUN apt-get update && apt-get install -y tzdata tini \
     && rm -rf /var/lib/apt/lists/*
 ENV TZ=Asia/Seoul
 
 EXPOSE 8080
 
-# logback 로그 파일은 /app/logs 에 기록
 VOLUME /app/logs
 
 ENTRYPOINT ["/usr/bin/tini", "--", "java", "-jar", "/app/app.jar"]

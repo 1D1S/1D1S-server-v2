@@ -52,11 +52,9 @@ jobs:
           file: Dockerfile.prod
 
   deploy:
-    # deploy 작업은 build_and_push 작업이 성공적으로 완료된 후에만 실행됩니다.
     needs: build_and_push
     runs-on: ubuntu-latest
 
-    # 브랜치에 따라 사용할 환경을 지정합니다.
     environment:
       name: ${{ github.ref == 'refs/heads/main' && 'main' || 'dev' }}
 
@@ -68,8 +66,6 @@ jobs:
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            # 1. EC2 서버에서 애플리케이션 배포 디렉토리로 이동
-            # 'ec2-user'의 홈 디렉토리를 사용합니다.
             APP_DIR="/home/ec2-user/oneday-onestreak"
             if [ ! -d "$APP_DIR" ]; then
               mkdir -p "$APP_DIR"

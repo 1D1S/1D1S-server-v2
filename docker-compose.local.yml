@@ -11,5 +11,4 @@ services:
       - .env/dockerdb.env
       - .env/security.env
     volumes:
-        # 로컬에서 애플리케이션 로그 파일을 컨테이너 외부로 마운트하여 쉽게 확인 가능
-        - ./logs:/app/logs
+      - ./logs:/app/logs
