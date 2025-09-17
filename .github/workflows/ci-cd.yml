@@ -59,6 +59,9 @@ jobs:
       name: ${{ github.ref == 'refs/heads/main' && 'main' || 'dev' }}
 
     steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+        
       - name: Copy docker-compose.prod.yml to EC2
         uses: appleboy/scp-action@v0.1.7
         with:
