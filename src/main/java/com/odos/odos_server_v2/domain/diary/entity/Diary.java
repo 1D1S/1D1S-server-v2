@@ -45,6 +45,8 @@ public class Diary {
   @Column(columnDefinition = "TEXT")
   private String content;
 
+  @Column private Boolean isAllGoalsCompleted = false;
+
   @Column private Boolean isDeleted;
 
   @OneToMany(mappedBy = "diary", cascade = CascadeType.ALL)

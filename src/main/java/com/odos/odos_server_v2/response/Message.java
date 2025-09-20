@@ -16,4 +16,17 @@ public class Message {
   public static String DIARY_CANCELED_LIKE = "다이어리에 좋아요 누르기 취소 성공했습니다.";
   public static String DIARY_VIEW_RANDOM = "다이어리 랜덤 조회 성공했습니다.";
   public static String DIARY_REPORT_CREATED = "다이어리 신고 생성 성공했습니다.";
+
+  // challenge
+  public static String CREATE_CHALLENGE = "챌린지 생성 성공했습니다.";
+  public static String GET_CHALLENGE = "챌린지 상세 조회 성공했습니다.";
+  public static String APPLY_CHALLENGE = "챌린지 신청 성공했습니다.";
+  public static String ACCEPT_PARTICIPANT = "참여자 수락 성공했습니다.";
+  public static String REJECT_PARTICIPANT = "참여자 거절 성공했습니다.";
+  public static String GET_RANDOM_CHALLENGES = "챌린지 랜덤 불러오기 성공했습니다.";
+  public static String LEAVE_CHALLENGE = "챌린지 탈퇴하기 성공했습니다.";
+  public static String GET_CHALLENGE_LIST = "챌린지 리스트 불러오기 성공했습니다.";
+  public static String ADD_CHALLENGE_LIKE = "챌린지 좋아요 성공했습니다.";
+  public static String CANCEL_CHALLENGE_LIKE = "챌린지 좋아요 취소 성공했습니다.";
+  public static String GET_CHALLENGES_BY_MEMBER = "진행중인 챌린지 불러오기 성공했습니다.";
 }
