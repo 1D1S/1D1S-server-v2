@@ -30,12 +30,15 @@ public class DiaryResponse {
     List<Long> achievements =
         diary.getDiaryGoals() == null
             ? Collections.emptyList()
-            : diary.getDiaryGoals().stream().map(DiaryGoal::getId).toList();
+            : diary.getDiaryGoals().stream()
+                .filter(DiaryGoal::getIsCompleted)
+                .map(diaryGoal -> diaryGoal.getChallengeGoal().getId()) // 챌린지골 아이디 기준으로
+                .toList();
 
     int totalGoal = diary.getDiaryGoals().size();
-    long achievedGalsCount =
+    long achievedGoalsCount =
         diary.getDiaryGoals().stream().filter(DiaryGoal::getIsCompleted).count();
-    int achievementRate = (int) (achievedGalsCount * 100) / totalGoal;
+    int achievementRate = totalGoal > 0 ? (int) (achievedGoalsCount * 100) / totalGoal : 0;
 
     DiaryInfo info =
         DiaryInfo.builder()

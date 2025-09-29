@@ -81,4 +81,8 @@ public class Diary {
   public void addLike(DiaryLike diaryLike) {
     this.likes.add(diaryLike);
   }
+
+  public void addDiaryGoal(DiaryGoal diaryGoal) {
+    this.diaryGoals.add(diaryGoal);
+  }
 }

@@ -3,8 +3,10 @@ package com.odos.odos_server_v2.domain.diary.service;
 import com.odos.odos_server_v2.domain.challenge.dto.ChallengeSummaryResponse;
 import com.odos.odos_server_v2.domain.challenge.entity.Challenge;
 import com.odos.odos_server_v2.domain.challenge.entity.ChallengeGoal;
+import com.odos.odos_server_v2.domain.challenge.entity.Participant;
 import com.odos.odos_server_v2.domain.challenge.repository.ChallengeGoalRepository;
 import com.odos.odos_server_v2.domain.challenge.repository.ChallengeRepository;
+import com.odos.odos_server_v2.domain.challenge.repository.ParticipantRepository;
 import com.odos.odos_server_v2.domain.challenge.service.ChallengeService;
 import com.odos.odos_server_v2.domain.diary.dto.DiaryRequest;
 import com.odos.odos_server_v2.domain.diary.dto.DiaryResponse;
@@ -23,10 +25,7 @@ import com.odos.odos_server_v2.domain.member.repository.MemberRepository;
 import com.odos.odos_server_v2.exception.CustomException;
 import com.odos.odos_server_v2.exception.ErrorCode;
 import jakarta.transaction.Transactional;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -43,13 +42,21 @@ public class DiaryService {
   private final DiaryGoalRepository diaryGoalRepository;
   private final ChallengeService challengeService;
   private final ChallengeGoalRepository challengeGoalRepository;
+  private final ParticipantRepository participantRepository;
 
+  @Transactional
   public DiaryResponse createDiary(Long memberId, DiaryRequest request) {
     try {
       Member member = memberRepository.findById(memberId).orElseThrow();
       Challenge challenge = challengeRepository.findById(request.getChallengeId()).orElseThrow();
       ChallengeSummaryResponse challengeSummary =
           challengeService.toChallengeSummary(challenge, memberId);
+
+      Participant participant =
+          participantRepository.findByMemberIdAndChallengeId(memberId, challenge.getId());
+      if (participant == null) {
+        /*CustomException 던지기 */
+      }
 
       Diary diary =
           Diary.builder()
@@ -60,25 +67,29 @@ public class DiaryService {
               .content(request.getContent())
               .feeling(request.getFeeling())
               .isPublic(request.getIsPublic())
+              .diaryGoals(new ArrayList<>())
               .likes(new ArrayList<>())
               .build();
       Diary newDiary = diaryRepository.save(diary);
 
-      if (request.getAchievedGoalIds() != null) {
-        for (Long goalId : request.getAchievedGoalIds()) {
-          ChallengeGoal cg = challengeGoalRepository.findById(goalId).orElseThrow();
-          // .orElseThrow(() -> new CustomException(ErrorCode.CHALLENGE_GOAL_NOT_FOUND));
+      // 3. 챌린지 목표를 기반으로 다이어리 목표 생성 및 저장
+      List<ChallengeGoal> challengeGoals = Objects.requireNonNull(participant).getChallengeGoals();
+      List<DiaryGoal> diaryGoals = new ArrayList<>();
+      List<Long> achievedGoalIds =
+          request.getAchievedGoalIds() != null ? request.getAchievedGoalIds() : new ArrayList<>();
 
-          DiaryGoal diaryGoal =
-              DiaryGoal.builder()
-                  .isCompleted(true)
-                  .challengeGoal(cg)
-                  // .memberChallenge(cg.getMemberChallenge())
-                  .build();
-          //  diary.addDiaryGoal(diaryGoal);
-        }
+      for (ChallengeGoal challengeGoal : challengeGoals) {
+        boolean isCompleted = achievedGoalIds.contains(challengeGoal.getId());
+        DiaryGoal diaryGoal =
+            DiaryGoal.builder()
+                .diary(newDiary) // newDiary로 변경!
+                .challengeGoal(challengeGoal)
+                .isCompleted(isCompleted)
+                .build();
+        diaryGoals.add(diaryGoal);
+        newDiary.addDiaryGoal(diaryGoal);
       }
-
+      diaryGoalRepository.saveAll(diaryGoals);
       return DiaryResponse.from(member, newDiary, challengeSummary);
     } catch (Exception e) {
       log.error(e.getMessage(), e);
