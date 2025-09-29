@@ -1,9 +1,12 @@
 package com.odos.odos_server_v2.domain.diary.dto;
 
+import com.odos.odos_server_v2.domain.challenge.dto.ChallengeSummaryResponse;
 import com.odos.odos_server_v2.domain.diary.entity.Diary;
+import com.odos.odos_server_v2.domain.diary.entity.DiaryGoal;
 import com.odos.odos_server_v2.domain.diary.entity.DiaryLike;
 import com.odos.odos_server_v2.domain.member.entity.Member;
 import com.odos.odos_server_v2.domain.shared.dto.LikeDto;
+import java.util.Collections;
 import java.util.List;
 import lombok.Builder;
 import lombok.Getter;
@@ -13,7 +16,7 @@ import lombok.Getter;
 public class DiaryResponse {
 
   private Long id;
-  // private ChallengeResponse challenge;
+  private ChallengeSummaryResponse challenge;
   private AuthorInfo authorInfo;
   private String title;
   private String content;
@@ -22,25 +25,24 @@ public class DiaryResponse {
   private LikeDto likeInfo;
   private DiaryInfo diaryInfo;
 
-  public static DiaryResponse from(Member member, Diary diary) {
+  public static DiaryResponse from(Member member, Diary diary, ChallengeSummaryResponse challenge) {
 
-    //          List<Long> achievements = diary.getDiaryGoals() == null
-    //                  ? Collections.emptyList()
-    //                  : diary.getDiaryGoals().stream()
-    //                  .map(DiaryGoal::getId)
-    //                  .toList();
-    //
-    //          int totalGoal = diary.getDiaryGoals().size();
-    //          long achievedGalsCount =
-    //            diary.getDiaryGoals().stream().filter(DiaryGoal::getIsCompleted).count();
-    //          int achievementRate = (int) (achievedGalsCount * 100) / totalGoal;
+    List<Long> achievements =
+        diary.getDiaryGoals() == null
+            ? Collections.emptyList()
+            : diary.getDiaryGoals().stream().map(DiaryGoal::getId).toList();
+
+    int totalGoal = diary.getDiaryGoals().size();
+    long achievedGalsCount =
+        diary.getDiaryGoals().stream().filter(DiaryGoal::getIsCompleted).count();
+    int achievementRate = (int) (achievedGalsCount * 100) / totalGoal;
 
     DiaryInfo info =
         DiaryInfo.builder()
             .createdAt(diary.getCreatedDate().toString())
             .challengedDate(diary.getCompletedDate().toString())
-            // .achievement(achievements)
-            // .achievementRate(achievementRate)
+            .achievement(achievements)
+            .achievementRate(achievementRate)
             .feeling(diary.getFeeling())
             .build();
 
@@ -76,6 +78,7 @@ public class DiaryResponse {
 
     return DiaryResponse.builder()
         .id(diary.getId())
+        .challenge(challenge)
         .content(diary.getContent())
         .title(diary.getTitle())
         .isPublic(diary.getIsPublic())

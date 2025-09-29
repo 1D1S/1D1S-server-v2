@@ -301,7 +301,7 @@ public class ChallengeService {
         participants.stream().map(this::toParticipant).toList());
   }
 
-  private ChallengeSummaryResponse toChallengeSummary(Challenge challenge, Long memberId) {
+  public ChallengeSummaryResponse toChallengeSummary(Challenge challenge, Long memberId) {
     Long challengeId = challenge.getId();
     LikeDto likeInfo;
     if (memberId != null) {

@@ -1,10 +1,16 @@
 package com.odos.odos_server_v2.domain.diary.service;
 
+import com.odos.odos_server_v2.domain.challenge.dto.ChallengeSummaryResponse;
+import com.odos.odos_server_v2.domain.challenge.entity.Challenge;
+import com.odos.odos_server_v2.domain.challenge.entity.ChallengeGoal;
+import com.odos.odos_server_v2.domain.challenge.repository.ChallengeGoalRepository;
 import com.odos.odos_server_v2.domain.challenge.repository.ChallengeRepository;
+import com.odos.odos_server_v2.domain.challenge.service.ChallengeService;
 import com.odos.odos_server_v2.domain.diary.dto.DiaryRequest;
 import com.odos.odos_server_v2.domain.diary.dto.DiaryResponse;
 import com.odos.odos_server_v2.domain.diary.dto.ReportRequest;
 import com.odos.odos_server_v2.domain.diary.entity.Diary;
+import com.odos.odos_server_v2.domain.diary.entity.DiaryGoal;
 import com.odos.odos_server_v2.domain.diary.entity.DiaryLike;
 import com.odos.odos_server_v2.domain.diary.entity.DiaryReport;
 import com.odos.odos_server_v2.domain.diary.repository.DiaryGoalRepository;
@@ -35,25 +41,49 @@ public class DiaryService {
   private final DiaryReportRepository diaryReportRepository;
   private final ChallengeRepository challengeRepository;
   private final DiaryGoalRepository diaryGoalRepository;
+  private final ChallengeService challengeService;
+  private final ChallengeGoalRepository challengeGoalRepository;
 
   public DiaryResponse createDiary(Long memberId, DiaryRequest request) {
-    Member member = memberRepository.findById(memberId).orElseThrow();
-    // Challenge challenge = challengeRepository.findById(reqeust.getChallengeId);
+    try {
+      Member member = memberRepository.findById(memberId).orElseThrow();
+      Challenge challenge = challengeRepository.findById(request.getChallengeId()).orElseThrow();
+      ChallengeSummaryResponse challengeSummary =
+          challengeService.toChallengeSummary(challenge, memberId);
 
-    Diary diary =
-        Diary.builder()
-            .member(member)
-            // .challenge()
-            .completedDate(request.getAchievedDate())
-            .title(request.getTitle())
-            .content(request.getContent())
-            .feeling(request.getFeeling())
-            .isPublic(request.getIsPublic())
-            .likes(new ArrayList<>())
-            .build();
+      Diary diary =
+          Diary.builder()
+              .member(member)
+              .challenge(challenge)
+              .completedDate(request.getAchievedDate())
+              .title(request.getTitle())
+              .content(request.getContent())
+              .feeling(request.getFeeling())
+              .isPublic(request.getIsPublic())
+              .likes(new ArrayList<>())
+              .build();
+      Diary newDiary = diaryRepository.save(diary);
 
-    Diary newDiary = diaryRepository.save(diary);
-    return DiaryResponse.from(member, newDiary);
+      if (request.getAchievedGoalIds() != null) {
+        for (Long goalId : request.getAchievedGoalIds()) {
+          ChallengeGoal cg = challengeGoalRepository.findById(goalId).orElseThrow();
+          // .orElseThrow(() -> new CustomException(ErrorCode.CHALLENGE_GOAL_NOT_FOUND));
+
+          DiaryGoal diaryGoal =
+              DiaryGoal.builder()
+                  .isCompleted(true)
+                  .challengeGoal(cg)
+                  // .memberChallenge(cg.getMemberChallenge())
+                  .build();
+          //  diary.addDiaryGoal(diaryGoal);
+        }
+      }
+
+      return DiaryResponse.from(member, newDiary, challengeSummary);
+    } catch (Exception e) {
+      log.error(e.getMessage(), e);
+      return null;
+    }
   }
 
   @Transactional
@@ -66,6 +96,9 @@ public class DiaryService {
         diaryRepository
             .findById(diaryId)
             .orElseThrow(() -> new CustomException(ErrorCode.DIARY_NOT_FOUND));
+
+    ChallengeSummaryResponse response =
+        challengeService.toChallengeSummary(diary.getChallenge(), memberId);
     //        Challenge challenge =
     // challengeRepository.findById(request.getChallengeId()).orElseThrow();
     //        List<Long> goalIds = request.getAchievedGoalIds();
@@ -76,7 +109,7 @@ public class DiaryService {
     //        }
     diary.updateDiary(request);
     diaryRepository.save(diary);
-    return DiaryResponse.from(member, diary);
+    return DiaryResponse.from(member, diary, response);
   }
 
   public DiaryResponse getDiary(Long diaryId) {
@@ -85,7 +118,10 @@ public class DiaryService {
             .findById(diaryId)
             .orElseThrow(() -> new CustomException(ErrorCode.DIARY_NOT_FOUND));
     Member member = diary.getMember();
-    return DiaryResponse.from(member, diary);
+    ChallengeSummaryResponse response =
+        challengeService.toChallengeSummary(diary.getChallenge(), member.getId());
+
+    return DiaryResponse.from(member, diary, response);
   }
 
   @Transactional
@@ -95,8 +131,13 @@ public class DiaryService {
       Member member = memberRepository.findById(memberId).orElseThrow();
       List<Diary> diaries = diaryRepository.findDiariesByIsPublic(Boolean.TRUE);
       List<DiaryResponse> diaryResponses = new ArrayList<>();
+
       for (Diary diary : diaries) {
-        diaryResponses.add(DiaryResponse.from(member, diary));
+        diaryResponses.add(
+            DiaryResponse.from(
+                member,
+                diary,
+                challengeService.toChallengeSummary(diary.getChallenge(), memberId)));
       }
       return diaryResponses;
     } catch (Exception e) {
@@ -171,7 +212,15 @@ public class DiaryService {
     }
 
     Collections.shuffle(diaries);
-    return diaries.stream().limit(size).map(diary -> DiaryResponse.from(member, diary)).toList();
+    return diaries.stream()
+        .limit(size)
+        .map(
+            diary ->
+                DiaryResponse.from(
+                    member,
+                    diary,
+                    challengeService.toChallengeSummary(diary.getChallenge(), memberId)))
+        .toList();
   }
 
   public Boolean reportDiary(ReportRequest request, Long memberId) {
@@ -200,7 +249,9 @@ public class DiaryService {
     List<Diary> diaries = diaryRepository.findDiariesByMember_Id(memberId);
     List<DiaryResponse> diaryResponses = new ArrayList<>();
     for (Diary diary : diaries) {
-      diaryResponses.add(DiaryResponse.from(member, diary));
+      diaryResponses.add(
+          DiaryResponse.from(
+              member, diary, challengeService.toChallengeSummary(diary.getChallenge(), memberId)));
     }
     return diaryResponses;
   }
