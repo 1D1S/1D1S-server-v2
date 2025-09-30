@@ -22,12 +22,16 @@ import com.odos.odos_server_v2.domain.diary.repository.DiaryRepository;
 import com.odos.odos_server_v2.domain.member.CurrentUserContext;
 import com.odos.odos_server_v2.domain.member.entity.Member;
 import com.odos.odos_server_v2.domain.member.repository.MemberRepository;
+import com.odos.odos_server_v2.domain.shared.dto.PageInfo;
+import com.odos.odos_server_v2.domain.shared.dto.Pagination;
+import com.odos.odos_server_v2.domain.shared.service.CursorService;
 import com.odos.odos_server_v2.exception.CustomException;
 import com.odos.odos_server_v2.exception.ErrorCode;
 import jakarta.transaction.Transactional;
 import java.util.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -41,6 +45,7 @@ public class DiaryService {
   private final ChallengeRepository challengeRepository;
   private final DiaryGoalRepository diaryGoalRepository;
   private final ChallengeService challengeService;
+  private final CursorService cursorService;
   private final ChallengeGoalRepository challengeGoalRepository;
   private final ParticipantRepository participantRepository;
 
@@ -156,25 +161,38 @@ public class DiaryService {
   }
 
   @Transactional
-  public List<DiaryResponse> getAllPublicDiaries() {
-    try {
-      Long memberId = CurrentUserContext.getCurrentMemberId();
-      Member member = memberRepository.findById(memberId).orElseThrow();
-      List<Diary> diaries = diaryRepository.findDiariesByIsPublic(Boolean.TRUE);
-      List<DiaryResponse> diaryResponses = new ArrayList<>();
+  public Pagination<DiaryResponse> getPublicDiariesPage(Integer size, String cursor) {
+    int limit = (size == null || size <= 0) ? 10 : Math.min(size, 100);
 
-      for (Diary diary : diaries) {
-        diaryResponses.add(
-            DiaryResponse.from(
-                member,
-                diary,
-                challengeService.toChallengeSummary(diary.getChallenge(), memberId)));
-      }
-      return diaryResponses;
-    } catch (Exception e) {
-      log.info(e.getMessage());
-      return null;
+    Long memberId = CurrentUserContext.getCurrentMemberId();
+    Member member = memberRepository.findById(memberId).orElseThrow();
+
+    Long cursorId = cursorService.decodeCursorToId(cursor);
+
+    List<Diary> diaries =
+        diaryRepository.findPublicPage(
+            cursorId, PageRequest.of(0, limit + 1)); // hasNext 판별 위해 limit + 1로 조회
+
+    boolean hasNext = diaries.size() > limit;
+    if (hasNext) {
+      diaries = diaries.subList(0, limit);
     }
+
+    List<DiaryResponse> items = new ArrayList<>(diaries.size());
+    for (Diary diary : diaries) {
+      items.add(
+          DiaryResponse.from(
+              member, diary, challengeService.toChallengeSummary(diary.getChallenge(), memberId)));
+    }
+
+    String nextCursor = null;
+    if (hasNext && !diaries.isEmpty()) {
+      Long lastId = diaries.get(diaries.size() - 1).getId();
+      nextCursor = cursorService.encodeCursor(lastId);
+    }
+
+    PageInfo pageInfo = new PageInfo((long) limit, hasNext, nextCursor);
+    return new Pagination<>(items, pageInfo);
   }
 
   public Boolean deleteDiary(Long diaryId) {

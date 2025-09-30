@@ -5,6 +5,7 @@ import com.odos.odos_server_v2.domain.diary.dto.DiaryResponse;
 import com.odos.odos_server_v2.domain.diary.dto.ReportRequest;
 import com.odos.odos_server_v2.domain.diary.service.DiaryService;
 import com.odos.odos_server_v2.domain.member.CurrentUserContext;
+import com.odos.odos_server_v2.domain.shared.dto.Pagination;
 import com.odos.odos_server_v2.response.ApiResponse;
 import com.odos.odos_server_v2.response.Message;
 import java.util.List;
@@ -42,8 +43,10 @@ public class DiaryController {
   }
 
   @GetMapping("")
-  public ApiResponse<List<DiaryResponse>> getAllDiary() {
-    List<DiaryResponse> result = diaryService.getAllPublicDiaries();
+  public ApiResponse<Pagination<DiaryResponse>> getAllDiary(
+      @RequestParam(name = "size", required = false) Integer size,
+      @RequestParam(name = "cursor", required = false) String cursor) {
+    Pagination<DiaryResponse> result = diaryService.getPublicDiariesPage(size, cursor);
     return ApiResponse.success(Message.DIARY_GET_ALL_SUCCESS, result);
   }
 
