@@ -161,6 +161,28 @@ public class DiaryService {
   }
 
   @Transactional
+  public List<DiaryResponse> getAllPublicDiaries() {
+    try {
+      Long memberId = CurrentUserContext.getCurrentMemberId();
+      Member member = memberRepository.findById(memberId).orElseThrow();
+      List<Diary> diaries = diaryRepository.findDiariesByIsPublic(Boolean.TRUE);
+      List<DiaryResponse> diaryResponses = new ArrayList<>();
+
+      for (Diary diary : diaries) {
+        diaryResponses.add(
+            DiaryResponse.from(
+                member,
+                diary,
+                challengeService.toChallengeSummary(diary.getChallenge(), memberId)));
+      }
+      return diaryResponses;
+    } catch (Exception e) {
+      log.info(e.getMessage());
+      return null;
+    }
+  }
+
+  @Transactional
   public Pagination<DiaryResponse> getPublicDiariesPage(Integer size, String cursor) {
     int limit = (size == null || size <= 0) ? 10 : Math.min(size, 100);
 

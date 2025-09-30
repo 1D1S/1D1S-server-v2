@@ -43,10 +43,16 @@ public class DiaryController {
   }
 
   @GetMapping("")
-  public ApiResponse<Pagination<DiaryResponse>> getAllDiary(
+  public ApiResponse<Pagination<DiaryResponse>> getAllDiaryBySize(
       @RequestParam(name = "size", required = false) Integer size,
       @RequestParam(name = "cursor", required = false) String cursor) {
     Pagination<DiaryResponse> result = diaryService.getPublicDiariesPage(size, cursor);
+    return ApiResponse.success(Message.DIARY_GET_ALL_SUCCESS, result);
+  }
+
+  @GetMapping("/all")
+  public ApiResponse<List<DiaryResponse>> getAllDiary() {
+    List<DiaryResponse> result = diaryService.getAllPublicDiaries();
     return ApiResponse.success(Message.DIARY_GET_ALL_SUCCESS, result);
   }
 
