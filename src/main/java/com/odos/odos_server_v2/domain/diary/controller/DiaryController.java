@@ -101,7 +101,7 @@ public class DiaryController {
   public ApiResponse<List<DiaryResponse>> getMyDiaries() {
     try {
       List<DiaryResponse> result = diaryService.getMyDiaries();
-      return ApiResponse.success(Message.DIARY_GET_ALL_SUCCESS, result);
+      return ApiResponse.success(Message.DIARY_GET_MY_ALL_SUCCESS, result);
     } catch (Exception e) {
       log.info(e.getMessage());
       return null;
@@ -113,7 +113,7 @@ public class DiaryController {
       @PathVariable("id") Long diaryId, @RequestParam("file") MultipartFile file) {
     try {
       String fileName = diaryService.uploadDiaryFile(diaryId, file);
-      return ApiResponse.success("", fileName);
+      return ApiResponse.success(Message.DIARY_IMAGE_UPLOADED, fileName);
     } catch (Exception e) {
       log.info(e.getMessage());
       throw new RuntimeException(e);
@@ -124,6 +124,6 @@ public class DiaryController {
   public ApiResponse<List<String>> uploadImages(
       @PathVariable("id") Long diaryId, @RequestParam("file") List<MultipartFile> files) {
     List<String> fileList = diaryService.uploadDiaryFiles(diaryId, files);
-    return ApiResponse.success("", fileList);
+    return ApiResponse.success(Message.DIARY_IMAGES_UPLOADED, fileList);
   }
 }
