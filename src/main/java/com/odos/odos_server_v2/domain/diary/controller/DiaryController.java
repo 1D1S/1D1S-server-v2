@@ -27,7 +27,7 @@ public class DiaryController {
     return ApiResponse.success(Message.DIARY_CREATE_SUCCESS, result);
   }
 
-  @PutMapping("/{Id}")
+  @PatchMapping("/{Id}")
   public ApiResponse<DiaryResponse> updateDiary(
       @PathVariable(name = "Id") Long diaryId, @RequestBody DiaryRequest request) {
     Long memberId = CurrentUserContext.getCurrentMemberId();

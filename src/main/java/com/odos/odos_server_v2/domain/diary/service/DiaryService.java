@@ -99,28 +99,42 @@ public class DiaryService {
 
   @Transactional
   public DiaryResponse updateDiary(Long memberId, Long diaryId, DiaryRequest request) {
-    Member member =
-        memberRepository
-            .findById(memberId)
-            .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
-    Diary diary =
-        diaryRepository
-            .findById(diaryId)
-            .orElseThrow(() -> new CustomException(ErrorCode.DIARY_NOT_FOUND));
+    try {
+      Member member = memberRepository.findById(memberId).orElseThrow();
+      Diary diary = diaryRepository.findById(diaryId).orElseThrow();
+      Challenge challenge = challengeRepository.findById(request.getChallengeId()).orElseThrow();
+      ChallengeSummaryResponse challengeSummary =
+          challengeService.toChallengeSummary(challenge, memberId);
 
-    ChallengeSummaryResponse response =
-        challengeService.toChallengeSummary(diary.getChallenge(), memberId);
-    //        Challenge challenge =
-    // challengeRepository.findById(request.getChallengeId()).orElseThrow();
-    //        List<Long> goalIds = request.getAchievedGoalIds();
-    //        List<DiaryGoal> goals = new ArrayList<>();
-    //        for (Long goalId : goalIds) {
-    //            DiaryGoal goal = diaryGoalRepository.findById(goalId).orElseThrow();
-    //            goals.add(goal);
-    //        }
-    diary.updateDiary(request);
-    diaryRepository.save(diary);
-    return DiaryResponse.from(member, diary, response);
+      Participant participant =
+          participantRepository.findByMemberIdAndChallengeId(memberId, challenge.getId());
+      if (participant == null) {
+        /*CustomException 던지기 */
+      }
+
+      List<ChallengeGoal> challengeGoals = Objects.requireNonNull(participant).getChallengeGoals();
+      List<DiaryGoal> diaryGoals = new ArrayList<>();
+      List<Long> achievedGoalIds =
+          request.getAchievedGoalIds() != null ? request.getAchievedGoalIds() : new ArrayList<>();
+
+      for (ChallengeGoal challengeGoal : challengeGoals) {
+        boolean isCompleted = achievedGoalIds.contains(challengeGoal.getId());
+        DiaryGoal diaryGoal =
+            DiaryGoal.builder()
+                .diary(diary) // newDiary로 변경!
+                .challengeGoal(challengeGoal)
+                .isCompleted(isCompleted)
+                .build();
+        diaryGoals.add(diaryGoal);
+      }
+
+      diary.updateDiary(request, challenge, diaryGoals);
+      diaryRepository.save(diary);
+      return DiaryResponse.from(member, diary, challengeSummary);
+    } catch (Exception e) {
+      log.error(e.getMessage(), e);
+      return null;
+    }
   }
 
   public DiaryResponse getDiary(Long diaryId) {

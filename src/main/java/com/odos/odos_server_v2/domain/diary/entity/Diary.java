@@ -49,7 +49,7 @@ public class Diary {
 
   @Column private Boolean isDeleted;
 
-  @OneToMany(mappedBy = "diary", cascade = CascadeType.ALL)
+  @OneToMany(mappedBy = "diary", cascade = CascadeType.ALL, orphanRemoval = true)
   private List<DiaryGoal> diaryGoals = new ArrayList<>();
 
   @OneToMany(mappedBy = "diary", cascade = CascadeType.ALL)
@@ -69,13 +69,14 @@ public class Diary {
   @OneToMany(mappedBy = "diary", cascade = CascadeType.ALL)
   private List<DiaryReport> reports = new ArrayList<>();
 
-  public void updateDiary(DiaryRequest request /*, Challenge challenge, List<DiaryGoal> goal*/) {
+  public void updateDiary(DiaryRequest request, Challenge challenge, List<DiaryGoal> diaryGoals) {
     this.title = request.getTitle();
     this.feeling = request.getFeeling();
     this.content = request.getContent();
     this.isPublic = request.getIsPublic();
-    //    this.challenge = challenge;
-    //    this.diaryGoals = goal;
+    this.challenge = challenge;
+    this.diaryGoals.clear();
+    this.diaryGoals.addAll(diaryGoals);
   }
 
   public void addLike(DiaryLike diaryLike) {
