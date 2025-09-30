@@ -294,6 +294,7 @@ public class DiaryService {
         .toList();
   }
 
+  @Transactional
   public Boolean reportDiary(ReportRequest request, Long memberId) {
     try {
       Member member = memberRepository.findById(memberId).orElseThrow();
