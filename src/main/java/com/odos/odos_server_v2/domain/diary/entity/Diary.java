@@ -86,4 +86,8 @@ public class Diary {
   public void addDiaryGoal(DiaryGoal diaryGoal) {
     this.diaryGoals.add(diaryGoal);
   }
+
+  public void addDiaryImage(DiaryImage diaryImage) {
+    this.images.add(diaryImage);
+  }
 }

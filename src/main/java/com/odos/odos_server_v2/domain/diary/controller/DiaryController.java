@@ -6,12 +6,14 @@ import com.odos.odos_server_v2.domain.diary.dto.ReportRequest;
 import com.odos.odos_server_v2.domain.diary.service.DiaryService;
 import com.odos.odos_server_v2.domain.member.CurrentUserContext;
 import com.odos.odos_server_v2.domain.shared.dto.Pagination;
+import com.odos.odos_server_v2.domain.shared.service.ImageService;
 import com.odos.odos_server_v2.response.ApiResponse;
 import com.odos.odos_server_v2.response.Message;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequiredArgsConstructor
@@ -20,6 +22,7 @@ import org.springframework.web.bind.annotation.*;
 public class DiaryController {
 
   private final DiaryService diaryService;
+  private final ImageService imageService;
 
   @PostMapping("")
   public ApiResponse<DiaryResponse> createDiary(@RequestBody DiaryRequest request) {
@@ -102,6 +105,18 @@ public class DiaryController {
     } catch (Exception e) {
       log.info(e.getMessage());
       return null;
+    }
+  }
+
+  @PostMapping("/{id}/image")
+  public ApiResponse<String> uploadImage(
+      @PathVariable("id") Long diaryId, @RequestParam("file") MultipartFile file) {
+    try {
+      String fileName = diaryService.uploadDiaryFile(diaryId, file);
+      return ApiResponse.success("", fileName);
+    } catch (Exception e) {
+      log.info(e.getMessage());
+      throw new RuntimeException(e);
     }
   }
 }

@@ -4,27 +4,21 @@ import com.odos.odos_server_v2.domain.challenge.dto.ChallengeSummaryResponse;
 import com.odos.odos_server_v2.domain.challenge.entity.Challenge;
 import com.odos.odos_server_v2.domain.challenge.entity.ChallengeGoal;
 import com.odos.odos_server_v2.domain.challenge.entity.Participant;
-import com.odos.odos_server_v2.domain.challenge.repository.ChallengeGoalRepository;
 import com.odos.odos_server_v2.domain.challenge.repository.ChallengeRepository;
 import com.odos.odos_server_v2.domain.challenge.repository.ParticipantRepository;
 import com.odos.odos_server_v2.domain.challenge.service.ChallengeService;
 import com.odos.odos_server_v2.domain.diary.dto.DiaryRequest;
 import com.odos.odos_server_v2.domain.diary.dto.DiaryResponse;
 import com.odos.odos_server_v2.domain.diary.dto.ReportRequest;
-import com.odos.odos_server_v2.domain.diary.entity.Diary;
-import com.odos.odos_server_v2.domain.diary.entity.DiaryGoal;
-import com.odos.odos_server_v2.domain.diary.entity.DiaryLike;
-import com.odos.odos_server_v2.domain.diary.entity.DiaryReport;
-import com.odos.odos_server_v2.domain.diary.repository.DiaryGoalRepository;
-import com.odos.odos_server_v2.domain.diary.repository.DiaryLikeRepository;
-import com.odos.odos_server_v2.domain.diary.repository.DiaryReportRepository;
-import com.odos.odos_server_v2.domain.diary.repository.DiaryRepository;
+import com.odos.odos_server_v2.domain.diary.entity.*;
+import com.odos.odos_server_v2.domain.diary.repository.*;
 import com.odos.odos_server_v2.domain.member.CurrentUserContext;
 import com.odos.odos_server_v2.domain.member.entity.Member;
 import com.odos.odos_server_v2.domain.member.repository.MemberRepository;
 import com.odos.odos_server_v2.domain.shared.dto.PageInfo;
 import com.odos.odos_server_v2.domain.shared.dto.Pagination;
 import com.odos.odos_server_v2.domain.shared.service.CursorService;
+import com.odos.odos_server_v2.domain.shared.service.ImageService;
 import com.odos.odos_server_v2.exception.CustomException;
 import com.odos.odos_server_v2.exception.ErrorCode;
 import jakarta.transaction.Transactional;
@@ -33,6 +27,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 @Service
 @RequiredArgsConstructor
@@ -46,8 +41,9 @@ public class DiaryService {
   private final DiaryGoalRepository diaryGoalRepository;
   private final ChallengeService challengeService;
   private final CursorService cursorService;
-  private final ChallengeGoalRepository challengeGoalRepository;
   private final ParticipantRepository participantRepository;
+  private final ImageService imageService;
+  private final DiaryImageRepository diaryImageRepository;
 
   @Transactional
   public DiaryResponse createDiary(Long memberId, DiaryRequest request) {
@@ -326,5 +322,21 @@ public class DiaryService {
               member, diary, challengeService.toChallengeSummary(diary.getChallenge(), memberId)));
     }
     return diaryResponses;
+  }
+
+  @Transactional
+  public String uploadDiaryFile(Long diaryId, MultipartFile file) {
+    try {
+      Long memberId = CurrentUserContext.getCurrentMemberId();
+      Diary diary = diaryRepository.findById(diaryId).orElseThrow();
+      String fileName = imageService.uploadFile(file);
+      DiaryImage diaryImage = DiaryImage.builder().diary(diary).url(fileName).build();
+      diary.addDiaryImage(diaryImage);
+      diaryImageRepository.save(diaryImage);
+      return fileName;
+    } catch (Exception e) {
+      log.info(e.getMessage());
+      return "No such file";
+    }
   }
 }
