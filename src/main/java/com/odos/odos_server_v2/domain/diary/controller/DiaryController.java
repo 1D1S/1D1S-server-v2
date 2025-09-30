@@ -119,4 +119,11 @@ public class DiaryController {
       throw new RuntimeException(e);
     }
   }
+
+  @PostMapping("/{id}/images")
+  public ApiResponse<List<String>> uploadImages(
+      @PathVariable("id") Long diaryId, @RequestParam("file") List<MultipartFile> files) {
+    List<String> fileList = diaryService.uploadDiaryFiles(diaryId, files);
+    return ApiResponse.success("", fileList);
+  }
 }

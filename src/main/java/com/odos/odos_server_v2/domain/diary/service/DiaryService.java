@@ -339,4 +339,22 @@ public class DiaryService {
       return "No such file";
     }
   }
+
+  @Transactional
+  public List<String> uploadDiaryFiles(Long diaryId, List<MultipartFile> files) {
+    try {
+      Long memberId = CurrentUserContext.getCurrentMemberId();
+      Diary diary = diaryRepository.findById(diaryId).orElseThrow();
+      List<String> fileList = imageService.uploadFiles(files);
+      List<DiaryImage> diaryImages = new ArrayList<>();
+      for (String fileName : fileList) {
+        diaryImages.add(DiaryImage.builder().diary(diary).url(fileName).build());
+      }
+      diaryImageRepository.saveAll(diaryImages);
+      return fileList;
+    } catch (Exception e) {
+      log.info(e.getMessage());
+      return Collections.emptyList();
+    }
+  }
 }
