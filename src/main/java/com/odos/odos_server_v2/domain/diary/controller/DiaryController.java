@@ -61,13 +61,8 @@ public class DiaryController {
 
   @GetMapping("/random")
   public ApiResponse<List<DiaryResponse>> randomDiary(@RequestParam("size") Long size) {
-    try {
-      List<DiaryResponse> result = diaryService.getRandomDiaries(size);
-      return ApiResponse.success(Message.DIARY_VIEW_RANDOM, result);
-    } catch (Exception e) {
-      log.info(e.getMessage());
-      return null;
-    }
+    List<DiaryResponse> result = diaryService.getRandomDiaries(size);
+    return ApiResponse.success(Message.DIARY_VIEW_RANDOM, result);
   }
 
   @DeleteMapping("/{id}")
@@ -99,25 +94,15 @@ public class DiaryController {
 
   @GetMapping("/my")
   public ApiResponse<List<DiaryResponse>> getMyDiaries() {
-    try {
-      List<DiaryResponse> result = diaryService.getMyDiaries();
-      return ApiResponse.success(Message.DIARY_GET_MY_ALL_SUCCESS, result);
-    } catch (Exception e) {
-      log.info(e.getMessage());
-      return null;
-    }
+    List<DiaryResponse> result = diaryService.getMyDiaries();
+    return ApiResponse.success(Message.DIARY_GET_MY_ALL_SUCCESS, result);
   }
 
   @PostMapping("/{id}/image")
   public ApiResponse<String> uploadImage(
       @PathVariable("id") Long diaryId, @RequestParam("file") MultipartFile file) {
-    try {
-      String fileName = diaryService.uploadDiaryFile(diaryId, file);
-      return ApiResponse.success(Message.DIARY_IMAGE_UPLOADED, fileName);
-    } catch (Exception e) {
-      log.info(e.getMessage());
-      throw new RuntimeException(e);
-    }
+    String fileName = diaryService.uploadDiaryFile(diaryId, file);
+    return ApiResponse.success(Message.DIARY_IMAGE_UPLOADED, fileName);
   }
 
   @PostMapping("/{id}/images")

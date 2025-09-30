@@ -267,27 +267,31 @@ public class DiaryService {
 
   @Transactional
   public List<DiaryResponse> getRandomDiaries(Long size) {
-    Long memberId = CurrentUserContext.getCurrentMemberId();
-    Member member =
-        memberRepository
-            .findById(memberId)
-            .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+    try {
+      Long memberId = CurrentUserContext.getCurrentMemberId();
+      Member member =
+          memberRepository
+              .findById(memberId)
+              .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
 
-    List<Diary> diaries = diaryRepository.findDiariesByIsPublic(Boolean.TRUE);
-    if (diaries.isEmpty()) {
+      List<Diary> diaries = diaryRepository.findDiariesByIsPublic(Boolean.TRUE);
+      if (diaries.isEmpty()) {
+        return Collections.emptyList();
+      }
+
+      Collections.shuffle(diaries);
+      return diaries.stream()
+          .limit(size)
+          .map(
+              diary ->
+                  DiaryResponse.from(
+                      member,
+                      diary,
+                      challengeService.toChallengeSummary(diary.getChallenge(), memberId)))
+          .toList();
+    } catch (CustomException e) {
       return Collections.emptyList();
     }
-
-    Collections.shuffle(diaries);
-    return diaries.stream()
-        .limit(size)
-        .map(
-            diary ->
-                DiaryResponse.from(
-                    member,
-                    diary,
-                    challengeService.toChallengeSummary(diary.getChallenge(), memberId)))
-        .toList();
   }
 
   @Transactional
@@ -312,16 +316,22 @@ public class DiaryService {
   // 마이페이지 다이어리 조회를 위한 서비스 메서드
   @Transactional
   public List<DiaryResponse> getMyDiaries() {
-    Long memberId = CurrentUserContext.getCurrentMemberId();
-    Member member = memberRepository.findById(memberId).orElseThrow();
-    List<Diary> diaries = diaryRepository.findDiariesByMember_Id(memberId);
-    List<DiaryResponse> diaryResponses = new ArrayList<>();
-    for (Diary diary : diaries) {
-      diaryResponses.add(
-          DiaryResponse.from(
-              member, diary, challengeService.toChallengeSummary(diary.getChallenge(), memberId)));
+    try {
+      Long memberId = CurrentUserContext.getCurrentMemberId();
+      Member member = memberRepository.findById(memberId).orElseThrow();
+      List<Diary> diaries = diaryRepository.findDiariesByMember_Id(memberId);
+      List<DiaryResponse> diaryResponses = new ArrayList<>();
+      for (Diary diary : diaries) {
+        diaryResponses.add(
+            DiaryResponse.from(
+                member,
+                diary,
+                challengeService.toChallengeSummary(diary.getChallenge(), memberId)));
+      }
+      return diaryResponses;
+    } catch (Exception e) {
+      return Collections.emptyList();
     }
-    return diaryResponses;
   }
 
   @Transactional
