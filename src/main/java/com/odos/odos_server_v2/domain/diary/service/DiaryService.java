@@ -137,16 +137,22 @@ public class DiaryService {
     }
   }
 
+  @Transactional
   public DiaryResponse getDiary(Long diaryId) {
-    Diary diary =
-        diaryRepository
-            .findById(diaryId)
-            .orElseThrow(() -> new CustomException(ErrorCode.DIARY_NOT_FOUND));
-    Member member = diary.getMember();
-    ChallengeSummaryResponse response =
-        challengeService.toChallengeSummary(diary.getChallenge(), member.getId());
+    try {
+      Diary diary =
+          diaryRepository
+              .findById(diaryId)
+              .orElseThrow(() -> new CustomException(ErrorCode.DIARY_NOT_FOUND));
+      Member member = diary.getMember();
+      ChallengeSummaryResponse response =
+          challengeService.toChallengeSummary(diary.getChallenge(), member.getId());
 
-    return DiaryResponse.from(member, diary, response);
+      return DiaryResponse.from(member, diary, response);
+    } catch (Exception e) {
+      log.error(e.getMessage(), e);
+      return null;
+    }
   }
 
   @Transactional
