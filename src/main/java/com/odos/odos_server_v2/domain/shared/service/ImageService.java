@@ -3,7 +3,6 @@ package com.odos.odos_server_v2.domain.shared.service;
 import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
-
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -19,6 +18,7 @@ public class ImageService {
 
   @Value("${cloud.aws.s3.bucket}")
   private String bucket;
+
   @Value("${cloud.aws.region.static}")
   private String region;
 
@@ -26,11 +26,12 @@ public class ImageService {
   public String uploadFile(MultipartFile file) throws IOException {
     String fileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
 
-    PutObjectRequest request = PutObjectRequest.builder()
+    PutObjectRequest request =
+        PutObjectRequest.builder()
             .bucket(bucket)
             .key(fileName)
             .contentType(file.getContentType())
-            //.acl("public-read")
+            // .acl("public-read")
             .build();
 
     s3Client.putObject(request, RequestBody.fromInputStream(file.getInputStream(), file.getSize()));
