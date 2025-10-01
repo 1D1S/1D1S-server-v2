@@ -6,7 +6,6 @@ import com.odos.odos_server_v2.domain.diary.dto.ReportRequest;
 import com.odos.odos_server_v2.domain.diary.service.DiaryService;
 import com.odos.odos_server_v2.domain.member.CurrentUserContext;
 import com.odos.odos_server_v2.domain.shared.dto.Pagination;
-import com.odos.odos_server_v2.domain.shared.service.ImageService;
 import com.odos.odos_server_v2.response.ApiResponse;
 import com.odos.odos_server_v2.response.Message;
 import java.util.List;
@@ -22,7 +21,6 @@ import org.springframework.web.multipart.MultipartFile;
 public class DiaryController {
 
   private final DiaryService diaryService;
-  private final ImageService imageService;
 
   @PostMapping("")
   public ApiResponse<DiaryResponse> createDiary(@RequestBody DiaryRequest request) {

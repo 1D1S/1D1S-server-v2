@@ -48,15 +48,21 @@ public class DiaryService {
   @Transactional
   public DiaryResponse createDiary(Long memberId, DiaryRequest request) {
     try {
-      Member member = memberRepository.findById(memberId).orElseThrow();
-      Challenge challenge = challengeRepository.findById(request.getChallengeId()).orElseThrow();
+      Member member =
+          memberRepository
+              .findById(memberId)
+              .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+      Challenge challenge =
+          challengeRepository
+              .findById(request.getChallengeId())
+              .orElseThrow(() -> new CustomException(ErrorCode.CHALLENGE_NOT_FOUND));
       ChallengeSummaryResponse challengeSummary =
           challengeService.toChallengeSummary(challenge, memberId);
 
       Participant participant =
           participantRepository.findByMemberIdAndChallengeId(memberId, challenge.getId());
       if (participant == null) {
-        /*CustomException 던지기 */
+        throw new CustomException(ErrorCode.PARTICIPANT_NOT_FOUND);
       }
 
       Diary diary =
@@ -73,7 +79,7 @@ public class DiaryService {
               .build();
       Diary newDiary = diaryRepository.save(diary);
 
-      // 3. 챌린지 목표를 기반으로 다이어리 목표 생성 및 저장
+      // 챌린지 목표를 기반으로 다이어리 목표달성 생성 및 저장
       List<ChallengeGoal> challengeGoals = Objects.requireNonNull(participant).getChallengeGoals();
       List<DiaryGoal> diaryGoals = new ArrayList<>();
       List<Long> achievedGoalIds =
@@ -83,7 +89,7 @@ public class DiaryService {
         boolean isCompleted = achievedGoalIds.contains(challengeGoal.getId());
         DiaryGoal diaryGoal =
             DiaryGoal.builder()
-                .diary(newDiary) // newDiary로 변경!
+                .diary(newDiary) // newDiary 이미 저장된 다이어리로 변경
                 .challengeGoal(challengeGoal)
                 .isCompleted(isCompleted)
                 .build();
@@ -101,16 +107,25 @@ public class DiaryService {
   @Transactional
   public DiaryResponse updateDiary(Long memberId, Long diaryId, DiaryRequest request) {
     try {
-      Member member = memberRepository.findById(memberId).orElseThrow();
-      Diary diary = diaryRepository.findById(diaryId).orElseThrow();
-      Challenge challenge = challengeRepository.findById(request.getChallengeId()).orElseThrow();
+      Member member =
+          memberRepository
+              .findById(memberId)
+              .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+      Diary diary =
+          diaryRepository
+              .findById(diaryId)
+              .orElseThrow(() -> new CustomException(ErrorCode.DIARY_NOT_FOUND));
+      Challenge challenge =
+          challengeRepository
+              .findById(request.getChallengeId())
+              .orElseThrow(() -> new CustomException(ErrorCode.CHALLENGE_NOT_FOUND));
       ChallengeSummaryResponse challengeSummary =
           challengeService.toChallengeSummary(challenge, memberId);
 
       Participant participant =
           participantRepository.findByMemberIdAndChallengeId(memberId, challenge.getId());
       if (participant == null) {
-        /*CustomException 던지기 */
+        throw new CustomException(ErrorCode.PARTICIPANT_NOT_FOUND);
       }
 
       List<ChallengeGoal> challengeGoals = Objects.requireNonNull(participant).getChallengeGoals();
@@ -122,7 +137,7 @@ public class DiaryService {
         boolean isCompleted = achievedGoalIds.contains(challengeGoal.getId());
         DiaryGoal diaryGoal =
             DiaryGoal.builder()
-                .diary(diary) // newDiary로 변경!
+                .diary(diary) // newDiary로
                 .challengeGoal(challengeGoal)
                 .isCompleted(isCompleted)
                 .build();
@@ -160,7 +175,10 @@ public class DiaryService {
   public List<DiaryResponse> getAllPublicDiaries() {
     try {
       Long memberId = CurrentUserContext.getCurrentMemberId();
-      Member member = memberRepository.findById(memberId).orElseThrow();
+      Member member =
+          memberRepository
+              .findById(memberId)
+              .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
       List<Diary> diaries = diaryRepository.findDiariesByIsPublic(Boolean.TRUE);
       List<DiaryResponse> diaryResponses = new ArrayList<>();
 
@@ -183,7 +201,10 @@ public class DiaryService {
     int limit = (size == null || size <= 0) ? 10 : Math.min(size, 100);
 
     Long memberId = CurrentUserContext.getCurrentMemberId();
-    Member member = memberRepository.findById(memberId).orElseThrow();
+    Member member =
+        memberRepository
+            .findById(memberId)
+            .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
 
     Long cursorId = cursorService.decodeCursorToId(cursor);
 
@@ -297,8 +318,14 @@ public class DiaryService {
   @Transactional
   public Boolean reportDiary(ReportRequest request, Long memberId) {
     try {
-      Member member = memberRepository.findById(memberId).orElseThrow();
-      Diary diary = diaryRepository.findById(request.getDiaryId()).orElseThrow();
+      Member member =
+          memberRepository
+              .findById(memberId)
+              .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+      Diary diary =
+          diaryRepository
+              .findById(request.getDiaryId())
+              .orElseThrow(() -> new CustomException(ErrorCode.DIARY_NOT_FOUND));
       DiaryReport diaryReport =
           DiaryReport.builder()
               .member(member)
@@ -318,7 +345,10 @@ public class DiaryService {
   public List<DiaryResponse> getMyDiaries() {
     try {
       Long memberId = CurrentUserContext.getCurrentMemberId();
-      Member member = memberRepository.findById(memberId).orElseThrow();
+      Member member =
+          memberRepository
+              .findById(memberId)
+              .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
       List<Diary> diaries = diaryRepository.findDiariesByMember_Id(memberId);
       List<DiaryResponse> diaryResponses = new ArrayList<>();
       for (Diary diary : diaries) {
@@ -338,7 +368,10 @@ public class DiaryService {
   public String uploadDiaryFile(Long diaryId, MultipartFile file) {
     try {
       Long memberId = CurrentUserContext.getCurrentMemberId();
-      Diary diary = diaryRepository.findById(diaryId).orElseThrow();
+      Diary diary =
+          diaryRepository
+              .findById(diaryId)
+              .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
       String fileName = imageService.uploadFile(file);
       DiaryImage diaryImage = DiaryImage.builder().diary(diary).url(fileName).build();
       diary.addDiaryImage(diaryImage);
@@ -354,7 +387,10 @@ public class DiaryService {
   public List<String> uploadDiaryFiles(Long diaryId, List<MultipartFile> files) {
     try {
       Long memberId = CurrentUserContext.getCurrentMemberId();
-      Diary diary = diaryRepository.findById(diaryId).orElseThrow();
+      Diary diary =
+          diaryRepository
+              .findById(diaryId)
+              .orElseThrow(() -> new CustomException(ErrorCode.DIARY_NOT_FOUND));
       List<String> fileList = imageService.uploadFiles(files);
       List<DiaryImage> diaryImages = new ArrayList<>();
       for (String fileName : fileList) {
