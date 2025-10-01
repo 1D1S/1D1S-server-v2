@@ -11,6 +11,8 @@ on:
 jobs:
   build_and_push:
     runs-on: ubuntu-latest
+    outputs:
+      TAG: ${{ steps.set_tag.outputs.tag }}
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
@@ -55,6 +57,9 @@ jobs:
     needs: build_and_push
     runs-on: ubuntu-latest
 
+    environment:
+      name: ${{ github.ref == 'refs/heads/main' && 'main' || 'dev' }}
+
     steps:
       - name: Copy docker-compose.prod.yml to EC2
         uses: appleboy/scp-action@v0.1.7
@@ -71,9 +76,9 @@ jobs:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          env:
-            TAG: ${{ steps.set_tag.outputs.tag }}
           script: |
+            TAG="${{ needs.build_and_push.outputs.TAG }}
+            
             APP_DIR="/home/ec2-user/oneday-onestreak"
             if [ ! -d "$APP_DIR" ]; then
               mkdir -p "$APP_DIR"
