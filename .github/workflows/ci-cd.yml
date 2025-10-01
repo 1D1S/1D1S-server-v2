@@ -61,6 +61,13 @@ jobs:
       name: ${{ github.ref == 'refs/heads/main' && 'main' || 'dev' }}
 
     steps:
+      - name: Debug - List files in workspace
+        run: |
+          echo "Current working directory:"
+          pwd
+          echo "Files in directory:"
+          ls -al
+
       - name: Copy docker-compose.prod.yml to EC2
         uses: appleboy/scp-action@v0.1.7
         with:
