@@ -11,6 +11,8 @@ on:
 jobs:
   build_and_push:
     runs-on: ubuntu-latest
+    outputs:
+      TAG: ${{ steps.set_tag.outputs.tag }}
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
@@ -78,14 +80,15 @@ jobs:
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
+            TAG=$(echo "${{ needs.build_and_push.outputs.TAG }}" | tr -d '\n\r')
+            
             APP_DIR="/home/ec2-user/oneday-onestreak"
             if [ ! -d "$APP_DIR" ]; then
               mkdir -p "$APP_DIR"
             fi
             cd "$APP_DIR"
             
-            TAG=${{ github.ref == 'refs/heads/main' && 'main' || 'dev' }}
-            IMAGE=${{ secrets.DOCKERHUB_USERNAME }}/oneday-onestreak:${TAG}
+            IMAGE=${{ secrets.DOCKERHUB_USERNAME }}/oneday-onestreak:$TAG
 
             echo ">>> DockerHub 로그인"
             docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_TOKEN }}
