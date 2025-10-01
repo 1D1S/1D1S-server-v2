@@ -80,7 +80,7 @@ jobs:
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            TAG="${{ needs.build_and_push.outputs.TAG }}
+            TAG=$(echo "${{ needs.build_and_push.outputs.TAG }}" | tr -d '\n\r')
             
             APP_DIR="/home/ec2-user/oneday-onestreak"
             if [ ! -d "$APP_DIR" ]; then
