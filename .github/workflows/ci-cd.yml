@@ -76,9 +76,9 @@ jobs:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          env:
-            TAG: ${{ needs.build_and_push.outputs.TAG }}
           script: |
+            TAG="${{ needs.build_and_push.outputs.TAG }}
+            
             APP_DIR="/home/ec2-user/oneday-onestreak"
             if [ ! -d "$APP_DIR" ]; then
               mkdir -p "$APP_DIR"
