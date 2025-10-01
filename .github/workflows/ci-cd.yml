@@ -55,9 +55,6 @@ jobs:
     needs: build_and_push
     runs-on: ubuntu-latest
 
-    environment:
-      name: ${{ github.ref == 'refs/heads/main' && 'main' || 'dev' }}
-
     steps:
       - name: Copy docker-compose.prod.yml to EC2
         uses: appleboy/scp-action@v0.1.7
@@ -74,6 +71,8 @@ jobs:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
+          env:
+            TAG: ${{ steps.set_tag.outputs.tag }}
           script: |
             APP_DIR="/home/ec2-user/oneday-onestreak"
             if [ ! -d "$APP_DIR" ]; then
@@ -81,8 +80,7 @@ jobs:
             fi
             cd "$APP_DIR"
             
-            TAG=${{ github.ref == 'refs/heads/main' && 'main' || 'dev' }}
-            IMAGE=${{ secrets.DOCKERHUB_USERNAME }}/oneday-onestreak:${TAG}
+            IMAGE=${{ secrets.DOCKERHUB_USERNAME }}/oneday-onestreak:$TAG
 
             echo ">>> DockerHub 로그인"
             docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_TOKEN }}
