@@ -11,3 +11,4 @@ services:
     env_file:
       - .env/security.env
       - .env/db.env
+      - .env/s3.env
