@@ -5,4 +5,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface DiaryGoalRepository extends JpaRepository<DiaryGoal, Long> {}
+public interface DiaryGoalRepository extends JpaRepository<DiaryGoal, Long> {
+  long countByDiary_Challenge_IdAndIsCompletedTrue(Long challengeId);
+}

@@ -5,4 +5,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface ChallengeGoalRepository extends JpaRepository<ChallengeGoal, Long> {}
+public interface ChallengeGoalRepository extends JpaRepository<ChallengeGoal, Long> {
+  long countByParticipantId(Long participantId);
+}
