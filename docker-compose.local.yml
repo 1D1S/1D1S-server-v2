@@ -10,5 +10,6 @@ services:
     env_file:
       - .env/dockerdb.env
       - .env/security.env
+      - .env/s3.env
     volumes:
       - ./logs:/app/logs
