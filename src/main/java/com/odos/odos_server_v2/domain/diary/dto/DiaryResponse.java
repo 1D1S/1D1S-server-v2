@@ -17,13 +17,13 @@ public class DiaryResponse {
 
   private Long id;
   private ChallengeSummaryResponse challenge;
-  private AuthorInfo authorInfo;
+  private AuthorInfoDto authorInfoDto;
   private String title;
   private String content;
   private List<String> imgUrl;
   private Boolean isPublic;
   private LikeDto likeInfo;
-  private DiaryInfo diaryInfo;
+  private DiaryInfoDto diaryInfoDto;
 
   public static DiaryResponse from(Member member, Diary diary, ChallengeSummaryResponse challenge) {
 
@@ -40,8 +40,8 @@ public class DiaryResponse {
         diary.getDiaryGoals().stream().filter(DiaryGoal::getIsCompleted).count();
     int achievementRate = totalGoal > 0 ? (int) (achievedGoalsCount * 100) / totalGoal : 0;
 
-    DiaryInfo info =
-        DiaryInfo.builder()
+    DiaryInfoDto info =
+        DiaryInfoDto.builder()
             .createdAt(diary.getCreatedDate().toString())
             .challengedDate(diary.getCompletedDate().toString())
             .achievement(achievements)
@@ -49,8 +49,8 @@ public class DiaryResponse {
             .feeling(diary.getFeeling())
             .build();
 
-    AuthorInfo author =
-        AuthorInfo.builder()
+    AuthorInfoDto author =
+        AuthorInfoDto.builder()
             .id(diary.getMember().getId())
             .nickname(diary.getMember().getNickname())
             .profileImage(diary.getMember().getProfileUrl())
@@ -85,8 +85,8 @@ public class DiaryResponse {
         .content(diary.getContent())
         .title(diary.getTitle())
         .isPublic(diary.getIsPublic())
-        .authorInfo(author)
-        .diaryInfo(info)
+        .authorInfoDto(author)
+        .diaryInfoDto(info)
         .likeInfo(like)
         // .imgUrl(imgUrl)
         .build();
