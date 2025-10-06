@@ -1,0 +1,15 @@
+# docker-compose.local.yml
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.local
+    container_name: oneday-onestreak-local
+    ports:
+      - "8081:8080"
+    env_file:
+      - .env/dockerdb.env
+      - .env/security.env
+      - .env/s3.env
+    volumes:
+      - ./logs:/app/logs
