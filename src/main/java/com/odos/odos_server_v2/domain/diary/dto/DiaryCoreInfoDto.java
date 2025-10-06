@@ -6,7 +6,7 @@ import lombok.Getter;
 
 @Getter
 @Builder
-public class DiaryCoreInfo {
+public class DiaryCoreInfoDto {
   private Long id;
   private Long challengeId;
   private String title;

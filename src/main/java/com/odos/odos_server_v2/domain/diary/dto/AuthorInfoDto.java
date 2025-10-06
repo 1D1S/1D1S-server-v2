@@ -5,7 +5,7 @@ import lombok.Getter;
 
 @Builder
 @Getter
-public class AuthorInfo {
+public class AuthorInfoDto {
   private Long id;
   private String nickname;
   private String profileImage;

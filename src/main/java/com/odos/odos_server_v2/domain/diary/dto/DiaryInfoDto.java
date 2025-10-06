@@ -7,7 +7,7 @@ import lombok.Getter;
 
 @Builder
 @Getter
-public class DiaryInfo {
+public class DiaryInfoDto {
   private String createdAt;
   private String challengedDate;
   private Feeling feeling;
