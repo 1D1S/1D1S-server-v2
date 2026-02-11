@@ -2,11 +2,7 @@ name: PR Automation (Title & Notion)
 
 on:
   pull_request_target:
-    types: [opened, closed, reopened, edited, synchronize]
-  issue_comment:
-    types: [created]
-  pull_request_review:
-    types: [submitted]
+    types: [opened, reopened, closed, edited]
 
 permissions:
   pull-requests: write
@@ -33,7 +29,7 @@ jobs:
                 if (match) {
                   const type = match[1];
                   const odsId = match[2];
-                  finalTitle = `[ODS-${odsId.split('-')[1]}] ${type}: ${pr.title}`; // ODS-3 형식 보장
+                  finalTitle = `[ODS-${odsId.split('-')[1]}] ${type}: ${pr.title}`;
                   
                   await github.rest.pulls.update({
                     owner: context.repo.owner,
@@ -45,7 +41,6 @@ jobs:
               }
             }
 
-            // ⭐ 중요: 최종 제목을 다음 단계로 넘김
             core.setOutput('final_title', finalTitle);
 
       # 2. 노션 업데이트 (전달받은 제목 사용)
@@ -54,17 +49,16 @@ jobs:
         env:
           NOTION_API_KEY: ${{ secrets.NOTION_API_KEY }}
           NOTION_DATABASE_ID: '2f841807241280379e84f43daa636edb'
-          FINAL_TITLE: ${{ steps.format-title.outputs.final_title }} # 여기서 받음!
+          FINAL_TITLE: ${{ steps.format-title.outputs.final_title }}
         with:
           script: |
             const https = require('https');
 
-            // 전달받은 제목 사용 (없으면 원래 제목)
             const title = process.env.FINAL_TITLE || context.payload.pull_request.title;
             const body = context.payload.pull_request.body || "";
             const prUrl = context.payload.pull_request.html_url;
 
-            console.log(`Analyzing Title: ${title}`); // 로그로 확인
+            console.log(`Analyzing Title: ${title}`);
 
             const NOTION_API_KEY = process.env.NOTION_API_KEY;
             const DATABASE_ID = process.env.NOTION_DATABASE_ID;
@@ -80,7 +74,6 @@ jobs:
             const issueId = parseInt(match[1], 10);
             console.log(`Processing ODS-${issueId}`);
 
-            // (이하 노션 API 호출 로직은 동일)
             let newStatus = null;
             if (context.payload.action === 'opened' || context.payload.action === 'reopened') {
                newStatus = '진행중';
