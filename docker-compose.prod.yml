@@ -9,6 +9,4 @@ services:
     volumes:
       - /var/log/oneday:/app/logs
     env_file:
-      - .env/security.env
-      - .env/db.env
-      - .env/s3.env
+      - .env/docker.pord.env

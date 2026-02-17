@@ -19,9 +19,6 @@ public class ImageService {
   @Value("${cloud.aws.s3.bucket}")
   private String bucket;
 
-  @Value("${cloud.aws.region.static}")
-  private String region;
-
   // 이미지 업로드 (1장)
   public String uploadFile(MultipartFile file) throws IOException {
     String fileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
@@ -55,8 +52,7 @@ public class ImageService {
 
   // 이미지 URL 생성 (1장)
   public String getFileUrl(String fileName) {
-    // TODO: AWS S3 URL 생성 로직 구현 예정
-    return "https://" + bucket + ".s3." + region + ".amazonaws.com/" + fileName;
+    return "https://" + bucket + ".s3.ap-northeast-2.amazonaws.com/" + fileName;
   }
 
   // 이미지 URL 생성 (여러장)
