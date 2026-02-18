@@ -1,0 +1,12 @@
+# docker-compose.dev.yml
+services:
+  app:
+    image: 1d1s/oneday-onestreak:${TAG}
+    container_name: oneday-onestreak-dev
+    ports:
+      - "127.0.0.1:18081:8080"
+    restart: always
+    volumes:
+      - /var/log/oneday:/app/logs
+    env_file:
+      - .env/docker.dev.env
