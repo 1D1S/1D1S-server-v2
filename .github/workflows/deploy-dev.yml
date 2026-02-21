@@ -17,7 +17,6 @@ jobs:
       ECR_REGISTRY: ${{ secrets.ECR_REGISTRY }}
       ECR_REPO: "1d1s-dev-ecr"
       COMPOSE_FILE: "docker-compose.dev.yml"
-      SERVICE_NAME: "app"
 
     steps:
       - name: Checkout
@@ -87,8 +86,8 @@ jobs:
             
             # 2. 이미지 Pull & 컨테이너 재시작
             export ECR_REGISTRY=${{ env.ECR_REGISTRY }}
-            docker compose -f ${{ env.COMPOSE_FILE }} pull ${{ env.SERVICE_NAME }}
-            docker compose -f ${{ env.COMPOSE_FILE }} up -d --no-deps ${{ env.SERVICE_NAME }}
+            docker compose -p 1d1s-dev -f docker-compose.dev.yml pull app
+            docker compose -p 1d1s-dev -f docker-compose.dev.yml up -d --no-deps app
             
             # 3. Nginx 설정 교체 (api-dev.conf로 고정)
             sudo mv ./nginx.conf /etc/nginx/conf.d/api-dev.conf
