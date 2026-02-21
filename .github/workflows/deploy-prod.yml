@@ -16,7 +16,6 @@ jobs:
       AWS_REGION: ${{ secrets.AWS_REGION }}
       ECR_REGISTRY: ${{ secrets.ECR_REGISTRY }}
       ECR_REPO: "1d1s-main-ecr"
-      EC2_APP_DIR: "/home/ubuntu/1d1s-main"
       COMPOSE_FILE: "docker-compose.main.yml"
       SERVICE_NAME: "app"
 
@@ -61,8 +60,17 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           source: "nginx/main.conf"
-          target: "${{ env.EC2_APP_DIR }}/"
+          target: "/home/ubuntu/1d1s-main/1D1S-server-v2"
           strip_components: 1
+
+      - name: Copy docker-compose via SCP
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          source: "docker-compose.main.yml"
+          target: "/home/ubuntu/1d1s-main/1D1S-server-v2"
 
       - name: Deploy PROD on EC2 via SSH
         uses: appleboy/ssh-action@v1.0.3
