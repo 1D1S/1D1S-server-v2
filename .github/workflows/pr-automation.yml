@@ -30,7 +30,7 @@ jobs:
                   const type = match[1];
                   const odsId = match[2];
                   finalTitle = `[ODS-${odsId.split('-')[1]}] ${type}: ${pr.title}`;
-                  
+            
                   await github.rest.pulls.update({
                     owner: context.repo.owner,
                     repo: context.repo.repo,
@@ -116,7 +116,7 @@ jobs:
               }
 
               const pageId = queryRes.results[0].id;
-              
+            
               await notionRequest('PATCH', `/pages/${pageId}`, {
                 properties: {
                   "상태": { status: { name: newStatus } },

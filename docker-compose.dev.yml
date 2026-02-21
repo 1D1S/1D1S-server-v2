@@ -1,7 +1,7 @@
 # docker-compose.dev.yml
 services:
   app:
-    image: 1d1s/oneday-onestreak:${TAG}
+    image: ${ECR_REGISTRY}/1d1s-dev-ecr:latest
     container_name: oneday-onestreak-dev
     ports:
       - "127.0.0.1:18081:8080"
