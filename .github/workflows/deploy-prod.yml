@@ -80,7 +80,7 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
             set -e
-            cd ${{ env.EC2_APP_DIR }}
+            cd /home/ubuntu/1d1s-main/1D1S-server-v2
             
             # 1. ECR 로그인
             aws ecr get-login-password --region ${{ env.AWS_REGION }} | docker login --username AWS --password-stdin ${{ env.ECR_REGISTRY }}
