@@ -70,14 +70,20 @@ public class SecurityConfig {
   @Bean
   public CorsConfigurationSource corsConfigurationSource() {
     CorsConfiguration config = new CorsConfiguration();
-    config.addAllowedOriginPattern("*");
+
+    config.addAllowedOriginPattern("https://*.1day1streak.com");
+    config.addAllowedOriginPattern("https://1day1streak.com");
+    config.addAllowedOriginPattern("https://local.1day1streak.com");
+    config.addAllowedOriginPattern("https://local.dev.1day1streak.com");
+    config.addAllowedOriginPattern("https://dev.1day1streak.com");
+
     config.addAllowedMethod("*");
     config.addAllowedHeader("*");
     config.addExposedHeader("Authorization");
     config.addExposedHeader("Authorization-Refresh");
 
     UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-    source.registerCorsConfiguration("/oauth/**", config);
+    source.registerCorsConfiguration("/**", config);
     return source;
   }
 }
