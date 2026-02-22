@@ -1,11 +1,7 @@
 package com.odos.odos_server_v2.config;
 
-import com.odos.odos_server_v2.domain.security.jwt.JwtAuthenticationFilter;
-import com.odos.odos_server_v2.domain.security.jwt.JwtTokenExceptionFilter;
-import com.odos.odos_server_v2.domain.security.oauth2.handler.OAuth2LoginFailureHandler;
-import com.odos.odos_server_v2.domain.security.oauth2.handler.OAuth2LoginSuccessHandler;
-import com.odos.odos_server_v2.domain.security.oauth2.service.CustomOAuth2UserService;
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -17,6 +13,12 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import com.odos.odos_server_v2.domain.security.jwt.JwtAuthenticationFilter;
+import com.odos.odos_server_v2.domain.security.jwt.JwtTokenExceptionFilter;
+import com.odos.odos_server_v2.domain.security.oauth2.handler.OAuth2LoginFailureHandler;
+import com.odos.odos_server_v2.domain.security.oauth2.handler.OAuth2LoginSuccessHandler;
+import com.odos.odos_server_v2.domain.security.oauth2.service.CustomOAuth2UserService;
 
 @Configuration
 @EnableWebSecurity
@@ -70,14 +72,20 @@ public class SecurityConfig {
   @Bean
   public CorsConfigurationSource corsConfigurationSource() {
     CorsConfiguration config = new CorsConfiguration();
-    config.addAllowedOriginPattern("*");
+
+    config.addAllowedOriginPattern("https://*.1day1streak.com");
+    config.addAllowedOriginPattern("https://1day1streak.com");
+    config.addAllowedOriginPattern("https://local.1day1streak.com");
+    config.addAllowedOriginPattern("https://local.dev.1day1streak.com");
+    config.addAllowedOriginPattern("https://dev.1day1streak.com");
+
     config.addAllowedMethod("*");
     config.addAllowedHeader("*");
     config.addExposedHeader("Authorization");
     config.addExposedHeader("Authorization-Refresh");
 
     UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-    source.registerCorsConfiguration("/oauth/**", config);
+    source.registerCorsConfiguration("/**", config);
     return source;
   }
 }
