@@ -1,11 +1,7 @@
 package com.odos.odos_server_v2.config;
 
-import com.odos.odos_server_v2.domain.security.jwt.JwtAuthenticationFilter;
-import com.odos.odos_server_v2.domain.security.jwt.JwtTokenExceptionFilter;
-import com.odos.odos_server_v2.domain.security.oauth2.handler.OAuth2LoginFailureHandler;
-import com.odos.odos_server_v2.domain.security.oauth2.handler.OAuth2LoginSuccessHandler;
-import com.odos.odos_server_v2.domain.security.oauth2.service.CustomOAuth2UserService;
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -17,6 +13,12 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import com.odos.odos_server_v2.domain.security.jwt.JwtAuthenticationFilter;
+import com.odos.odos_server_v2.domain.security.jwt.JwtTokenExceptionFilter;
+import com.odos.odos_server_v2.domain.security.oauth2.handler.OAuth2LoginFailureHandler;
+import com.odos.odos_server_v2.domain.security.oauth2.handler.OAuth2LoginSuccessHandler;
+import com.odos.odos_server_v2.domain.security.oauth2.service.CustomOAuth2UserService;
 
 @Configuration
 @EnableWebSecurity
@@ -43,6 +45,7 @@ public class SecurityConfig {
                         "/",
                         "/auth/**",
                         "/oauth2/**",
+                        "/login/oauth2/**",
                         "/css/**",
                         "/js/**",
                         "/challenges/random",
