@@ -43,6 +43,7 @@ public class SecurityConfig {
                         "/",
                         "/auth/**",
                         "/oauth2/**",
+                        "/login/oauth2/**",
                         "/css/**",
                         "/js/**",
                         "/challenges/random",
