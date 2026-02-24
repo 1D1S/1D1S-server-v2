@@ -16,6 +16,7 @@ import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import java.io.IOException;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -898,7 +899,8 @@ public class DiaryController {
               required = true,
               schema = @Schema(type = "string", format = "binary"))
           @RequestParam("file")
-          MultipartFile file) {
+          MultipartFile file)
+      throws IOException {
     String fileName = diaryService.uploadDiaryFile(diaryId, file);
     return ApiResponse.success(Message.DIARY_IMAGE_UPLOADED, fileName);
   }
@@ -971,7 +973,7 @@ public class DiaryController {
   })
   @PostMapping("/{id}/images")
   public ApiResponse<List<String>> uploadImages(
-      @Parameter(description = "이미지를 업로드할 일지 ID", example = "101", required = true)
+      @Parameter(description = "이미지를 업로드할 일지 ID", example = "1", required = true)
           @PathVariable("id")
           Long diaryId,
       @Parameter(
@@ -979,7 +981,8 @@ public class DiaryController {
               required = true,
               array = @ArraySchema(schema = @Schema(type = "string", format = "binary")))
           @RequestParam("file")
-          List<MultipartFile> files) {
+          List<MultipartFile> files)
+      throws IOException {
     List<String> fileList = diaryService.uploadDiaryFiles(diaryId, files);
     return ApiResponse.success(Message.DIARY_IMAGES_UPLOADED, fileList);
   }
