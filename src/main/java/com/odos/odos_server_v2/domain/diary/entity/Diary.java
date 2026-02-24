@@ -40,21 +40,34 @@ public class Diary {
   @Enumerated(EnumType.STRING)
   private Feeling feeling;
 
-  @Column private Boolean isPublic = true;
+  // FIX
+  @Builder.Default
+  @Column(nullable = false)
+  private Boolean isPublic = true;
 
   @Column(columnDefinition = "TEXT")
   private String content;
 
-  @Column private Boolean isAllGoalsCompleted = false;
+  // FIX
+  @Builder.Default
+  @Column(nullable = false)
+  private Boolean isAllGoalsCompleted = false;
 
-  @Column private Boolean isDeleted;
+  @Builder.Default @Column private Boolean isDeleted = false;
 
+  @Builder.Default
   @OneToMany(mappedBy = "diary", cascade = CascadeType.ALL, orphanRemoval = true)
   private List<DiaryGoal> diaryGoals = new ArrayList<>();
 
+  ;
+
+  @Builder.Default
   @OneToMany(mappedBy = "diary", cascade = CascadeType.ALL)
   private List<DiaryImage> images = new ArrayList<>();
 
+  ;
+
+  @Builder.Default
   @OneToMany(mappedBy = "diary", cascade = CascadeType.ALL)
   private List<DiaryLike> likes = new ArrayList<>();
 
@@ -66,6 +79,7 @@ public class Diary {
   @JoinColumn(name = "challenge_id")
   private Challenge challenge;
 
+  @Builder.Default
   @OneToMany(mappedBy = "diary", cascade = CascadeType.ALL)
   private List<DiaryReport> reports = new ArrayList<>();
 

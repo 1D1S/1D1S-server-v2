@@ -17,13 +17,13 @@ public class DiaryResponse {
 
   private Long id;
   private ChallengeSummaryResponse challenge;
-  private AuthorInfoDto authorInfoDto;
+  private AuthorInfoDto author;
   private String title;
   private String content;
   private List<String> imgUrl;
   private Boolean isPublic;
   private LikeDto likeInfo;
-  private DiaryInfoDto diaryInfoDto;
+  private DiaryInfoDto diaryInfo;
 
   public static DiaryResponse from(Member member, Diary diary, ChallengeSummaryResponse challenge) {
 
@@ -85,8 +85,8 @@ public class DiaryResponse {
         .content(diary.getContent())
         .title(diary.getTitle())
         .isPublic(diary.getIsPublic())
-        .authorInfoDto(author)
-        .diaryInfoDto(info)
+        .author(author)
+        .diaryInfo(info)
         .likeInfo(like)
         // .imgUrl(imgUrl)
         .build();
