@@ -83,6 +83,8 @@ public class SecurityConfig {
     config.addExposedHeader("Authorization");
     config.addExposedHeader("Authorization-Refresh");
 
+    config.setAllowCredentials(true);
+
     UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
     source.registerCorsConfiguration("/**", config);
     return source;
