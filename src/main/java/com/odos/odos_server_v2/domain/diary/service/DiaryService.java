@@ -342,7 +342,7 @@ public class DiaryService {
     Diary diary =
         diaryRepository
             .findById(diaryId)
-            .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+            .orElseThrow(() -> new CustomException(ErrorCode.DIARY_NOT_FOUND));
     String fileName = imageService.uploadFile(file);
     DiaryImage diaryImage = DiaryImage.builder().diary(diary).url(fileName).build();
     diary.addDiaryImage(diaryImage);

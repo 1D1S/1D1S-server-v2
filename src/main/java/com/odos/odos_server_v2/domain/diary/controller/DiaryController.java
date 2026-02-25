@@ -111,13 +111,58 @@ public class DiaryController {
                                             }
                                           """))),
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
-        responseCode = "400",
-        description = "일지 생성 실패(요청 값 검증 실패 등)",
+        responseCode = "401",
+        description = "일지 생성 실패(인증 필요)",
         content =
             @Content(
                 mediaType = "application/json",
-                schema =
-                    @Schema(implementation = com.odos.odos_server_v2.response.ApiResponse.class)))
+                schema = @Schema(implementation = ApiResponse.class),
+                examples =
+                    @ExampleObject(
+                        name = "인증 실패",
+                        value =
+                            """
+                            {
+                              "code": "AUTH-001",
+                              "message": "일지 생성에 실패했습니다. 로그인 후 다시 시도해주세요."
+                            }
+                            """))),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "404",
+        description = "일지 생성 실패(대상 없음)",
+        content =
+            @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ApiResponse.class),
+                examples = {
+                  @ExampleObject(
+                      name = "회원 없음",
+                      value =
+                          """
+                                    {
+                                      "code": "USER-003",
+                                      "message": "일지 생성에 실패했습니다. 사용자를 찾을 수 없습니다."
+                                    }
+                                    """),
+                  @ExampleObject(
+                      name = "챌린지 없음",
+                      value =
+                          """
+                                    {
+                                      "code": "CHALLENGE_001",
+                                      "message": "일지 생성에 실패했습니다. 챌린지를 찾을 수 없습니다."
+                                    }
+                                    """),
+                  @ExampleObject(
+                      name = "참여자 없음",
+                      value =
+                          """
+                                    {
+                                      "code": "CHALLENGE_003",
+                                      "message": "일지 생성에 실패했습니다. 챌린지 참여자만 일지를 작성할 수 있습니다."
+                                    }
+                                    """)
+                }))
   })
   @PostMapping("")
   public ApiResponse<DiaryResponse> createDiary(@RequestBody DiaryRequest request) {
@@ -206,14 +251,46 @@ public class DiaryController {
                                             }
                                           """))),
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
-        responseCode = "400",
-        description = "일지 수정 실패(요청 값 검증 실패 등)",
+        responseCode = "401",
+        description = "일지 생성 실패(인증 필요)",
         content =
             @Content(
                 mediaType = "application/json",
-                schema =
-                    @Schema(implementation = com.odos.odos_server_v2.response.ApiResponse.class)))
+                schema = @Schema(implementation = ApiResponse.class),
+                examples =
+                    @ExampleObject(
+                        name = "인증 실패",
+                        value =
+                            """
+              {
+                "code": 401,
+                "message": "일지 생성에 실패했습니다. 로그인 후 다시 시도해주세요.",
+              }
+              """)))
   })
+  @io.swagger.v3.oas.annotations.responses.ApiResponse(
+      responseCode = "400",
+      description = "일지 수정 실패(요청 값 검증 실패 등)",
+      content =
+          @Content(
+              mediaType = "application/json",
+              schema = @Schema(implementation = com.odos.odos_server_v2.response.ApiResponse.class),
+              examples = {
+                @ExampleObject(
+                    name = "챌린지 없음",
+                    value =
+                        """
+                                        { "code": "CHALLENGE_001", message: "챌린지를 찾을 수 없습니다." }
+                                        """),
+                @ExampleObject(
+                    name = "참여자 아님",
+                    value =
+                        """
+                                        {
+                                          { "code": "CHALLENGE_003", message: "챌린지 참여자가 아닙니다." }
+                                        }
+                                        """)
+              }))
   @PatchMapping("/{id}")
   public ApiResponse<DiaryResponse> updateDiary(
       @PathVariable(name = "id") Long diaryId, @RequestBody DiaryRequest request) {
@@ -292,10 +369,7 @@ public class DiaryController {
                       name = "잘못된 diaryId 형식",
                       value =
                           """
-                                                {
-                                                  "message": "INVALID_INPUT",
-                                                  "data": null
-                                                }
+                                                { "code": "CHALLENGE_001", message: "챌린지를 찾을 수 없습니다." }
                                                 """),
                   @ExampleObject(
                       name = "존재하지 않는 일지",
@@ -456,26 +530,7 @@ public class DiaryController {
                                                    },
                                                    ....
                                           }
-                                          """))),
-    @io.swagger.v3.oas.annotations.responses.ApiResponse(
-        responseCode = "400",
-        description = "일지 랜덤 조회 실패(요청 값 검증 실패 등)",
-        content =
-            @Content(
-                mediaType = "application/json",
-                schema =
-                    @Schema(implementation = com.odos.odos_server_v2.response.ApiResponse.class),
-                examples = {
-                  @ExampleObject(
-                      name = "size 누락/형식 오류",
-                      value =
-                          """
-                                                    {
-                                                      "message": "INVALID_INPUT",
-                                                      "data": null
-                                                    }
-                                                """)
-                }))
+                                          """)))
   })
   @GetMapping("/random")
   public ApiResponse<List<DiaryResponse>> randomDiary(
@@ -487,33 +542,42 @@ public class DiaryController {
   }
 
   @Operation(summary = "일지 삭제", description = "일지의 id를 기반으로 일지를 삭제한다.")
-  @io.swagger.v3.oas.annotations.responses.ApiResponse(
-      responseCode = "400",
-      description = "일지 삭제 실패(요청 값 검증 실패 등)",
-      content =
-          @Content(
-              mediaType = "application/json",
-              schema = @Schema(implementation = com.odos.odos_server_v2.response.ApiResponse.class),
-              examples = {
-                @ExampleObject(
-                    name = "존재하지 않는 일지",
-                    value =
-                        """
-                                    {
-                                      "message": "존재하지 않는 다이어리입니다.",
-                                      "data": null
-                                    }
-                                    """),
-                @ExampleObject(
-                    name = "권한 없음(나의 일지가 아닙니다.)",
-                    value =
-                        """
-                                    {
-                                      "message": "FORBIDDEN",
-                                      "data": null
-                                    }
-                                   """)
-              }))
+  @ApiResponses({
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "200",
+        description = "일지 삭제 성공",
+        content =
+            @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ApiResponse.class),
+                examples =
+                    @ExampleObject(
+                        name = "삭제 성공 예시",
+                        value =
+                            """
+                            {
+                              "data": "",
+                              "message": "일지 삭제에 성공했습니다."
+                            }
+                            """))),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "404",
+        description = "일지 삭제 실패(일지 없음)",
+        content =
+            @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ApiResponse.class),
+                examples =
+                    @ExampleObject(
+                        name = "일지 없음",
+                        value =
+                            """
+                            {
+                              "code": "DIARY-002",
+                              "message": "일지 삭제에 실패했습니다. 존재하지 않는 일지입니다."
+                            }
+                            """)))
+  })
   @DeleteMapping("/{id}")
   public ApiResponse<Boolean> deleteDiary(
       @Parameter(description = "삭제할 일지 ID", example = "1", required = true)
@@ -542,7 +606,7 @@ public class DiaryController {
                             """
                                     {
                                       "message": "다이어리에 좋아요 누르기 성공했습니다.",
-                                      "data": 12
+                                      "data": 1
                                     }
                                     """))),
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
@@ -555,32 +619,32 @@ public class DiaryController {
                     @Schema(implementation = com.odos.odos_server_v2.response.ApiResponse.class),
                 examples = {
                   @ExampleObject(
-                      name = "이미 좋아요 누른 상태",
+                      name = "일지 없음",
                       value =
                           """
-                                            {
-                                              "message": "이미 좋아요를 눌렀습니다. 좋아요는 한번만 누르기 가능합니다",
-                                              "data": null
-                                            }
-                                            """),
+                                    {
+                                      "code": "DIARY-002",
+                                      "message": "좋아요 처리에 실패했습니다. 존재하지 않는 일지입니다."
+                                    }
+                                    """),
                   @ExampleObject(
-                      name = "존재하지 않는 일지",
+                      name = "회원 없음",
                       value =
                           """
-                                            {
-                                              "message": "DIARY_NOT_FOUND",
-                                              "data": null
-                                            }
-                                            """),
+                                    {
+                                      "code": "USER-003",
+                                      "message": "좋아요 처리에 실패했습니다. 사용자를 찾을 수 없습니다."
+                                    }
+                                    """),
                   @ExampleObject(
-                      name = "로그인하지 않았습니다. 조회할 수 없는 사용자",
+                      name = "이미 좋아요 상태",
                       value =
                           """
-                                            {
-                                              "message": "MEMBER_NOT_FOUND",
-                                              "data": null
-                                            }
-                                            """)
+                                    {
+                                      "code": "DIARY-003",
+                                      "message": "좋아요 처리에 실패했습니다. 이미 좋아요를 누른 상태입니다."
+                                    }
+                                    """)
                 }))
   })
   @PostMapping("/{id}/likes")
@@ -625,23 +689,32 @@ public class DiaryController {
                     @Schema(implementation = com.odos.odos_server_v2.response.ApiResponse.class),
                 examples = {
                   @ExampleObject(
-                      name = "좋아요가 존재하지 않음",
+                      name = "일지 없음",
                       value =
                           """
-                                                {
-                                                  "message": "좋아요 누른 전적이 없습니다. 새로 좋아요를 눌러주세요",
-                                                  "data": null
-                                                }
-                                                """),
+                                    {
+                                      "code": "DIARY-002",
+                                      "message": "좋아요 취소에 실패했습니다. 존재하지 않는 일지입니다."
+                                    }
+                                    """),
                   @ExampleObject(
-                      name = "존재하지 않는 일지",
+                      name = "회원 없음",
                       value =
                           """
-                                            {
-                                              "message": "존재하지 않는 다이어리입니다.",
-                                              "data": null
-                                            }
-                                            """)
+                                    {
+                                      "code": "USER-003",
+                                      "message": "좋아요 취소에 실패했습니다. 사용자를 찾을 수 없습니다."
+                                    }
+                                    """),
+                  @ExampleObject(
+                      name = "좋아요 기록 없음",
+                      value =
+                          """
+                                    {
+                                      "code": "DIARY-004",
+                                      "message": "좋아요 취소에 실패했습니다. 좋아요를 누른 기록이 없습니다."
+                                    }
+                                    """)
                 }))
   })
   @DeleteMapping("/{id}/likes")
@@ -702,23 +775,23 @@ public class DiaryController {
                     @Schema(implementation = com.odos.odos_server_v2.response.ApiResponse.class),
                 examples = {
                   @ExampleObject(
-                      name = "존재하지 않는 일지",
+                      name = "일지 없음",
                       value =
                           """
-                                            {
-                                              "message": "DIARY_NOT_FOUND",
-                                              "data": null
-                                            }
-                                            """),
+                                    {
+                                      "code": "DIARY-002",
+                                      "message": "신고 접수에 실패했습니다. 존재하지 않는 일지입니다."
+                                    }
+                                    """),
                   @ExampleObject(
-                      name = "로그인 사용자 없음",
+                      name = "회원 없음",
                       value =
                           """
-                                            {
-                                              "message": "MEMBER_NOT_FOUND",
-                                              "data": null
-                                            }
-                                            """)
+                                    {
+                                      "code": "USER-003",
+                                      "message": "신고 접수에 실패했습니다. 사용자를 찾을 수 없습니다."
+                                    }
+                                    """)
                 }))
   })
   @PostMapping("/report")
@@ -815,7 +888,7 @@ public class DiaryController {
                             """
                                     {
                                       "message": "MEMBER_NOT_FOUND",
-                                      "data": null
+                                      "code": AUTH-003
                                     }
                                     """)))
   })
@@ -875,18 +948,9 @@ public class DiaryController {
                           """
                                             {
                                               "message": "DIARY_NOT_FOUND",
-                                              "data": null
+                                              "code": DIARY-002
                                             }
                                             """),
-                  @ExampleObject(
-                      name = "파일 누락/형식 오류",
-                      value =
-                          """
-                                            {
-                                              "message": "INVALID_INPUT",
-                                              "data": null
-                                            }
-                                            """)
                 }))
   })
   @PostMapping("/{id}/image")
@@ -960,15 +1024,6 @@ public class DiaryController {
                                               "data": null
                                             }
                                             """),
-                  @ExampleObject(
-                      name = "파일 누락/형식 오류",
-                      value =
-                          """
-                                                {
-                                                  "message": "INVALID_INPUT",
-                                                  "data": null
-                                                }
-                                                """)
                 }))
   })
   @PostMapping("/{id}/images")
