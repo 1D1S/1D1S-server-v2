@@ -34,4 +34,8 @@ public class Message {
   public static String ADD_CHALLENGE_LIKE = "챌린지 좋아요 성공했습니다.";
   public static String CANCEL_CHALLENGE_LIKE = "챌린지 좋아요 취소 성공했습니다.";
   public static String GET_CHALLENGES_BY_MEMBER = "진행중인 챌린지 불러오기 성공했습니다.";
+
+  // member
+  public static String GET_MYPAGE = "마이페이지 조회 성공했습니다.";
+  public static String GET_SIDEBAR = "사이드바 조회 성공했습니다.";
 }
