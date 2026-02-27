@@ -419,6 +419,70 @@ public class ChallengeController {
         Message.GET_RANDOM_CHALLENGES, challengeService.getRandomChallenges(memberId, size));
   }
 
+  @Operation(summary = "내 챌린지 목록 조회", description = "로그인한 회원 본인이 참여 중인 챌린지 목록을 조회한다.")
+  @ApiResponses({
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "200",
+        description = "내 챌린지 목록 조회 성공",
+        content =
+            @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ChallengeSummaryResponse.class),
+                examples =
+                    @ExampleObject(
+                        value =
+                            """
+                            {
+                              "message": "챌린지 랜덤 불러오기 성공했습니다.",
+                              "data": [
+                                {
+                                  "challengeId": 1,
+                                  "title": "30일 코딩 챌린지",
+                                  "category": "DEV",
+                                  "startDate": "2025-09-01",
+                                  "endDate": "2025-09-30",
+                                  "maxParticipantCnt": 10,
+                                  "challengeType": "FIXED",
+                                  "participantCnt": 5,
+                                  "likeInfo": { "likedByMe": false, "likeCnt": 3 }
+                                }
+                              ]
+                            }
+                            """))),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "401",
+        description = "인증되지 않은 접근",
+        content =
+            @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class),
+                examples =
+                    @ExampleObject(
+                        value =
+                            """
+                            { "code": "AUTH-001", "message": "인증되지 않은 접근입니다." }
+                            """))),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "404",
+        description = "회원을 찾을 수 없음",
+        content =
+            @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class),
+                examples =
+                    @ExampleObject(
+                        value =
+                            """
+                            { "code": "USER-003", "message": "회원을 찾을 수 없습니다." }
+                            """)))
+  })
+  @GetMapping("/my")
+  public ApiResponse<List<ChallengeSummaryResponse>> myChallenge() {
+    Long memberId = CurrentUserContext.getCurrentMemberIdOrNull();
+    return ApiResponse.success(
+        Message.GET_RANDOM_CHALLENGES, challengeService.getMemberChallenge(memberId, memberId));
+  }
+
   @Operation(summary = "챌린지 탈퇴", description = "참여 중인 챌린지에서 탈퇴한다. 호스트는 탈퇴할 수 없다.")
   @ApiResponses({
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
