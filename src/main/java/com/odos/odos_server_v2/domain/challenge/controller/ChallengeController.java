@@ -433,7 +433,7 @@ public class ChallengeController {
                         value =
                             """
                             {
-                              "message": "챌린지 랜덤 불러오기 성공했습니다.",
+                              "message": "내 챌린지 목록 조회 성공했습니다.",
                               "data": [
                                 {
                                   "challengeId": 1,
@@ -480,7 +480,7 @@ public class ChallengeController {
   public ApiResponse<List<ChallengeSummaryResponse>> myChallenge() {
     Long memberId = CurrentUserContext.getCurrentMemberIdOrNull();
     return ApiResponse.success(
-        Message.GET_RANDOM_CHALLENGES, challengeService.getMemberChallenge(memberId, memberId));
+        Message.GET_MY_CHALLENGE, challengeService.getMemberChallenge(memberId, memberId));
   }
 
   @Operation(summary = "챌린지 탈퇴", description = "참여 중인 챌린지에서 탈퇴한다. 호스트는 탈퇴할 수 없다.")
