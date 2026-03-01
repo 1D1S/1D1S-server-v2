@@ -22,6 +22,7 @@ import com.odos.odos_server_v2.domain.shared.service.ImageService;
 import com.odos.odos_server_v2.exception.CustomException;
 import com.odos.odos_server_v2.exception.ErrorCode;
 import jakarta.transaction.Transactional;
+import java.io.IOException;
 import java.util.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -47,153 +48,132 @@ public class DiaryService {
 
   @Transactional
   public DiaryResponse createDiary(Long memberId, DiaryRequest request) {
-    try {
-      Member member =
-          memberRepository
-              .findById(memberId)
-              .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
-      Challenge challenge =
-          challengeRepository
-              .findById(request.getChallengeId())
-              .orElseThrow(() -> new CustomException(ErrorCode.CHALLENGE_NOT_FOUND));
-      ChallengeSummaryResponse challengeSummary =
-          challengeService.toChallengeSummary(challenge, memberId);
 
-      Participant participant =
-          participantRepository.findByMemberIdAndChallengeId(memberId, challenge.getId());
-      if (participant == null) {
-        throw new CustomException(ErrorCode.PARTICIPANT_NOT_FOUND);
-      }
+    Member member =
+        memberRepository
+            .findById(memberId)
+            .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+    Challenge challenge =
+        challengeRepository
+            .findById(request.getChallengeId())
+            .orElseThrow(() -> new CustomException(ErrorCode.CHALLENGE_NOT_FOUND));
+    ChallengeSummaryResponse challengeSummary =
+        challengeService.toChallengeSummary(challenge, memberId);
 
-      Diary diary =
-          Diary.builder()
-              .member(member)
-              .challenge(challenge)
-              .completedDate(request.getAchievedDate())
-              .title(request.getTitle())
-              .content(request.getContent())
-              .feeling(request.getFeeling())
-              .isPublic(request.getIsPublic())
-              .diaryGoals(new ArrayList<>())
-              .likes(new ArrayList<>())
-              .build();
-      Diary newDiary = diaryRepository.save(diary);
-
-      // 챌린지 목표를 기반으로 다이어리 목표달성 생성 및 저장
-      List<ChallengeGoal> challengeGoals = Objects.requireNonNull(participant).getChallengeGoals();
-      List<DiaryGoal> diaryGoals = new ArrayList<>();
-      List<Long> achievedGoalIds =
-          request.getAchievedGoalIds() != null ? request.getAchievedGoalIds() : new ArrayList<>();
-
-      for (ChallengeGoal challengeGoal : challengeGoals) {
-        boolean isCompleted = achievedGoalIds.contains(challengeGoal.getId());
-        DiaryGoal diaryGoal =
-            DiaryGoal.builder()
-                .diary(newDiary) // newDiary 이미 저장된 다이어리로 변경
-                .challengeGoal(challengeGoal)
-                .isCompleted(isCompleted)
-                .build();
-        diaryGoals.add(diaryGoal);
-        newDiary.addDiaryGoal(diaryGoal);
-      }
-      diaryGoalRepository.saveAll(diaryGoals);
-      return DiaryResponse.from(member, newDiary, challengeSummary);
-    } catch (Exception e) {
-      log.error(e.getMessage(), e);
-      return null;
+    Participant participant =
+        participantRepository.findByMemberIdAndChallengeId(memberId, challenge.getId());
+    if (participant == null) {
+      throw new CustomException(ErrorCode.PARTICIPANT_NOT_FOUND);
     }
+
+    Diary diary =
+        Diary.builder()
+            .member(member)
+            .challenge(challenge)
+            .completedDate(request.getAchievedDate())
+            .title(request.getTitle())
+            .content(request.getContent())
+            .feeling(request.getFeeling())
+            .isPublic(request.getIsPublic())
+            .diaryGoals(new ArrayList<>())
+            .likes(new ArrayList<>())
+            .build();
+    Diary newDiary = diaryRepository.save(diary);
+
+    // 챌린지 목표를 기반으로 다이어리 목표달성 생성 및 저장
+    List<ChallengeGoal> challengeGoals = Objects.requireNonNull(participant).getChallengeGoals();
+    List<DiaryGoal> diaryGoals = new ArrayList<>();
+    List<Long> achievedGoalIds =
+        request.getAchievedGoalIds() != null ? request.getAchievedGoalIds() : new ArrayList<>();
+
+    for (ChallengeGoal challengeGoal : challengeGoals) {
+      boolean isCompleted = achievedGoalIds.contains(challengeGoal.getId());
+      DiaryGoal diaryGoal =
+          DiaryGoal.builder()
+              .diary(newDiary) // newDiary 이미 저장된 다이어리로 변경
+              .challengeGoal(challengeGoal)
+              .isCompleted(isCompleted)
+              .build();
+      diaryGoals.add(diaryGoal);
+      newDiary.addDiaryGoal(diaryGoal);
+    }
+    diaryGoalRepository.saveAll(diaryGoals);
+    return DiaryResponse.from(member, newDiary, challengeSummary);
   }
 
   @Transactional
   public DiaryResponse updateDiary(Long memberId, Long diaryId, DiaryRequest request) {
-    try {
-      Member member =
-          memberRepository
-              .findById(memberId)
-              .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
-      Diary diary =
-          diaryRepository
-              .findById(diaryId)
-              .orElseThrow(() -> new CustomException(ErrorCode.DIARY_NOT_FOUND));
-      Challenge challenge =
-          challengeRepository
-              .findById(request.getChallengeId())
-              .orElseThrow(() -> new CustomException(ErrorCode.CHALLENGE_NOT_FOUND));
-      ChallengeSummaryResponse challengeSummary =
-          challengeService.toChallengeSummary(challenge, memberId);
+    Member member =
+        memberRepository
+            .findById(memberId)
+            .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+    Diary diary =
+        diaryRepository
+            .findById(diaryId)
+            .orElseThrow(() -> new CustomException(ErrorCode.DIARY_NOT_FOUND));
+    Challenge challenge =
+        challengeRepository
+            .findById(request.getChallengeId())
+            .orElseThrow(() -> new CustomException(ErrorCode.CHALLENGE_NOT_FOUND));
+    ChallengeSummaryResponse challengeSummary =
+        challengeService.toChallengeSummary(challenge, memberId);
 
-      Participant participant =
-          participantRepository.findByMemberIdAndChallengeId(memberId, challenge.getId());
-      if (participant == null) {
-        throw new CustomException(ErrorCode.PARTICIPANT_NOT_FOUND);
-      }
-
-      List<ChallengeGoal> challengeGoals = Objects.requireNonNull(participant).getChallengeGoals();
-      List<DiaryGoal> diaryGoals = new ArrayList<>();
-      List<Long> achievedGoalIds =
-          request.getAchievedGoalIds() != null ? request.getAchievedGoalIds() : new ArrayList<>();
-
-      for (ChallengeGoal challengeGoal : challengeGoals) {
-        boolean isCompleted = achievedGoalIds.contains(challengeGoal.getId());
-        DiaryGoal diaryGoal =
-            DiaryGoal.builder()
-                .diary(diary) // newDiary로
-                .challengeGoal(challengeGoal)
-                .isCompleted(isCompleted)
-                .build();
-        diaryGoals.add(diaryGoal);
-      }
-
-      diary.updateDiary(request, challenge, diaryGoals);
-      diaryRepository.save(diary);
-      return DiaryResponse.from(member, diary, challengeSummary);
-    } catch (Exception e) {
-      log.error(e.getMessage(), e);
-      return null;
+    Participant participant =
+        participantRepository.findByMemberIdAndChallengeId(memberId, challenge.getId());
+    if (participant == null) {
+      throw new CustomException(ErrorCode.PARTICIPANT_NOT_FOUND);
     }
+
+    List<ChallengeGoal> challengeGoals = Objects.requireNonNull(participant).getChallengeGoals();
+    List<DiaryGoal> diaryGoals = new ArrayList<>();
+    List<Long> achievedGoalIds =
+        request.getAchievedGoalIds() != null ? request.getAchievedGoalIds() : new ArrayList<>();
+
+    for (ChallengeGoal challengeGoal : challengeGoals) {
+      boolean isCompleted = achievedGoalIds.contains(challengeGoal.getId());
+      DiaryGoal diaryGoal =
+          DiaryGoal.builder()
+              .diary(diary) // newDiary로
+              .challengeGoal(challengeGoal)
+              .isCompleted(isCompleted)
+              .build();
+      diaryGoals.add(diaryGoal);
+    }
+
+    diary.updateDiary(request, challenge, diaryGoals);
+    diaryRepository.save(diary);
+    return DiaryResponse.from(member, diary, challengeSummary);
   }
 
   @Transactional
   public DiaryResponse getDiary(Long diaryId) {
-    try {
-      Diary diary =
-          diaryRepository
-              .findById(diaryId)
-              .orElseThrow(() -> new CustomException(ErrorCode.DIARY_NOT_FOUND));
-      Member member = diary.getMember();
-      ChallengeSummaryResponse response =
-          challengeService.toChallengeSummary(diary.getChallenge(), member.getId());
+    Diary diary =
+        diaryRepository
+            .findById(diaryId)
+            .orElseThrow(() -> new CustomException(ErrorCode.DIARY_NOT_FOUND));
+    Member member = diary.getMember();
+    ChallengeSummaryResponse response =
+        challengeService.toChallengeSummary(diary.getChallenge(), member.getId());
 
-      return DiaryResponse.from(member, diary, response);
-    } catch (Exception e) {
-      log.error(e.getMessage(), e);
-      return null;
-    }
+    return DiaryResponse.from(member, diary, response);
   }
 
   @Transactional
   public List<DiaryResponse> getAllPublicDiaries() {
-    try {
-      Long memberId = CurrentUserContext.getCurrentMemberId();
-      Member member =
-          memberRepository
-              .findById(memberId)
-              .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
-      List<Diary> diaries = diaryRepository.findDiariesByIsPublic(Boolean.TRUE);
-      List<DiaryResponse> diaryResponses = new ArrayList<>();
+    Long memberId = CurrentUserContext.getCurrentMemberId();
+    Member member =
+        memberRepository
+            .findById(memberId)
+            .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+    List<Diary> diaries = diaryRepository.findDiariesByIsPublic(Boolean.TRUE);
+    List<DiaryResponse> diaryResponses = new ArrayList<>();
 
-      for (Diary diary : diaries) {
-        diaryResponses.add(
-            DiaryResponse.from(
-                member,
-                diary,
-                challengeService.toChallengeSummary(diary.getChallenge(), memberId)));
-      }
-      return diaryResponses;
-    } catch (Exception e) {
-      log.info(e.getMessage());
-      return null;
+    for (Diary diary : diaries) {
+      diaryResponses.add(
+          DiaryResponse.from(
+              member, diary, challengeService.toChallengeSummary(diary.getChallenge(), memberId)));
     }
+    return diaryResponses;
   }
 
   @Transactional
@@ -238,12 +218,8 @@ public class DiaryService {
     diaryRepository
         .findById(diaryId)
         .orElseThrow(() -> new CustomException(ErrorCode.DIARY_NOT_FOUND));
-    try {
-      diaryRepository.deleteById(diaryId);
-      return true;
-    } catch (CustomException e) {
-      return false;
-    }
+    diaryRepository.deleteById(diaryId);
+    return true;
   }
 
   @Transactional
@@ -317,27 +293,23 @@ public class DiaryService {
 
   @Transactional
   public Boolean reportDiary(ReportRequest request, Long memberId) {
-    try {
-      Member member =
-          memberRepository
-              .findById(memberId)
-              .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
-      Diary diary =
-          diaryRepository
-              .findById(request.getDiaryId())
-              .orElseThrow(() -> new CustomException(ErrorCode.DIARY_NOT_FOUND));
-      DiaryReport diaryReport =
-          DiaryReport.builder()
-              .member(member)
-              .diary(diary)
-              .type(request.getReportType())
-              .content(request.getContent())
-              .build();
-      diaryReportRepository.save(diaryReport);
-      return true;
-    } catch (Exception e) {
-      return false;
-    }
+    Member member =
+        memberRepository
+            .findById(memberId)
+            .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+    Diary diary =
+        diaryRepository
+            .findById(request.getDiaryId())
+            .orElseThrow(() -> new CustomException(ErrorCode.DIARY_NOT_FOUND));
+    DiaryReport diaryReport =
+        DiaryReport.builder()
+            .member(member)
+            .diary(diary)
+            .type(request.getReportType())
+            .content(request.getContent())
+            .build();
+    diaryReportRepository.save(diaryReport);
+    return true;
   }
 
   // 마이페이지 다이어리 조회를 위한 서비스 메서드
@@ -365,42 +337,32 @@ public class DiaryService {
   }
 
   @Transactional
-  public String uploadDiaryFile(Long diaryId, MultipartFile file) {
-    try {
-      Long memberId = CurrentUserContext.getCurrentMemberId();
-      Diary diary =
-          diaryRepository
-              .findById(diaryId)
-              .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
-      String fileName = imageService.uploadFile(file);
-      DiaryImage diaryImage = DiaryImage.builder().diary(diary).url(fileName).build();
-      diary.addDiaryImage(diaryImage);
-      diaryImageRepository.save(diaryImage);
-      return fileName;
-    } catch (Exception e) {
-      log.info(e.getMessage());
-      return "No such file";
-    }
+  public String uploadDiaryFile(Long diaryId, MultipartFile file) throws IOException {
+    Long memberId = CurrentUserContext.getCurrentMemberId();
+    Diary diary =
+        diaryRepository
+            .findById(diaryId)
+            .orElseThrow(() -> new CustomException(ErrorCode.DIARY_NOT_FOUND));
+    String fileName = imageService.uploadFile(file);
+    DiaryImage diaryImage = DiaryImage.builder().diary(diary).url(fileName).build();
+    diary.addDiaryImage(diaryImage);
+    diaryImageRepository.save(diaryImage);
+    return fileName;
   }
 
   @Transactional
-  public List<String> uploadDiaryFiles(Long diaryId, List<MultipartFile> files) {
-    try {
-      Long memberId = CurrentUserContext.getCurrentMemberId();
-      Diary diary =
-          diaryRepository
-              .findById(diaryId)
-              .orElseThrow(() -> new CustomException(ErrorCode.DIARY_NOT_FOUND));
-      List<String> fileList = imageService.uploadFiles(files);
-      List<DiaryImage> diaryImages = new ArrayList<>();
-      for (String fileName : fileList) {
-        diaryImages.add(DiaryImage.builder().diary(diary).url(fileName).build());
-      }
-      diaryImageRepository.saveAll(diaryImages);
-      return fileList;
-    } catch (Exception e) {
-      log.info(e.getMessage());
-      return Collections.emptyList();
+  public List<String> uploadDiaryFiles(Long diaryId, List<MultipartFile> files) throws IOException {
+    Long memberId = CurrentUserContext.getCurrentMemberId();
+    Diary diary =
+        diaryRepository
+            .findById(diaryId)
+            .orElseThrow(() -> new CustomException(ErrorCode.DIARY_NOT_FOUND));
+    List<String> fileList = imageService.uploadFiles(files);
+    List<DiaryImage> diaryImages = new ArrayList<>();
+    for (String fileName : fileList) {
+      diaryImages.add(DiaryImage.builder().diary(diary).url(fileName).build());
     }
+    diaryImageRepository.saveAll(diaryImages);
+    return fileList;
   }
 }

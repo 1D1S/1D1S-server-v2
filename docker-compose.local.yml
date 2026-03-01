@@ -6,7 +6,7 @@ services:
       dockerfile: Dockerfile.local
     container_name: oneday-onestreak-local
     ports:
-      - "8081:8080"
+      - "8080:8080"
     env_file:
       - .env/docker.local.env
     volumes:
