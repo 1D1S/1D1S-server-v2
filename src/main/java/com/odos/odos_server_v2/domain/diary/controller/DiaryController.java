@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -953,7 +954,7 @@ public class DiaryController {
                                             """),
                 }))
   })
-  @PostMapping("/{id}/image")
+  @PostMapping(value = "/{id}/image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
   public ApiResponse<String> uploadImage(
       @Parameter(description = "이미지를 업로드할 일지 ID", example = "1", required = true)
           @PathVariable("id")
@@ -962,7 +963,7 @@ public class DiaryController {
               description = "업로드할 이미지 파일 (multipart/form-data의 file 필드)",
               required = true,
               schema = @Schema(type = "string", format = "binary"))
-          @RequestParam("file")
+          @RequestPart("file")
           MultipartFile file)
       throws IOException {
     String fileName = diaryService.uploadDiaryFile(diaryId, file);
@@ -1026,7 +1027,7 @@ public class DiaryController {
                                             """),
                 }))
   })
-  @PostMapping("/{id}/images")
+  @PostMapping(value = "/{id}/images", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
   public ApiResponse<List<String>> uploadImages(
       @Parameter(description = "이미지를 업로드할 일지 ID", example = "1", required = true)
           @PathVariable("id")
@@ -1035,7 +1036,7 @@ public class DiaryController {
               description = "업로드할 이미지 파일들 (multipart/form-data의 file 필드, 여러 개)",
               required = true,
               array = @ArraySchema(schema = @Schema(type = "string", format = "binary")))
-          @RequestParam("file")
+          @RequestPart("file")
           List<MultipartFile> files)
       throws IOException {
     List<String> fileList = diaryService.uploadDiaryFiles(diaryId, files);
