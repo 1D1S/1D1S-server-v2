@@ -3,6 +3,7 @@ package com.odos.odos_server_v2.domain.diary.dto;
 import com.odos.odos_server_v2.domain.challenge.dto.ChallengeSummaryResponse;
 import com.odos.odos_server_v2.domain.diary.entity.Diary;
 import com.odos.odos_server_v2.domain.diary.entity.DiaryGoal;
+import com.odos.odos_server_v2.domain.diary.entity.DiaryImage;
 import com.odos.odos_server_v2.domain.diary.entity.DiaryLike;
 import com.odos.odos_server_v2.domain.member.entity.Member;
 import com.odos.odos_server_v2.domain.shared.dto.LikeDto;
@@ -76,8 +77,7 @@ public class DiaryResponse {
             .likeCnt(likeCount)
             .build();
 
-    //    List<String> imgUrl =
-    //        diary.getImages().stream().map(DiaryImage::getUrl).collect(Collectors.toList());
+    List<String> imgUrl = diary.getImages().stream().map(DiaryImage::getUrl).toList();
 
     return DiaryResponse.builder()
         .id(diary.getId())
@@ -88,7 +88,7 @@ public class DiaryResponse {
         .author(author)
         .diaryInfo(info)
         .likeInfo(like)
-        // .imgUrl(imgUrl)
+        .imgUrl(imgUrl)
         .build();
   }
 }
