@@ -11,6 +11,6 @@ public class DiaryInfoDto {
   private String createdAt;
   private String challengedDate;
   private Feeling feeling;
-  private List<Long> achievement;
+  private List<DiaryGoalDto> diaryGoal;
   private int achievementRate;
 }
