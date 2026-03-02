@@ -28,13 +28,11 @@ public class DiaryResponse {
 
   public static DiaryResponse from(Member member, Diary diary, ChallengeSummaryResponse challenge) {
 
-    List<Long> achievements =
+    List<DiaryGoal> goals = diary.getDiaryGoals();
+    List<DiaryGoalDto> diaryGoals =
         diary.getDiaryGoals() == null
             ? Collections.emptyList()
-            : diary.getDiaryGoals().stream()
-                .filter(DiaryGoal::getIsCompleted)
-                .map(diaryGoal -> diaryGoal.getChallengeGoal().getId()) // 챌린지골 아이디 기준으로
-                .toList();
+            : goals.stream().map(DiaryGoalDto::from).toList();
 
     int totalGoal = diary.getDiaryGoals().size();
     long achievedGoalsCount =
@@ -45,7 +43,7 @@ public class DiaryResponse {
         DiaryInfoDto.builder()
             .createdAt(diary.getCreatedDate().toString())
             .challengedDate(diary.getCompletedDate().toString())
-            .achievement(achievements)
+            .diaryGoal(diaryGoals)
             .achievementRate(achievementRate)
             .feeling(diary.getFeeling())
             .build();
