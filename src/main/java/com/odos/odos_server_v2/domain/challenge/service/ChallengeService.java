@@ -256,7 +256,11 @@ public class ChallengeService {
         memberRepository
             .findById(memberId)
             .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+
+    LocalDate today = LocalDate.now();
+
     return member.getChallenges().stream()
+        .filter(ch -> !today.isBefore(ch.getStartDate()) && !today.isAfter(ch.getEndDate()))
         .map(ch -> toChallengeSummary(ch, currentMemberId))
         .toList();
   }
