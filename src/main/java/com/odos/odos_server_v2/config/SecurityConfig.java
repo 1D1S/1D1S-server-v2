@@ -47,6 +47,7 @@ public class SecurityConfig {
                         "/css/**",
                         "/js/**",
                         "/challenges/random",
+                        "/diaries/random",
                         "/swagger",
                         "/swagger-ui.html",
                         "/swagger-ui/**",
