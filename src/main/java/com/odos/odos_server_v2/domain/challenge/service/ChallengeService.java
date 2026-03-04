@@ -259,7 +259,12 @@ public class ChallengeService {
 
     LocalDate today = LocalDate.now();
 
-    return member.getChallenges().stream()
+    return member.getParticipants().stream()
+        .filter(
+            p ->
+                p.getStatus() == ParticipantStatus.HOST
+                    || p.getStatus() == ParticipantStatus.PARTICIPANT)
+        .map(Participant::getChallenge)
         .filter(ch -> !today.isBefore(ch.getStartDate()) && !today.isAfter(ch.getEndDate()))
         .map(ch -> toChallengeSummary(ch, currentMemberId))
         .toList();
@@ -270,17 +275,17 @@ public class ChallengeService {
     Long memberId = member.getId();
     // 챌린지 목표
     List<ChallengeGoal> challengeGoals;
-    if (challenge.getType() == ChallengeType.FIXED) {
+    ParticipantStatus status = getMemberStatus(challengeId, memberId);
+    if ((status == ParticipantStatus.HOST) || (status == ParticipantStatus.PARTICIPANT)) {
       challengeGoals =
           participantRepository
-              .findByMemberIdAndChallengeId(challenge.getHostMember().getId(), challengeId)
+              .findByMemberIdAndChallengeId(memberId, challengeId)
               .getChallengeGoals();
     } else {
-      ParticipantStatus status = getMemberStatus(challengeId, memberId);
-      if ((status == ParticipantStatus.HOST) || (status == ParticipantStatus.PARTICIPANT)) {
+      if (challenge.getType() == ChallengeType.FIXED) {
         challengeGoals =
             participantRepository
-                .findByMemberIdAndChallengeId(memberId, challengeId)
+                .findByMemberIdAndChallengeId(challenge.getHostMember().getId(), challengeId)
                 .getChallengeGoals();
       } else {
         challengeGoals = Collections.emptyList();

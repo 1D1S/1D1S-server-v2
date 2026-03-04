@@ -136,7 +136,17 @@ public class MemberService {
                   // 1. 현재 사용자 여부
                   if (!mc.getMember().getId().equals(memberId)) return false;
 
-                  // 2. 챌린지 진행 중 여부
+                  // 2. 참여 상태가 유효한지 여부 (HOST 또는 PARTICIPANT)
+                  if (mc.getStatus()
+                          != com.odos.odos_server_v2.domain.challenge.entity.Enum.ParticipantStatus
+                              .HOST
+                      && mc.getStatus()
+                          != com.odos.odos_server_v2.domain.challenge.entity.Enum.ParticipantStatus
+                              .PARTICIPANT) {
+                    return false;
+                  }
+
+                  // 3. 챌린지 진행 중 여부
                   Challenge challenge = mc.getChallenge();
                   LocalDate start = challenge.getStartDate();
                   LocalDate end = challenge.getEndDate();
