@@ -265,11 +265,6 @@ public class DiaryService {
   @Transactional
   public List<DiaryResponse> getRandomDiaries(Long size) {
     try {
-      Long memberId = CurrentUserContext.getCurrentMemberId();
-      Member member =
-          memberRepository
-              .findById(memberId)
-              .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
 
       List<Diary> diaries = diaryRepository.findDiariesByIsPublic(Boolean.TRUE);
       if (diaries.isEmpty()) {
@@ -282,9 +277,10 @@ public class DiaryService {
           .map(
               diary ->
                   DiaryResponse.from(
-                      member,
+                      diary.getMember(),
                       diary,
-                      challengeService.toChallengeSummary(diary.getChallenge(), memberId)))
+                      challengeService.toChallengeSummary(
+                          diary.getChallenge(), diary.getMember().getId())))
           .toList();
     } catch (CustomException e) {
       return Collections.emptyList();
