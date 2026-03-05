@@ -24,6 +24,8 @@ import com.odos.odos_server_v2.exception.ErrorCode;
 import jakarta.transaction.Transactional;
 import java.io.IOException;
 import java.util.*;
+import java.util.stream.Collectors;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
@@ -361,4 +363,16 @@ public class DiaryService {
     diaryImageRepository.saveAll(diaryImages);
     return fileList;
   }
+
+    @Transactional
+    public List<DiaryResponse> getChallengeDiaries(Long challengeId) {
+      Long memberId = CurrentUserContext.getCurrentMemberId();
+      Member member = memberRepository.findById(memberId).orElseThrow(()-> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+      Challenge challenge = challengeRepository.findById(challengeId).orElseThrow(()-> new CustomException(ErrorCode.CHALLENGE_NOT_FOUND));
+      ChallengeSummaryResponse summary = challengeService.toChallengeSummary(challenge, memberId);
+      return challenge.getDiaries().stream()
+              .filter(Objects::nonNull)
+              .map(diary -> DiaryResponse.from(member, diary, summary))
+              .collect(Collectors.toList());
+    }
 }

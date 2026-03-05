@@ -21,6 +21,7 @@ public class Message {
   public static String DIARY_GET_MY_ALL_SUCCESS = "다이어리 중 작성자 본인 조회 성공했습니다.";
   public static String DIARY_IMAGE_UPLOADED = "다이어리 이미지 단일 업로드 성공했습니다.";
   public static String DIARY_IMAGES_UPLOADED = "다이어리 이미지 다중 업로드 성공했습니다.";
+  public static String CHALLENGE_DIARY_GET = "특정 챌린지의 일지 리스트 조회 완료했습니다.";
 
   // challenge
   public static String CREATE_CHALLENGE = "챌린지 생성 성공했습니다.";
