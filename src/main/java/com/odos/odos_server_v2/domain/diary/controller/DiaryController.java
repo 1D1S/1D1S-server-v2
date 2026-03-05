@@ -389,6 +389,13 @@ public class DiaryController {
     return ApiResponse.success(Message.DIARY_GET_SUCCESS, result);
   }
 
+  @GetMapping("/challenges/{challengeId}")
+  public ApiResponse<List<DiaryResponse>> getChallengeDiaries(
+      @PathVariable(name = "challengeId") Long challengeId) {
+    List<DiaryResponse> diaries = diaryService.getChallengeDiaries(challengeId);
+    return ApiResponse.success(Message.CHALLENGE_DIARY_GET, diaries);
+  }
+
   @Operation(
       summary = "일지 페이지네이션으로 공개된 일지 모두 조회",
       description =
