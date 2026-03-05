@@ -151,37 +151,59 @@ public class MemberService {
   }
 
   private int[] calculateStreaks(List<Diary> diaryList) {
-    if (diaryList.isEmpty()) return new int[] {0, 0};
-    // 일지 작성 날짜만 뽑아 Set으로 저장
-    Set<LocalDate> diaryDates =
+
+    if (diaryList.isEmpty()) {
+      return new int[] {0, 0};
+    }
+
+    // 날짜 Set 생성 (중복 제거)
+    Set<LocalDate> dates =
         diaryList.stream().map(Diary::getCompletedDate).collect(Collectors.toSet());
-    System.out.println(diaryDates);
 
-    // 오늘부터 과거로 1일씩 감소하며 currentStreak 계산
-    int currentStreak = 0;
     LocalDate today = LocalDate.now();
-    while (diaryDates.contains(today.minusDays(currentStreak))) {
-      System.out.println(currentStreak);
-      currentStreak++;
-    }
 
-    // maxStreak 계산 (전체 날짜 기준)
-    List<LocalDate> sortedDates = diaryDates.stream().sorted().toList();
+    // currentStreak 계산
+    int currentStreak = calculateCurrentStreak(dates, today);
 
-    int maxStreak = 0;
-    int tempStreak = 1;
-    for (int i = 1; i < sortedDates.size(); i++) {
-      LocalDate prev = sortedDates.get(i - 1);
-      LocalDate curr = sortedDates.get(i);
-      if (prev.plusDays(1).equals(curr)) {
-        tempStreak++;
-      } else {
-        maxStreak = Math.max(maxStreak, tempStreak);
-        tempStreak = 1;
-      }
-    }
-    maxStreak = Math.max(maxStreak, tempStreak); // 마지막 streak 고려
+    // maxStreak 계산
+    int maxStreak = calculateMaxStreak(dates);
 
     return new int[] {currentStreak, maxStreak};
+  }
+
+  private int calculateCurrentStreak(Set<LocalDate> dates, LocalDate today) {
+
+    // 오늘 작성했으면 오늘부터,
+    // 아니면 어제부터 시작
+    LocalDate baseDate = dates.contains(today) ? today : today.minusDays(1);
+
+    int streak = 0;
+
+    while (dates.contains(baseDate.minusDays(streak))) {
+      streak++;
+    }
+
+    return streak;
+  }
+
+  private int calculateMaxStreak(Set<LocalDate> dates) {
+
+    if (dates.isEmpty()) return 0;
+
+    List<LocalDate> sorted = dates.stream().sorted().toList();
+
+    int max = 1;
+    int temp = 1;
+
+    for (int i = 1; i < sorted.size(); i++) {
+      if (sorted.get(i - 1).plusDays(1).equals(sorted.get(i))) {
+        temp++;
+      } else {
+        max = Math.max(max, temp);
+        temp = 1;
+      }
+    }
+
+    return Math.max(max, temp);
   }
 }
