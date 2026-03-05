@@ -153,13 +153,12 @@ public class MemberService {
   private int[] calculateStreaks(List<Diary> diaryList) {
 
     if (diaryList.isEmpty()) {
-      return new int[]{0, 0};
+      return new int[] {0, 0};
     }
 
     // 날짜 Set 생성 (중복 제거)
-    Set<LocalDate> dates = diaryList.stream()
-            .map(Diary::getCompletedDate)
-            .collect(Collectors.toSet());
+    Set<LocalDate> dates =
+        diaryList.stream().map(Diary::getCompletedDate).collect(Collectors.toSet());
 
     LocalDate today = LocalDate.now();
 
@@ -169,15 +168,14 @@ public class MemberService {
     // maxStreak 계산
     int maxStreak = calculateMaxStreak(dates);
 
-    return new int[]{currentStreak, maxStreak};
+    return new int[] {currentStreak, maxStreak};
   }
+
   private int calculateCurrentStreak(Set<LocalDate> dates, LocalDate today) {
 
     // 오늘 작성했으면 오늘부터,
     // 아니면 어제부터 시작
-    LocalDate baseDate = dates.contains(today)
-            ? today
-            : today.minusDays(1);
+    LocalDate baseDate = dates.contains(today) ? today : today.minusDays(1);
 
     int streak = 0;
 
@@ -187,13 +185,12 @@ public class MemberService {
 
     return streak;
   }
+
   private int calculateMaxStreak(Set<LocalDate> dates) {
 
     if (dates.isEmpty()) return 0;
 
-    List<LocalDate> sorted = dates.stream()
-            .sorted()
-            .toList();
+    List<LocalDate> sorted = dates.stream().sorted().toList();
 
     int max = 1;
     int temp = 1;
