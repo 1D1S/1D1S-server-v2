@@ -257,12 +257,21 @@ public class ChallengeService {
             .findById(memberId)
             .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
 
-    LocalDate today = LocalDate.now();
+    LocalDate now = LocalDate.now();
 
-    return member.getChallenges().stream()
-        .filter(ch -> !today.isBefore(ch.getStartDate()) && !today.isAfter(ch.getEndDate()))
-        .map(ch -> toChallengeSummary(ch, currentMemberId))
-        .toList();
+    List<ChallengeSummaryResponse> result =
+        member.getParticipants().stream()
+            .filter(
+                p ->
+                    (p.getStatus() == ParticipantStatus.HOST
+                            || p.getStatus() == ParticipantStatus.PARTICIPANT)
+                        && !p.getChallenge().getStartDate().isAfter(now)
+                        && !p.getChallenge().getEndDate().isBefore(now))
+            .map(Participant::getChallenge)
+            .map(ch -> toChallengeSummary(ch, currentMemberId))
+            .toList();
+
+    return result;
   }
 
   public ChallengeResponse toChallengeResponse(Challenge challenge, Member member) {
