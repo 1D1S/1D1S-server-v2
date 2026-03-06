@@ -90,7 +90,7 @@ public class ChallengeService {
     Member member =
         memberRepository
             .findById(memberId)
-            .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+            .orElseThrow(() -> new CustomException(ErrorCode.UNAUTHORIZED));
     return toChallengeResponse(challenge, member);
   }
 
