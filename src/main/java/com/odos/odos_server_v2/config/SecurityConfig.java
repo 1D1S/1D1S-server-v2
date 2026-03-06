@@ -8,6 +8,7 @@ import com.odos.odos_server_v2.domain.security.oauth2.service.CustomOAuth2UserSe
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -39,7 +40,11 @@ public class SecurityConfig {
             session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
         .authorizeHttpRequests(
             auth ->
-                auth.requestMatchers(
+                auth.requestMatchers(HttpMethod.GET, "/diaries/**")
+                    .permitAll()
+                    .requestMatchers(HttpMethod.GET, "/challenges/**")
+                    .permitAll()
+                    .requestMatchers(
                         "/",
                         "/auth/**",
                         "/oauth2/**",

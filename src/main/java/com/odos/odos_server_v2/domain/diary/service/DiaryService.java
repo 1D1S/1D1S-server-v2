@@ -148,24 +148,26 @@ public class DiaryService {
 
   @Transactional
   public DiaryResponse getDiary(Long diaryId) {
+    Long memberId = CurrentUserContext.getCurrentMemberId();
+    Member member =
+        memberRepository
+            .findById(memberId)
+            .orElseThrow(() -> new CustomException(ErrorCode.UNAUTHORIZED));
     Diary diary =
         diaryRepository
             .findById(diaryId)
             .orElseThrow(() -> new CustomException(ErrorCode.DIARY_NOT_FOUND));
-    Member member = diary.getMember();
+    // Member member = diary.getMember();
     ChallengeSummaryResponse response =
-        challengeService.toChallengeSummary(diary.getChallenge(), member.getId());
+        challengeService.toChallengeSummary(diary.getChallenge(), memberId);
 
     return DiaryResponse.from(member, diary, response);
   }
 
   @Transactional
   public List<DiaryResponse> getAllPublicDiaries() {
-    Long memberId = CurrentUserContext.getCurrentMemberId();
-    Member member =
-        memberRepository
-            .findById(memberId)
-            .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+    Long memberId = CurrentUserContext.getCurrentMemberIdOrNull();
+    Member member = (memberId != null) ? memberRepository.findById(memberId).orElse(null) : null;
     List<Diary> diaries = diaryRepository.findDiariesByIsPublic(Boolean.TRUE);
     List<DiaryResponse> diaryResponses = new ArrayList<>();
 
@@ -181,11 +183,8 @@ public class DiaryService {
   public Pagination<DiaryResponse> getPublicDiariesPage(Integer size, String cursor) {
     int limit = (size == null || size <= 0) ? 10 : Math.min(size, 100);
 
-    Long memberId = CurrentUserContext.getCurrentMemberId();
-    Member member =
-        memberRepository
-            .findById(memberId)
-            .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+    Long memberId = CurrentUserContext.getCurrentMemberIdOrNull();
+    Member member = (memberId != null) ? memberRepository.findById(memberId).orElse(null) : null;
 
     Long cursorId = cursorService.decodeCursorToId(cursor);
 
@@ -266,6 +265,12 @@ public class DiaryService {
   @Transactional
   public List<DiaryResponse> getRandomDiaries(Long size) {
     try {
+      Long currentMemberId = CurrentUserContext.getCurrentMemberIdOrNull();
+
+      Member currentMember =
+          (currentMemberId != null)
+              ? memberRepository.findById(currentMemberId).orElse(null)
+              : null;
 
       List<Diary> diaries = diaryRepository.findDiariesByIsPublic(Boolean.TRUE);
       if (diaries.isEmpty()) {
@@ -278,10 +283,9 @@ public class DiaryService {
           .map(
               diary ->
                   DiaryResponse.from(
-                      diary.getMember(),
+                      currentMember,
                       diary,
-                      challengeService.toChallengeSummary(
-                          diary.getChallenge(), diary.getMember().getId())))
+                      challengeService.toChallengeSummary(diary.getChallenge(), currentMemberId)))
           .toList();
     } catch (CustomException e) {
       return Collections.emptyList();

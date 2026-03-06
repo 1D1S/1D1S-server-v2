@@ -613,7 +613,7 @@ public class ChallengeController {
       @Parameter(description = "검색 키워드") @RequestParam(name = "keyword", required = false)
           String keyword) {
 
-    Long memberId = CurrentUserContext.getCurrentMemberId();
+    Long memberId = CurrentUserContext.getCurrentMemberIdOrNull();
     Pagination<ChallengeSummaryResponse> page =
         challengeService.getChallengeList(memberId, limit, cursor, keyword);
 
