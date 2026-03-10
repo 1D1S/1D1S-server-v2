@@ -816,7 +816,7 @@ public class ChallengeController {
         content =
             @Content(
                 mediaType = "application/json",
-                schema = @Schema(implementation = ChallengeSummaryResponse.class),
+                schema = @Schema(implementation = DiaryStreakResponse.class),
                 examples =
                     @ExampleObject(
                         value =
