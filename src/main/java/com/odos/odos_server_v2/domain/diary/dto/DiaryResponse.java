@@ -3,6 +3,7 @@ package com.odos.odos_server_v2.domain.diary.dto;
 import com.odos.odos_server_v2.domain.challenge.dto.ChallengeSummaryResponse;
 import com.odos.odos_server_v2.domain.diary.entity.Diary;
 import com.odos.odos_server_v2.domain.diary.entity.DiaryGoal;
+import com.odos.odos_server_v2.domain.diary.entity.DiaryImage;
 import com.odos.odos_server_v2.domain.diary.entity.DiaryLike;
 import com.odos.odos_server_v2.domain.member.entity.Member;
 import com.odos.odos_server_v2.domain.shared.dto.LikeDto;
@@ -17,23 +18,21 @@ public class DiaryResponse {
 
   private Long id;
   private ChallengeSummaryResponse challenge;
-  private AuthorInfoDto authorInfoDto;
+  private AuthorInfoDto author;
   private String title;
   private String content;
   private List<String> imgUrl;
   private Boolean isPublic;
   private LikeDto likeInfo;
-  private DiaryInfoDto diaryInfoDto;
+  private DiaryInfoDto diaryInfo;
 
   public static DiaryResponse from(Member member, Diary diary, ChallengeSummaryResponse challenge) {
 
-    List<Long> achievements =
+    List<DiaryGoal> goals = diary.getDiaryGoals();
+    List<DiaryGoalDto> diaryGoals =
         diary.getDiaryGoals() == null
             ? Collections.emptyList()
-            : diary.getDiaryGoals().stream()
-                .filter(DiaryGoal::getIsCompleted)
-                .map(diaryGoal -> diaryGoal.getChallengeGoal().getId()) // 챌린지골 아이디 기준으로
-                .toList();
+            : goals.stream().map(DiaryGoalDto::from).toList();
 
     int totalGoal = diary.getDiaryGoals().size();
     long achievedGoalsCount =
@@ -44,7 +43,7 @@ public class DiaryResponse {
         DiaryInfoDto.builder()
             .createdAt(diary.getCreatedDate().toString())
             .challengedDate(diary.getCompletedDate().toString())
-            .achievement(achievements)
+            .diaryGoal(diaryGoals)
             .achievementRate(achievementRate)
             .feeling(diary.getFeeling())
             .build();
@@ -76,8 +75,7 @@ public class DiaryResponse {
             .likeCnt(likeCount)
             .build();
 
-    //    List<String> imgUrl =
-    //        diary.getImages().stream().map(DiaryImage::getUrl).collect(Collectors.toList());
+    List<String> imgUrl = diary.getImages().stream().map(DiaryImage::getUrl).toList();
 
     return DiaryResponse.builder()
         .id(diary.getId())
@@ -85,10 +83,10 @@ public class DiaryResponse {
         .content(diary.getContent())
         .title(diary.getTitle())
         .isPublic(diary.getIsPublic())
-        .authorInfoDto(author)
-        .diaryInfoDto(info)
+        .author(author)
+        .diaryInfo(info)
         .likeInfo(like)
-        // .imgUrl(imgUrl)
+        .imgUrl(imgUrl)
         .build();
   }
 }

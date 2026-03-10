@@ -60,26 +60,45 @@ public class Member {
 
   private LocalDateTime nicknameLastModifiedAt;
 
+  @Builder.Default
   @OneToMany(mappedBy = "hostMember", cascade = CascadeType.ALL)
-  private List<Challenge> challenges;
+  private List<Challenge> challenges = new ArrayList<>();
 
+  ;
+
+  @Builder.Default
   @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
-  private List<Participant> participants;
+  private List<Participant> participants = new ArrayList<>();
 
+  ;
+
+  @Builder.Default
   @OneToMany(mappedBy = "member", cascade = CascadeType.ALL)
-  private List<ChallengeLike> challengeLikes;
+  private List<ChallengeLike> challengeLikes = new ArrayList<>();
 
+  ;
+
+  @Builder.Default
   @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
   private List<Interest> memberInterests = new ArrayList<>();
 
+  @Builder.Default
   @OneToMany(mappedBy = "member", cascade = CascadeType.ALL)
-  private List<DiaryLike> diaryLikes;
+  private List<DiaryLike> diaryLikes = new ArrayList<>();
 
-  @OneToMany(mappedBy = "member", cascade = CascadeType.ALL)
-  private List<DiaryReport> diaryReports;
+  ;
 
+  @Builder.Default
   @OneToMany(mappedBy = "member", cascade = CascadeType.ALL)
-  private List<Diary> diaries;
+  private List<DiaryReport> diaryReports = new ArrayList<>();
+
+  ;
+
+  @Builder.Default
+  @OneToMany(mappedBy = "member", cascade = CascadeType.ALL)
+  private List<Diary> diaries = new ArrayList<>();
+
+  ;
 
   public void updateRefreshToken(String updateRefreshToken) {
     this.refreshToken = updateRefreshToken;

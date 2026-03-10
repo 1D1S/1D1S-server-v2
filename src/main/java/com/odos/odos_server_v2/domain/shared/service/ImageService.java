@@ -52,6 +52,9 @@ public class ImageService {
 
   // 이미지 URL 생성 (1장)
   public String getFileUrl(String fileName) {
+    if (fileName == null) {
+      return null;
+    }
     return "https://" + bucket + ".s3.ap-northeast-2.amazonaws.com/" + fileName;
   }
 

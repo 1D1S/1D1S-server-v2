@@ -33,6 +33,9 @@ logging:
     com.odos.odos_server_v2: DEBUG
     com.odos.odos_server_v2.domain.diary.service.DiaryService: DEBUG
 
+server:
+  forward-headers-strategy: framework
+
 cloud:
   aws:
     s3:

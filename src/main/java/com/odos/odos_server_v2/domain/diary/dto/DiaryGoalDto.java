@@ -1,0 +1,21 @@
+package com.odos.odos_server_v2.domain.diary.dto;
+
+import com.odos.odos_server_v2.domain.diary.entity.DiaryGoal;
+import lombok.Builder;
+import lombok.Getter;
+
+@Getter
+@Builder
+public class DiaryGoalDto {
+  private Long goalId;
+  private String goalName;
+  private Boolean isAchieved;
+
+  public static DiaryGoalDto from(DiaryGoal goal) {
+    return DiaryGoalDto.builder()
+        .goalId(goal.getId())
+        .goalName(goal.getChallengeGoal().getContent())
+        .isAchieved(goal.getIsCompleted())
+        .build();
+  }
+}

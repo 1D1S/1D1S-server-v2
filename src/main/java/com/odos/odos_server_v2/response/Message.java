@@ -21,6 +21,7 @@ public class Message {
   public static String DIARY_GET_MY_ALL_SUCCESS = "다이어리 중 작성자 본인 조회 성공했습니다.";
   public static String DIARY_IMAGE_UPLOADED = "다이어리 이미지 단일 업로드 성공했습니다.";
   public static String DIARY_IMAGES_UPLOADED = "다이어리 이미지 다중 업로드 성공했습니다.";
+  public static String CHALLENGE_DIARY_GET = "특정 챌린지의 일지 리스트 조회 완료했습니다.";
 
   // challenge
   public static String CREATE_CHALLENGE = "챌린지 생성 성공했습니다.";
@@ -34,4 +35,9 @@ public class Message {
   public static String ADD_CHALLENGE_LIKE = "챌린지 좋아요 성공했습니다.";
   public static String CANCEL_CHALLENGE_LIKE = "챌린지 좋아요 취소 성공했습니다.";
   public static String GET_CHALLENGES_BY_MEMBER = "진행중인 챌린지 불러오기 성공했습니다.";
+  public static String GET_MY_CHALLENGE = "내 챌린지 목록 조회 성공했습니다.";
+
+  // member
+  public static String GET_MYPAGE = "마이페이지 조회 성공했습니다.";
+  public static String GET_SIDEBAR = "사이드바 조회 성공했습니다.";
 }

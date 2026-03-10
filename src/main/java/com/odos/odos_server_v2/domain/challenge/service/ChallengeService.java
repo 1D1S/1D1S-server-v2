@@ -90,7 +90,7 @@ public class ChallengeService {
     Member member =
         memberRepository
             .findById(memberId)
-            .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+            .orElseThrow(() -> new CustomException(ErrorCode.UNAUTHORIZED));
     return toChallengeResponse(challenge, member);
   }
 
@@ -256,9 +256,22 @@ public class ChallengeService {
         memberRepository
             .findById(memberId)
             .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
-    return member.getChallenges().stream()
-        .map(ch -> toChallengeSummary(ch, currentMemberId))
-        .toList();
+
+    LocalDate now = LocalDate.now();
+
+    List<ChallengeSummaryResponse> result =
+        member.getParticipants().stream()
+            .filter(
+                p ->
+                    (p.getStatus() == ParticipantStatus.HOST
+                            || p.getStatus() == ParticipantStatus.PARTICIPANT)
+                        && !p.getChallenge().getStartDate().isAfter(now)
+                        && !p.getChallenge().getEndDate().isBefore(now))
+            .map(Participant::getChallenge)
+            .map(ch -> toChallengeSummary(ch, currentMemberId))
+            .toList();
+
+    return result;
   }
 
   public ChallengeResponse toChallengeResponse(Challenge challenge, Member member) {
