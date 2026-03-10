@@ -5,6 +5,7 @@ import com.odos.odos_server_v2.domain.challenge.dto.ChallengeResponse;
 import com.odos.odos_server_v2.domain.challenge.dto.ChallengeSummaryResponse;
 import com.odos.odos_server_v2.domain.challenge.dto.ParticipantResponse;
 import com.odos.odos_server_v2.domain.challenge.service.ChallengeService;
+import com.odos.odos_server_v2.domain.diary.dto.DiaryStreakResponse;
 import com.odos.odos_server_v2.domain.member.CurrentUserContext;
 import com.odos.odos_server_v2.domain.shared.dto.Pagination;
 import com.odos.odos_server_v2.response.ApiResponse;
@@ -803,5 +804,14 @@ public class ChallengeController {
     return ApiResponse.success(
         Message.GET_CHALLENGES_BY_MEMBER,
         challengeService.getMemberChallenge(currentMemberId, memberId));
+  }
+
+  @GetMapping("/{id}/check-write")
+  public ApiResponse<DiaryStreakResponse> getDiaryWriteCheck(
+      @PathVariable(name = "id") Long challengeId) {
+    Long currentMemberId = CurrentUserContext.getCurrentMemberId();
+    return ApiResponse.success(
+        Message.GET_MY_CHALLENGE_DIARY_WRITTEN,
+        challengeService.getChallengeDiaryIn3Day(challengeId, currentMemberId));
   }
 }
