@@ -806,6 +806,71 @@ public class ChallengeController {
         challengeService.getMemberChallenge(currentMemberId, memberId));
   }
 
+  @Operation(
+      summary = "특정 챌린지의 3일 이내 일지 생성 날짜 목록 조회",
+      description = "특정 회원이 참여 중인 챌린지의 일지 작성을 위한 스트릭 제한 조건을 생성 날짜로 확인한다.")
+  @ApiResponses({
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "200",
+        description = "특정 챌린지의 3일 이내의 일지 작성 날짜 조회 성공했습니다.",
+        content =
+            @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ChallengeSummaryResponse.class),
+                examples =
+                    @ExampleObject(
+                        value =
+                            """
+                                            {
+                                              "message": "특정 챌린지의 3일 이내의 일지 작성 날짜 조회 성공했습니다.",
+                                              "data": [
+                                                diaryCreatedDate: {
+                                                  "2026-03-06",
+                                                  "2026-03-09"
+                                                }
+                                              ]
+                                            }
+                                            """))),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "404",
+        description = "챌린지를 찾을 수 없습니다.",
+        content =
+            @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class),
+                examples =
+                    @ExampleObject(
+                        value =
+                            """
+                                            { "code": "CHALLENGE_001", "message": "챌린지를 찾을 수 없습니다." }
+                                            """))),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "404",
+        description = "회원을 찾을 수 없음",
+        content =
+            @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class),
+                examples =
+                    @ExampleObject(
+                        value =
+                            """
+                                            { "code": "USER-003", "message": "회원을 찾을 수 없습니다." }
+                                            """))),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "404",
+        description = "3일 이내로 작성한 일지가 없습니다.",
+        content =
+            @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class),
+                examples =
+                    @ExampleObject(
+                        value =
+                            """
+                                            { "code": "DIARY-006", "message": "3일 이내로 작성한 일지가 없습니다." }
+                                            """)))
+  })
   @GetMapping("/{id}/check-write")
   public ApiResponse<DiaryStreakResponse> getDiaryWriteCheck(
       @PathVariable(name = "id") Long challengeId) {
