@@ -32,6 +32,7 @@ public enum ErrorCode {
   DIARY_NOT_FOUND(HttpStatus.NOT_FOUND, "DIARY-002", "존재하지 않는 다이어리입니다."),
   DIARYLIKE_ALREADY_EXISTS(HttpStatus.NOT_FOUND, "DIARY-003", "이미 좋아요를 눌렀습니다. 좋아요는 한번만 누르기 가능합니다"),
   DIARYLIKE_NOT_EXISTS(HttpStatus.NOT_FOUND, "DIARY-004", "좋아요 누른 전적이 없습니다. 새로 좋아요를 눌러주세요"),
+  DIARY_WRITTEN_IN_3DAYS_NOT_EXIST(HttpStatus.NOT_FOUND, "DIARY-006", "3일 이내로 작성한 일지가 없습니다."),
 
   // challenge
   CHALLENGE_NOT_FOUND(HttpStatus.NOT_FOUND, "CHALLENGE_001", "챌린지를 찾을 수 없습니다."),

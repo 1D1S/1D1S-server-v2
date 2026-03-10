@@ -11,6 +11,8 @@ import com.odos.odos_server_v2.domain.challenge.repository.ChallengeGoalReposito
 import com.odos.odos_server_v2.domain.challenge.repository.ChallengeLikeRepository;
 import com.odos.odos_server_v2.domain.challenge.repository.ChallengeRepository;
 import com.odos.odos_server_v2.domain.challenge.repository.ParticipantRepository;
+import com.odos.odos_server_v2.domain.diary.dto.DiaryStreakResponse;
+import com.odos.odos_server_v2.domain.diary.entity.Diary;
 import com.odos.odos_server_v2.domain.diary.repository.DiaryGoalRepository;
 import com.odos.odos_server_v2.domain.diary.repository.DiaryRepository;
 import com.odos.odos_server_v2.domain.member.entity.Member;
@@ -434,5 +436,23 @@ public class ChallengeService {
     if (goalCnt <= 0) return 0;
 
     return completedGoalCnt / ((double) participantCnt * (double) days * (double) goalCnt) * 100.0;
+  }
+
+  @Transactional
+  public DiaryStreakResponse getChallengeDiaryIn3Day(Long challengeId, Long currentMemberId) {
+    memberRepository
+        .findById(currentMemberId)
+        .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+    challengeRepository
+        .findById(challengeId)
+        .orElseThrow(() -> new CustomException(ErrorCode.CHALLENGE_NOT_FOUND));
+    LocalDate today = LocalDate.now();
+    LocalDate twoDaysAgo = today.minusDays(2);
+    List<Diary> diaries =
+        diaryRepository.findDiariesByDateRange(twoDaysAgo, today, challengeId, currentMemberId);
+    if (diaries.isEmpty()) {
+      throw new CustomException(ErrorCode.DIARY_WRITTEN_IN_3DAYS_NOT_EXIST);
+    }
+    return DiaryStreakResponse.checkStreak(diaries);
   }
 }
