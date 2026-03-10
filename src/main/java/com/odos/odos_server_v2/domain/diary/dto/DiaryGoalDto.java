@@ -7,14 +7,14 @@ import lombok.Getter;
 @Getter
 @Builder
 public class DiaryGoalDto {
-  private Long goalId;
-  private String goalName;
+  private Long challengeGoalId;
+  private String challengeGoalName;
   private Boolean isAchieved;
 
   public static DiaryGoalDto from(DiaryGoal goal) {
     return DiaryGoalDto.builder()
-        .goalId(goal.getId())
-        .goalName(goal.getChallengeGoal().getContent())
+        .challengeGoalId(goal.getChallengeGoal().getId())
+        .challengeGoalName(goal.getChallengeGoal().getContent())
         .isAchieved(goal.getIsCompleted())
         .build();
   }
