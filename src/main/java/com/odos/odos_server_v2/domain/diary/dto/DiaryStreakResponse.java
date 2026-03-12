@@ -9,10 +9,10 @@ import lombok.Getter;
 @Getter
 @Builder
 public class DiaryStreakResponse {
-  private List<LocalDate> diaryCreatedDate;
+  private List<LocalDate> challengeCompletedDate;
 
   public static DiaryStreakResponse checkStreak(List<Diary> diary) {
-    List<LocalDate> diaryCreatedList = diary.stream().map(Diary::getCreatedDate).toList();
-    return DiaryStreakResponse.builder().diaryCreatedDate(diaryCreatedList).build();
+    List<LocalDate> diaryCreatedList = diary.stream().map(Diary::getCompletedDate).toList();
+    return DiaryStreakResponse.builder().challengeCompletedDate(diaryCreatedList).build();
   }
 }

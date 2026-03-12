@@ -29,7 +29,7 @@ public interface DiaryRepository extends JpaRepository<Diary, Long> {
   List<Diary> findPublicPage(@Param("cursorId") Long cursorId, Pageable pageable);
 
   @Query(
-      "select d from Diary d where d.createdDate between :startDate and :endDate and d.member.id=:writer and d.challenge.id=:id")
+      "select d from Diary d where d.completedDate between :startDate and :endDate and d.member.id=:writer and d.challenge.id=:id")
   List<Diary> findDiariesByDateRange(
       @Param("startDate") LocalDate startDate,
       @Param("endDate") LocalDate endDate,
