@@ -450,9 +450,6 @@ public class ChallengeService {
     LocalDate twoDaysAgo = today.minusDays(2);
     List<Diary> diaries =
         diaryRepository.findDiariesByDateRange(twoDaysAgo, today, challengeId, currentMemberId);
-    if (diaries.isEmpty()) {
-      throw new CustomException(ErrorCode.DIARY_WRITTEN_IN_3DAYS_NOT_EXIST);
-    }
     return DiaryStreakResponse.checkStreak(diaries);
   }
 }
