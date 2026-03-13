@@ -5,6 +5,7 @@ import com.odos.odos_server_v2.domain.member.repository.MemberRepository;
 import com.odos.odos_server_v2.exception.CustomException;
 import com.odos.odos_server_v2.exception.ErrorCode;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
@@ -20,7 +21,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
-import org.springframework.security.oauth2.jwt.JwtException;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
@@ -131,9 +131,9 @@ public class JwtTokenProvider {
     return Optional.empty();
   }
 
-  public void updateRefreshToken(String email, String refreshToken) {
+  public void updateRefreshToken(Long memberId, String refreshToken) {
     memberRepository
-        .findByEmail(email)
+        .findById(memberId)
         .ifPresentOrElse(
             member -> {
               member.updateRefreshToken(refreshToken);
