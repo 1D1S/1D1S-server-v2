@@ -30,7 +30,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
     uniqueConstraints = {
       @UniqueConstraint(
           name = "uk_email_signup_route",
-          columnNames = {"email", "signupRoute"})
+          columnNames = {"email", "signup_route"})
     })
 public class Member {
 
@@ -43,6 +43,7 @@ public class Member {
   private String email;
 
   @Enumerated(EnumType.STRING)
+  @Column(name = "signup_route")
   private SignupRoute signupRoute;
 
   private String socialId;
