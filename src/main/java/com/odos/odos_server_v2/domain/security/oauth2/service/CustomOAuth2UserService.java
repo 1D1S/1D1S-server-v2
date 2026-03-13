@@ -45,7 +45,7 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
 
     Member member =
         memberRepository
-            .findByEmail(email)
+            .findByEmailAndSignupRoute(email, signupRoute)
             .orElseGet(() -> createMember(email, signupRoute, userInfo.getId()));
 
     //    log.debug(">>> OAuth2 attributes: {}", attributes);
