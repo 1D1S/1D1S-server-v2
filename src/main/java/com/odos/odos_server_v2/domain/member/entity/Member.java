@@ -135,4 +135,12 @@ public class Member {
       this.memberInterests.add(new Interest(this, category));
     }
   }
+
+  public void updateNickname(String nickname) {
+    this.nickname = nickname;
+  }
+
+  public void updateProfileImage(String objectKey) {
+    this.profileUrl = objectKey;
+  }
 }
