@@ -119,7 +119,7 @@ public class Member {
       Gender gender,
       Boolean isPublic) {
     this.nickname = nickname;
-    this.profileUrl = profileUrl;
+    this.profileUrl = profileImageKey;
     this.job = job;
     this.birth = birth;
     this.gender = gender;

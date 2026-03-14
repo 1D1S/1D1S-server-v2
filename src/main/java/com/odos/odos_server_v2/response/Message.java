@@ -41,4 +41,7 @@ public class Message {
   // member
   public static String GET_MYPAGE = "마이페이지 조회 성공했습니다.";
   public static String GET_SIDEBAR = "사이드바 조회 성공했습니다.";
+
+  // image
+  public static String CREATE_PRESIGNED_URL_SUCCESS = "presigned url 발급 성공했습니다.";
 }

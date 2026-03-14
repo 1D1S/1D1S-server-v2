@@ -9,20 +9,7 @@ import java.time.LocalDate;
 import java.util.List;
 import lombok.*;
 
-@Schema(
-    description = "회원가입 추가 정보 요청",
-    example =
-        """
-        {
-          "nickname": "홍길동",
-          "profileUrl": "https://example.com/profile.jpg",
-          "job": "STUDENT",
-          "birth": "2000-01-01",
-          "gender": "MALE",
-          "isPublic": true,
-          "category": ["DEV", "BOOK"]
-        }
-        """)
+@Schema(description = "회원가입 추가 정보 요청")
 @Getter
 @Builder
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
@@ -33,8 +20,8 @@ public class SignupInfoRequest {
   @NotNull
   private String nickname;
 
-  @Schema(description = "프로필 이미지 URL (S3 도입 전 임시 필드)", example = "https://example.com/profile.jpg")
-  private String profileUrl;
+  @Schema(description = "object key", example = "f91832a-26c3-43ff-b2b8-0734bffa4295")
+  private String profileImageKey;
 
   @Schema(description = "직업", example = "STUDENT")
   @NotNull
