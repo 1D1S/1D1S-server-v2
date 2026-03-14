@@ -41,7 +41,7 @@ public class DiaryResponse {
 
     DiaryInfoDto info =
         DiaryInfoDto.builder()
-            .createdAt(diary.getCreatedDate().toString())
+            .createdAt(diary.getCreatedAt().toString())
             .challengedDate(diary.getCompletedDate().toString())
             .diaryGoal(diaryGoals)
             .achievementRate(achievementRate)
