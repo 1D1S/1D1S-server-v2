@@ -2,6 +2,8 @@ package com.odos.odos_server_v2.domain.member.controller;
 
 import com.odos.odos_server_v2.domain.member.CurrentUserContext;
 import com.odos.odos_server_v2.domain.member.dto.MyPageDto;
+import com.odos.odos_server_v2.domain.member.dto.NicknameRequest;
+import com.odos.odos_server_v2.domain.member.dto.ProfileImageRequest;
 import com.odos.odos_server_v2.domain.member.dto.SideBarDto;
 import com.odos.odos_server_v2.domain.member.service.MemberService;
 import com.odos.odos_server_v2.response.ApiResponse;
@@ -179,5 +181,107 @@ public class MemberController {
   public ApiResponse<SideBarDto> getSideBar() {
     Long memberId = CurrentUserContext.getCurrentMemberId();
     return ApiResponse.success(Message.GET_SIDEBAR, memberService.getSideBar(memberId));
+  }
+
+  @Operation(summary = "닉네임 변경", description = "로그인한 회원의 닉네임을 변경한다.")
+  @ApiResponses({
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "200",
+        description = "닉네임 변경 성공했습니다.",
+        content =
+            @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = SideBarDto.class),
+                examples =
+                    @ExampleObject(
+                        value =
+                            """
+                                            {
+                                              "message": "닉네임 변경 성공했습니다."
+                                            }
+                                            """))),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "401",
+        description = "인증되지 않은 접근",
+        content =
+            @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class),
+                examples =
+                    @ExampleObject(
+                        value =
+                            """
+                                            { "code": "AUTH-001", "message": "인증되지 않은 접근입니다." }
+                                            """))),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "404",
+        description = "회원을 찾을 수 없음",
+        content =
+            @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class),
+                examples =
+                    @ExampleObject(
+                        value =
+                            """
+                                            { "code": "USER-003", "message": "회원을 찾을 수 없습니다." }
+                                            """)))
+  })
+  @PatchMapping("/nickname")
+  public ApiResponse<Void> editNickname(@RequestBody NicknameRequest nicknameRequest) {
+    Long memberId = CurrentUserContext.getCurrentMemberId();
+    memberService.editNickname(memberId, nicknameRequest.getNickname());
+    return ApiResponse.success(Message.UPDATE_NICKNAME);
+  }
+
+  @Operation(summary = "프로필 이미지 변경", description = "로그인한 회원의 프로필 이미지를 변경한다.")
+  @ApiResponses({
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "200",
+        description = "프로필 이미지 변경 성공했습니다.",
+        content =
+            @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = SideBarDto.class),
+                examples =
+                    @ExampleObject(
+                        value =
+                            """
+                                            {
+                                              "message": "프로필 이미지 변경 성공했습니다."
+                                            }
+                                            """))),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "401",
+        description = "인증되지 않은 접근",
+        content =
+            @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class),
+                examples =
+                    @ExampleObject(
+                        value =
+                            """
+                                            { "code": "AUTH-001", "message": "인증되지 않은 접근입니다." }
+                                            """))),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "404",
+        description = "회원을 찾을 수 없음",
+        content =
+            @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class),
+                examples =
+                    @ExampleObject(
+                        value =
+                            """
+                                            { "code": "USER-003", "message": "회원을 찾을 수 없습니다." }
+                                            """)))
+  })
+  @PatchMapping("/profile-image")
+  public ApiResponse<Void> editProfileImage(@RequestBody ProfileImageRequest profileImageRequest) {
+    Long memberId = CurrentUserContext.getCurrentMemberId();
+    memberService.editProfileImage(memberId, profileImageRequest.getObjectKey());
+    return ApiResponse.success(Message.UPDATE_PROFILE_IMAGE);
   }
 }

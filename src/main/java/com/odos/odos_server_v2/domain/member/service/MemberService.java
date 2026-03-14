@@ -39,6 +39,28 @@ public class MemberService {
   private final ChallengeService challengeService;
   private final DiaryService diaryService;
 
+  @Transactional
+  public void editNickname(Long memberId, String nickname) {
+    String regex = "^[가-힣a-zA-Z]{1,8}$";
+    if (!nickname.matches(regex)) {
+      throw new CustomException(ErrorCode.INVALID_NICKNAME_FORMAT);
+    }
+    Member member =
+        memberRepository
+            .findById(memberId)
+            .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+    member.updateNickname(nickname);
+  }
+
+  @Transactional
+  public void editProfileImage(Long memberId, String objectKey) {
+    Member member =
+        memberRepository
+            .findById(memberId)
+            .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+    member.updateProfileImage(objectKey);
+  }
+
   public MyPageDto getMyPage(Long id) {
     Member member =
         memberRepository
