@@ -7,6 +7,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -32,14 +33,20 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
   protected void doFilterInternal(
       HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
       throws ServletException, IOException {
-    jwtTokenProvider
-        .extractAccessToken(request)
-        .filter(jwtTokenProvider::isValidToken)
-        .filter(token -> !jwtTokenProvider.isExpired(token))
-        .flatMap(jwtTokenProvider::extractMemberId)
-        .map(Long::parseLong)
-        .flatMap(memberRepository::findById)
-        .ifPresent(this::setAuthentication);
+
+    Optional<String> tokenOpt = jwtTokenProvider.extractAccessToken(request);
+
+    if (tokenOpt.isPresent()) {
+      String token = tokenOpt.get();
+
+      jwtTokenProvider.parseClaims(tokenOpt.get());
+
+      jwtTokenProvider
+          .extractMemberId(token)
+          .map(Long::parseLong)
+          .flatMap(memberRepository::findById)
+          .ifPresent(this::setAuthentication);
+    }
 
     filterChain.doFilter(request, response);
   }

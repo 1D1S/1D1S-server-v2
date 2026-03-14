@@ -99,6 +99,14 @@ public class JwtTokenProvider {
     }
   }
 
+  public Claims parseClaims(String token) {
+    return Jwts.parserBuilder()
+        .setSigningKey(getSigningKey())
+        .build()
+        .parseClaimsJws(token)
+        .getBody();
+  }
+
   private Claims parseToken(String token) {
     return Jwts.parserBuilder()
         .setSigningKey(getSigningKey())
