@@ -4,6 +4,7 @@ import com.odos.odos_server_v2.domain.challenge.entity.Challenge;
 import com.odos.odos_server_v2.domain.diary.dto.DiaryRequest;
 import com.odos.odos_server_v2.domain.diary.entity.Enum.Feeling;
 import com.odos.odos_server_v2.domain.member.entity.Member;
+import com.odos.odos_server_v2.domain.shared.entity.BaseTimeEntity;
 import jakarta.persistence.*;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -12,7 +13,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @Entity
@@ -22,17 +22,13 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @Builder
 @EntityListeners(AuditingEntityListener.class)
 @Table(name = "diary")
-public class Diary {
+public class Diary extends BaseTimeEntity {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
   @Column private String title;
-
-  @CreatedDate
-  @Column(updatable = false)
-  private LocalDate createdDate;
 
   @Column private LocalDate completedDate;
 
