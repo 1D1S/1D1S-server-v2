@@ -26,7 +26,11 @@ public class DiaryResponse {
   private LikeDto likeInfo;
   private DiaryInfoDto diaryInfo;
 
-  public static DiaryResponse from(Member member, Diary diary, ChallengeSummaryResponse challenge) {
+  public static DiaryResponse from(
+      Member member,
+      Diary diary,
+      ChallengeSummaryResponse challenge,
+      String authorProfileImageUrl) {
 
     List<DiaryGoal> goals = diary.getDiaryGoals();
     List<DiaryGoalDto> diaryGoals =
@@ -52,7 +56,7 @@ public class DiaryResponse {
         AuthorInfoDto.builder()
             .id(diary.getMember().getId())
             .nickname(diary.getMember().getNickname())
-            .profileImage(diary.getMember().getProfileUrl())
+            .profileImage(authorProfileImageUrl)
             .build();
 
     List<DiaryLike> likes = diary.getLikes() == null ? List.of() : diary.getLikes();
