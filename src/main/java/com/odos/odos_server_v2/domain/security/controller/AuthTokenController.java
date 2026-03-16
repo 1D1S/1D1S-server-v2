@@ -42,7 +42,9 @@ public class AuthTokenController {
             member -> {
               String newAccessToken = jwtTokenProvider.createAccessToken(member);
               String newRefreshToken = jwtTokenProvider.createRefreshToken();
-              jwtTokenProvider.updateRefreshToken(member.getEmail(), newRefreshToken);
+              jwtTokenProvider.updateRefreshToken(member.getId(), newRefreshToken);
+              // jwtTokenProvider.updateRefreshToken(member.getEmail(),
+              // newRefreshToken,checkMember.getSignupRoute());
 
               TokenResponse response =
                   TokenResponse.builder()

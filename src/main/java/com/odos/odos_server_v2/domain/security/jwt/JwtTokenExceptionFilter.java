@@ -30,5 +30,6 @@ public class JwtTokenExceptionFilter extends OncePerRequestFilter {
       throws IOException {
     response.setStatus(status);
     response.setContentType("application/json;charset=UTF-8");
+    response.getWriter().write("{\"code\":\"" + message + "\"}");
   }
 }

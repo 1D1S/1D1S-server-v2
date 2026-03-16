@@ -1,6 +1,8 @@
 package com.odos.odos_server_v2.domain.shared.service;
 
+import com.odos.odos_server_v2.domain.image.dto.PresignedUrlResponse;
 import java.io.IOException;
+import java.time.Duration;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -10,11 +12,14 @@ import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.presigner.S3Presigner;
+import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequest;
 
 @Service
 @RequiredArgsConstructor
 public class ImageService {
   private final S3Client s3Client;
+  private final S3Presigner s3Presigner;
 
   @Value("${cloud.aws.s3.bucket}")
   private String bucket;
@@ -61,5 +66,22 @@ public class ImageService {
   // 이미지 URL 생성 (여러장)
   public List<String> getFileUrls(List<String> fileNames) {
     return fileNames.stream().map(this::getFileUrl).toList();
+  }
+
+  // presigned url 발급
+  public PresignedUrlResponse createPresignedUrl(String fileName, String fileType) {
+    String objectKey = UUID.randomUUID().toString();
+
+    PutObjectRequest objectRequest =
+        PutObjectRequest.builder().bucket(bucket).key(objectKey).build();
+
+    PresignedPutObjectRequest presignedRequest =
+        s3Presigner.presignPutObject(
+            r -> r.signatureDuration(Duration.ofMinutes(10)).putObjectRequest(objectRequest));
+
+    return PresignedUrlResponse.builder()
+        .presignedUrl(presignedRequest.url().toString())
+        .objectKey(objectKey)
+        .build();
   }
 }

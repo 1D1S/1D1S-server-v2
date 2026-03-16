@@ -1,6 +1,7 @@
 package com.odos.odos_server_v2.domain.diary.repository;
 
 import com.odos.odos_server_v2.domain.diary.entity.Diary;
+import java.time.LocalDate;
 import java.util.List;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -26,4 +27,12 @@ public interface DiaryRepository extends JpaRepository<Diary, Long> {
       order by d.id desc
     """)
   List<Diary> findPublicPage(@Param("cursorId") Long cursorId, Pageable pageable);
+
+  @Query(
+      "select d from Diary d where d.completedDate between :startDate and :endDate and d.member.id=:writer and d.challenge.id=:id")
+  List<Diary> findDiariesByDateRange(
+      @Param("startDate") LocalDate startDate,
+      @Param("endDate") LocalDate endDate,
+      @Param("id") Long id,
+      @Param("writer") Long writer);
 }

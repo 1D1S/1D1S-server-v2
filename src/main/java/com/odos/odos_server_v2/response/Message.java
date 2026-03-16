@@ -36,8 +36,14 @@ public class Message {
   public static String CANCEL_CHALLENGE_LIKE = "챌린지 좋아요 취소 성공했습니다.";
   public static String GET_CHALLENGES_BY_MEMBER = "진행중인 챌린지 불러오기 성공했습니다.";
   public static String GET_MY_CHALLENGE = "내 챌린지 목록 조회 성공했습니다.";
+  public static String GET_MY_CHALLENGE_DIARY_WRITTEN = "특정 챌린지의 3일 이내의 일지 작성 날짜 조회 성공했습니다.";
 
   // member
   public static String GET_MYPAGE = "마이페이지 조회 성공했습니다.";
   public static String GET_SIDEBAR = "사이드바 조회 성공했습니다.";
+  public static String UPDATE_NICKNAME = "닉네임 변경 성공했습니다.";
+  public static String UPDATE_PROFILE_IMAGE = "프로필 이미지 변경 성공했습니다.";
+
+  // image
+  public static String CREATE_PRESIGNED_URL_SUCCESS = "presigned url 발급 성공했습니다.";
 }

@@ -1,0 +1,1 @@
+ALTER TABLE diary CHANGE created_date created_at DATETIME;

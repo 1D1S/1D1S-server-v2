@@ -99,7 +99,11 @@ public class DiaryService {
       newDiary.addDiaryGoal(diaryGoal);
     }
     diaryGoalRepository.saveAll(diaryGoals);
-    return DiaryResponse.from(member, newDiary, challengeSummary);
+    return DiaryResponse.from(
+        member,
+        newDiary,
+        challengeSummary,
+        imageService.getFileUrl(newDiary.getMember().getProfileUrl()));
   }
 
   @Transactional
@@ -143,7 +147,11 @@ public class DiaryService {
 
     diary.updateDiary(request, challenge, diaryGoals);
     diaryRepository.save(diary);
-    return DiaryResponse.from(member, diary, challengeSummary);
+    return DiaryResponse.from(
+        member,
+        diary,
+        challengeSummary,
+        imageService.getFileUrl(diary.getMember().getProfileUrl()));
   }
 
   @Transactional
@@ -161,7 +169,8 @@ public class DiaryService {
     ChallengeSummaryResponse response =
         challengeService.toChallengeSummary(diary.getChallenge(), memberId);
 
-    return DiaryResponse.from(member, diary, response);
+    return DiaryResponse.from(
+        member, diary, response, imageService.getFileUrl(diary.getMember().getProfileUrl()));
   }
 
   @Transactional
@@ -174,7 +183,10 @@ public class DiaryService {
     for (Diary diary : diaries) {
       diaryResponses.add(
           DiaryResponse.from(
-              member, diary, challengeService.toChallengeSummary(diary.getChallenge(), memberId)));
+              member,
+              diary,
+              challengeService.toChallengeSummary(diary.getChallenge(), memberId),
+              imageService.getFileUrl(diary.getMember().getProfileUrl())));
     }
     return diaryResponses;
   }
@@ -201,7 +213,10 @@ public class DiaryService {
     for (Diary diary : diaries) {
       items.add(
           DiaryResponse.from(
-              member, diary, challengeService.toChallengeSummary(diary.getChallenge(), memberId)));
+              member,
+              diary,
+              challengeService.toChallengeSummary(diary.getChallenge(), memberId),
+              imageService.getFileUrl(diary.getMember().getProfileUrl())));
     }
 
     String nextCursor = null;
@@ -285,7 +300,8 @@ public class DiaryService {
                   DiaryResponse.from(
                       currentMember,
                       diary,
-                      challengeService.toChallengeSummary(diary.getChallenge(), currentMemberId)))
+                      challengeService.toChallengeSummary(diary.getChallenge(), currentMemberId),
+                      imageService.getFileUrl(diary.getMember().getProfileUrl())))
           .toList();
     } catch (CustomException e) {
       return Collections.emptyList();
@@ -329,7 +345,8 @@ public class DiaryService {
             DiaryResponse.from(
                 member,
                 diary,
-                challengeService.toChallengeSummary(diary.getChallenge(), memberId)));
+                challengeService.toChallengeSummary(diary.getChallenge(), memberId),
+                imageService.getFileUrl(diary.getMember().getProfileUrl())));
       }
       return diaryResponses;
     } catch (Exception e) {
@@ -381,7 +398,13 @@ public class DiaryService {
     ChallengeSummaryResponse summary = challengeService.toChallengeSummary(challenge, memberId);
     return challenge.getDiaries().stream()
         .filter(Objects::nonNull)
-        .map(diary -> DiaryResponse.from(member, diary, summary))
+        .map(
+            diary ->
+                DiaryResponse.from(
+                    member,
+                    diary,
+                    summary,
+                    imageService.getFileUrl(diary.getMember().getProfileUrl())))
         .collect(Collectors.toList());
   }
 }

@@ -25,7 +25,13 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
-@Table(name = "member")
+@Table(
+    name = "member",
+    uniqueConstraints = {
+      @UniqueConstraint(
+          name = "uk_email_signup_route",
+          columnNames = {"email", "signup_route"})
+    })
 public class Member {
 
   @Id
@@ -33,10 +39,11 @@ public class Member {
   @Column(name = "member_id")
   private Long id;
 
-  @Column(nullable = false, unique = true)
+  @Column(nullable = false)
   private String email;
 
   @Enumerated(EnumType.STRING)
+  @Column(name = "signup_route")
   private SignupRoute signupRoute;
 
   private String socialId;
@@ -112,7 +119,7 @@ public class Member {
       Gender gender,
       Boolean isPublic) {
     this.nickname = nickname;
-    this.profileUrl = profileUrl;
+    this.profileUrl = profileImageKey;
     this.job = job;
     this.birth = birth;
     this.gender = gender;
@@ -127,5 +134,13 @@ public class Member {
     for (Category category : categories) {
       this.memberInterests.add(new Interest(this, category));
     }
+  }
+
+  public void updateNickname(String nickname) {
+    this.nickname = nickname;
+  }
+
+  public void updateProfileImage(String objectKey) {
+    this.profileUrl = objectKey;
   }
 }

@@ -3,6 +3,7 @@ package com.odos.odos_server_v2.domain.security.oauth2.handler;
 import static com.odos.odos_server_v2.response.Message.LOGIN_SUCCESS;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.odos.odos_server_v2.domain.member.entity.Enum.SignupRoute;
 import com.odos.odos_server_v2.domain.member.entity.Member;
 import com.odos.odos_server_v2.domain.member.repository.MemberRepository;
 import com.odos.odos_server_v2.domain.security.jwt.JwtTokenProvider;
@@ -35,10 +36,10 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
 
     MemberPrincipal principal = (MemberPrincipal) authentication.getPrincipal();
     String email = principal.getEmail();
-
+    SignupRoute signupRoute = principal.getSignupRoute();
     Member member =
         memberRepository
-            .findByEmail(email)
+            .findByEmailAndSignupRoute(email, signupRoute)
             .orElseThrow(() -> new CustomException(ErrorCode.OAUTH_USER_NOT_FOUND));
 
     String accessToken = jwtTokenProvider.createAccessToken(member);
@@ -52,7 +53,7 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
     String refreshToken = needNewRefresh ? jwtTokenProvider.createRefreshToken() : existingRefresh;
 
     if (needNewRefresh) {
-      jwtTokenProvider.updateRefreshToken(email, refreshToken);
+      jwtTokenProvider.updateRefreshToken(member.getId(), refreshToken);
     }
 
     boolean isProfileComplete =
