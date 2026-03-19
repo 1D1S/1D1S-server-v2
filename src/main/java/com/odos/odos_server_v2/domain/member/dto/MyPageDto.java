@@ -18,6 +18,12 @@ public class MyPageDto {
   @Schema(description = "프로필 이미지 URL", example = "https://example.com/profile.jpg")
   String profileUrl;
 
+  @Schema(description = "로그인 유저의 이메일 주소", example = "1day1streak@naver.com")
+  String email;
+
+  @Schema(description = "회원가입 플랫폼", example = "NAVER")
+  String provider;
+
   @Schema(description = "스트릭 통계 정보")
   StreakDto streak;
 

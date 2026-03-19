@@ -43,6 +43,8 @@ public class MemberController {
                               "data": {
                                 "nickname": "홍길동",
                                 "profileUrl": "https://example.com/profile.jpg",
+                                "email" : "1day1streak@naver.com",
+                                "provider": "NAVER",
                                 "streak": {
                                   "todayGoalCount": 3,
                                   "currentStreak": 5,
