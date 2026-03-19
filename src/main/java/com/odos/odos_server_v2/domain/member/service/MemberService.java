@@ -69,6 +69,8 @@ public class MemberService {
     return MyPageDto.builder()
         .nickname(member.getNickname())
         .profileUrl(imageService.getFileUrl(member.getProfileUrl()))
+        .email(member.getEmail())
+        .provider(member.getSignupRoute().name())
         .streak(getStreakByMemberId(id))
         .challengeList(challengeService.getMemberChallenge(id, id))
         .diaryList(diaryService.getMyDiaries())
