@@ -3,7 +3,9 @@ package com.odos.odos_server_v2.domain.diary.service;
 import com.odos.odos_server_v2.domain.challenge.dto.ChallengeSummaryResponse;
 import com.odos.odos_server_v2.domain.challenge.entity.Challenge;
 import com.odos.odos_server_v2.domain.challenge.entity.ChallengeGoal;
+import com.odos.odos_server_v2.domain.challenge.entity.Enum.ChallengeType;
 import com.odos.odos_server_v2.domain.challenge.entity.Participant;
+import com.odos.odos_server_v2.domain.challenge.repository.ChallengeGoalRepository;
 import com.odos.odos_server_v2.domain.challenge.repository.ChallengeRepository;
 import com.odos.odos_server_v2.domain.challenge.repository.ParticipantRepository;
 import com.odos.odos_server_v2.domain.challenge.service.ChallengeService;
@@ -46,6 +48,7 @@ public class DiaryService {
   private final ParticipantRepository participantRepository;
   private final ImageService imageService;
   private final DiaryImageRepository diaryImageRepository;
+  private final ChallengeGoalRepository challengeGoalRepository;
 
   @Transactional
   public DiaryResponse createDiary(Long memberId, DiaryRequest request) {
@@ -82,7 +85,16 @@ public class DiaryService {
     Diary newDiary = diaryRepository.save(diary);
 
     // 챌린지 목표를 기반으로 다이어리 목표달성 생성 및 저장
-    List<ChallengeGoal> challengeGoals = Objects.requireNonNull(participant).getChallengeGoals();
+    // 이슈발생 후 수정
+    // 챌린지 타입별 챌린지목표 ID 맞춰서 체크하도록
+    List<ChallengeGoal> challengeGoals;
+    if (challenge.getType().equals(ChallengeType.FIXED)) {
+      challengeGoals =
+          challengeGoalRepository.getFixedGoals(
+              challenge.getHostMember().getId(), challenge.getId());
+    } else {
+      challengeGoals = Objects.requireNonNull(participant).getChallengeGoals();
+    }
     List<DiaryGoal> diaryGoals = new ArrayList<>();
     List<Long> achievedGoalIds =
         request.getAchievedGoalIds() != null ? request.getAchievedGoalIds() : new ArrayList<>();
@@ -129,7 +141,15 @@ public class DiaryService {
       throw new CustomException(ErrorCode.PARTICIPANT_NOT_FOUND);
     }
 
-    List<ChallengeGoal> challengeGoals = Objects.requireNonNull(participant).getChallengeGoals();
+    List<ChallengeGoal> challengeGoals;
+    if (challenge.getType().equals(ChallengeType.FIXED)) {
+      challengeGoals =
+          challengeGoalRepository.getFixedGoals(
+              challenge.getHostMember().getId(), challenge.getId());
+    } else {
+      challengeGoals = Objects.requireNonNull(participant).getChallengeGoals();
+    }
+
     List<DiaryGoal> diaryGoals = new ArrayList<>();
     List<Long> achievedGoalIds =
         request.getAchievedGoalIds() != null ? request.getAchievedGoalIds() : new ArrayList<>();

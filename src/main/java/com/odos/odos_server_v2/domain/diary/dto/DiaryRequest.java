@@ -6,8 +6,10 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalDate;
 import java.util.List;
 import lombok.Getter;
+import lombok.Setter;
 
 @Getter
+@Setter // TEST 코드 돌리기 위해 만듦
 @Schema(description = "일지 생성 요청 DTO")
 public class DiaryRequest {
 
