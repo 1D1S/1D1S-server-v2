@@ -165,10 +165,19 @@ public class DiaryService {
         diaryRepository
             .findById(diaryId)
             .orElseThrow(() -> new CustomException(ErrorCode.DIARY_NOT_FOUND));
+
+    Long writer = diary.getMember().getId();
+
+    // 비공개 일지 만족 -> 작성자가 아닐 시 접근불허 (애초에 안 보이게 했지만 혹시나하는)
+    if (!diary.getIsPublic()) {
+      if (!memberId.equals(writer)) {
+        throw new CustomException(ErrorCode.DIARY_NOT_ACCESS);
+      }
+    }
+
     ChallengeSummaryResponse response =
         challengeService.toChallengeSummary(diary.getChallenge(), memberId);
 
-    // public diary이면 그대로 데이터 리턴
     return DiaryResponse.from(
         viewer, diary, response, imageService.getFileUrl(diary.getMember().getProfileUrl()));
   }
