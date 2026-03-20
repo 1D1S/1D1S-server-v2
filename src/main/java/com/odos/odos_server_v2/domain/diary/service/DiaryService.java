@@ -157,7 +157,7 @@ public class DiaryService {
   @Transactional
   public DiaryResponse getDiary(Long diaryId) {
     Long memberId = CurrentUserContext.getCurrentMemberId();
-    Member member =
+    Member viewer =
         memberRepository
             .findById(memberId)
             .orElseThrow(() -> new CustomException(ErrorCode.UNAUTHORIZED));
@@ -165,12 +165,12 @@ public class DiaryService {
         diaryRepository
             .findById(diaryId)
             .orElseThrow(() -> new CustomException(ErrorCode.DIARY_NOT_FOUND));
-    // Member member = diary.getMember();
     ChallengeSummaryResponse response =
         challengeService.toChallengeSummary(diary.getChallenge(), memberId);
 
+    // public diary이면 그대로 데이터 리턴
     return DiaryResponse.from(
-        member, diary, response, imageService.getFileUrl(diary.getMember().getProfileUrl()));
+        viewer, diary, response, imageService.getFileUrl(diary.getMember().getProfileUrl()));
   }
 
   @Transactional
@@ -398,6 +398,7 @@ public class DiaryService {
     ChallengeSummaryResponse summary = challengeService.toChallengeSummary(challenge, memberId);
     return challenge.getDiaries().stream()
         .filter(Objects::nonNull)
+        .filter(diary -> diary.getIsPublic().equals(Boolean.TRUE))
         .map(
             diary ->
                 DiaryResponse.from(
