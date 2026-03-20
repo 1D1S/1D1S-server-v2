@@ -378,9 +378,18 @@ public class DiaryController {
                           """
                                                 {
                                                   "message": "DIARY_NOT_FOUND",
-                                                  "data": null
+                                                  "code": "DIARY-002"
                                                 }
-                                                """)
+                                                """),
+                  @ExampleObject(
+                      name = "다이어리 작성자가 아니어서 접근 권한이 없습니다",
+                      value =
+                          """
+                                                          {
+                                                            "message": "DIARY_NOT_FOUND",
+                                                            "code" : "DIARY-005"
+                                                          }
+                                                          """),
                 }))
   })
   @GetMapping("/{id}")
