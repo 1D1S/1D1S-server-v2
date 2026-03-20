@@ -177,7 +177,7 @@ public class DiaryService {
   @Transactional
   public DiaryResponse getDiary(Long diaryId) {
     Long memberId = CurrentUserContext.getCurrentMemberId();
-    Member member =
+    Member viewer =
         memberRepository
             .findById(memberId)
             .orElseThrow(() -> new CustomException(ErrorCode.UNAUTHORIZED));
@@ -185,12 +185,21 @@ public class DiaryService {
         diaryRepository
             .findById(diaryId)
             .orElseThrow(() -> new CustomException(ErrorCode.DIARY_NOT_FOUND));
-    // Member member = diary.getMember();
+
+    Long writer = diary.getMember().getId();
+
+    // 비공개 일지 만족 -> 작성자가 아닐 시 접근불허 (애초에 안 보이게 했지만 혹시나하는)
+    if (!diary.getIsPublic()) {
+      if (!memberId.equals(writer)) {
+        throw new CustomException(ErrorCode.DIARY_NOT_ACCESS);
+      }
+    }
+
     ChallengeSummaryResponse response =
         challengeService.toChallengeSummary(diary.getChallenge(), memberId);
 
     return DiaryResponse.from(
-        member, diary, response, imageService.getFileUrl(diary.getMember().getProfileUrl()));
+        viewer, diary, response, imageService.getFileUrl(diary.getMember().getProfileUrl()));
   }
 
   @Transactional
@@ -418,6 +427,7 @@ public class DiaryService {
     ChallengeSummaryResponse summary = challengeService.toChallengeSummary(challenge, memberId);
     return challenge.getDiaries().stream()
         .filter(Objects::nonNull)
+        .filter(diary -> diary.getIsPublic().equals(Boolean.TRUE))
         .map(
             diary ->
                 DiaryResponse.from(
