@@ -1,8 +1,9 @@
 package com.odos.odos_server_v2.domain.diary.dto;
 
-import com.odos.odos_server_v2.domain.diary.entity.DiaryGoal;
 import lombok.Builder;
 import lombok.Getter;
+
+import com.odos.odos_server_v2.domain.diary.entity.DiaryGoal;
 
 @Getter
 @Builder

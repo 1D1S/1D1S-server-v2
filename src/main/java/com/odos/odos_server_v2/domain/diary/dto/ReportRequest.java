@@ -1,8 +1,9 @@
 package com.odos.odos_server_v2.domain.diary.dto;
 
+import lombok.Getter;
+
 import com.odos.odos_server_v2.domain.diary.entity.Enum.ReportType;
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.Getter;
 
 @Getter
 @Schema(description = "일지 신고 요청 DTO")

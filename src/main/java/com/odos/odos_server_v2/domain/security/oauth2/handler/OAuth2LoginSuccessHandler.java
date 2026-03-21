@@ -1,6 +1,13 @@
 package com.odos.odos_server_v2.domain.security.oauth2.handler;
 
-import static com.odos.odos_server_v2.response.Message.LOGIN_SUCCESS;
+import java.io.IOException;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.security.core.Authentication;
+import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
+import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.odos.odos_server_v2.domain.member.entity.Enum.SignupRoute;
@@ -14,12 +21,8 @@ import com.odos.odos_server_v2.exception.ErrorCode;
 import com.odos.odos_server_v2.response.ApiResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
-import org.springframework.stereotype.Component;
+
+import static com.odos.odos_server_v2.response.Message.LOGIN_SUCCESS;
 
 @Slf4j
 @RequiredArgsConstructor

@@ -1,11 +1,12 @@
 package com.odos.odos_server_v2.domain.diary.entity;
 
-import com.odos.odos_server_v2.domain.challenge.entity.ChallengeGoal;
-import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+
+import com.odos.odos_server_v2.domain.challenge.entity.ChallengeGoal;
+import jakarta.persistence.*;
 
 @Entity
 @AllArgsConstructor

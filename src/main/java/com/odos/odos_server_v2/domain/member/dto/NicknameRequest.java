@@ -1,7 +1,8 @@
 package com.odos.odos_server_v2.domain.member.dto;
 
-import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
+
+import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(description = "닉네임 변경 요청")
 @Getter

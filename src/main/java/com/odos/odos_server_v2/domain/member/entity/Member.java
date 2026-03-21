@@ -1,5 +1,14 @@
 package com.odos.odos_server_v2.domain.member.entity;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+
+import lombok.*;
+
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
 import com.odos.odos_server_v2.domain.challenge.entity.Challenge;
 import com.odos.odos_server_v2.domain.challenge.entity.ChallengeLike;
 import com.odos.odos_server_v2.domain.challenge.entity.Participant;
@@ -12,12 +21,6 @@ import com.odos.odos_server_v2.domain.member.entity.Enum.MemberRole;
 import com.odos.odos_server_v2.domain.member.entity.Enum.SignupRoute;
 import com.odos.odos_server_v2.domain.shared.Enum.Category;
 import jakarta.persistence.*;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import lombok.*;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @Entity
 @EntityListeners(AuditingEntityListener.class)

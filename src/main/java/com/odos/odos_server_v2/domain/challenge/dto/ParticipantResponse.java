@@ -1,10 +1,11 @@
 package com.odos.odos_server_v2.domain.challenge.dto;
 
-import com.odos.odos_server_v2.domain.challenge.entity.Enum.ParticipantStatus;
-import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+
+import com.odos.odos_server_v2.domain.challenge.entity.Enum.ParticipantStatus;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(description = "챌린지 참여자 응답")
 @Builder
