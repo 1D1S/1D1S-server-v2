@@ -1,11 +1,10 @@
 package com.odos.odos_server_v2.domain.shared.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(description = "좋아요 정보")
 @Getter

@@ -1,12 +1,10 @@
 package com.odos.odos_server_v2.domain.member.dto;
 
-import java.util.List;
-
-import lombok.Builder;
-import lombok.Getter;
-
 import com.odos.odos_server_v2.domain.challenge.dto.ChallengeSummaryResponse;
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.util.List;
+import lombok.Builder;
+import lombok.Getter;
 
 @Schema(description = "사이드바 응답")
 @Builder

@@ -1,10 +1,9 @@
 package com.odos.odos_server_v2.response;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-
 import com.odos.odos_server_v2.exception.ErrorCode;
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
 @Schema(description = "에러 응답")
 @Getter

@@ -1,15 +1,13 @@
 package com.odos.odos_server_v2.domain.member.dto;
 
-import java.time.LocalDate;
-import java.util.List;
-
-import lombok.*;
-
 import com.odos.odos_server_v2.domain.member.entity.Enum.Gender;
 import com.odos.odos_server_v2.domain.member.entity.Enum.Job;
 import com.odos.odos_server_v2.domain.shared.Enum.Category;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
+import java.time.LocalDate;
+import java.util.List;
+import lombok.*;
 
 @Schema(description = "회원가입 추가 정보 요청")
 @Getter

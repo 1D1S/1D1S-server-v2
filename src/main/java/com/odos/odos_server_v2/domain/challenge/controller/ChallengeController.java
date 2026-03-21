@@ -1,11 +1,5 @@
 package com.odos.odos_server_v2.domain.challenge.controller;
 
-import java.util.List;
-
-import lombok.RequiredArgsConstructor;
-
-import org.springframework.web.bind.annotation.*;
-
 import com.odos.odos_server_v2.domain.challenge.dto.ChallengeRequest;
 import com.odos.odos_server_v2.domain.challenge.dto.ChallengeResponse;
 import com.odos.odos_server_v2.domain.challenge.dto.ChallengeSummaryResponse;
@@ -24,6 +18,9 @@ import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import java.util.List;
+import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "챌린지", description = "챌린지 API")
 @RestController

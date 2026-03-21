@@ -1,11 +1,9 @@
 package com.odos.odos_server_v2.domain.member.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.List;
-
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-
-import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(description = "스트릭 통계 정보")
 @AllArgsConstructor

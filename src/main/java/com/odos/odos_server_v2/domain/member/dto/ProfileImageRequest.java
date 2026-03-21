@@ -1,8 +1,7 @@
 package com.odos.odos_server_v2.domain.member.dto;
 
-import lombok.*;
-
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.*;
 
 @Schema(description = "프로필 이미지 변경 요청")
 @Getter

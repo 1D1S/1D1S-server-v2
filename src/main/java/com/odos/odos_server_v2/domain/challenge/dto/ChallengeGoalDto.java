@@ -1,10 +1,9 @@
 package com.odos.odos_server_v2.domain.challenge.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
-
-import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(description = "챌린지 목표")
 @Builder

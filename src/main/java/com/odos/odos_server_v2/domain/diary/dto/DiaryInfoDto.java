@@ -1,11 +1,9 @@
 package com.odos.odos_server_v2.domain.diary.dto;
 
+import com.odos.odos_server_v2.domain.diary.entity.Enum.Feeling;
 import java.util.List;
-
 import lombok.Builder;
 import lombok.Getter;
-
-import com.odos.odos_server_v2.domain.diary.entity.Enum.Feeling;
 
 @Builder
 @Getter

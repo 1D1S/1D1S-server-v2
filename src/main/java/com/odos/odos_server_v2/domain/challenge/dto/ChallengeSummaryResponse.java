@@ -1,15 +1,13 @@
 package com.odos.odos_server_v2.domain.challenge.dto;
 
-import java.time.LocalDate;
-
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-
 import com.odos.odos_server_v2.domain.challenge.entity.Enum.ChallengeType;
 import com.odos.odos_server_v2.domain.shared.Enum.Category;
 import com.odos.odos_server_v2.domain.shared.dto.LikeDto;
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.time.LocalDate;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
 
 @Schema(description = "챌린지 요약 응답")
 @Builder

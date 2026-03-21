@@ -1,15 +1,12 @@
 package com.odos.odos_server_v2.domain.security.jwt;
 
-import java.io.IOException;
-
-import lombok.extern.slf4j.Slf4j;
-
-import org.springframework.web.filter.OncePerRequestFilter;
-
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.web.filter.OncePerRequestFilter;
 
 @Slf4j
 public class JwtTokenExceptionFilter extends OncePerRequestFilter {

@@ -1,17 +1,14 @@
 package com.odos.odos_server_v2.domain.shared.service;
 
+import com.odos.odos_server_v2.domain.image.dto.PresignedUrlResponse;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.List;
 import java.util.UUID;
-
 import lombok.RequiredArgsConstructor;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-
-import com.odos.odos_server_v2.domain.image.dto.PresignedUrlResponse;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;

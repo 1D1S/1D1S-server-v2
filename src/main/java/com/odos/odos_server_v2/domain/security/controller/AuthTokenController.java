@@ -1,8 +1,7 @@
 package com.odos.odos_server_v2.domain.security.controller;
 
-import lombok.RequiredArgsConstructor;
-
-import org.springframework.web.bind.annotation.*;
+import static com.odos.odos_server_v2.response.ApiResponse.success;
+import static com.odos.odos_server_v2.response.Message.TOKEN_REFRESH;
 
 import com.odos.odos_server_v2.domain.member.repository.MemberRepository;
 import com.odos.odos_server_v2.domain.security.jwt.JwtTokenProvider;
@@ -10,9 +9,8 @@ import com.odos.odos_server_v2.domain.security.oauth2.TokenResponse;
 import com.odos.odos_server_v2.exception.CustomException;
 import com.odos.odos_server_v2.exception.ErrorCode;
 import com.odos.odos_server_v2.response.ApiResponse;
-
-import static com.odos.odos_server_v2.response.ApiResponse.success;
-import static com.odos.odos_server_v2.response.Message.TOKEN_REFRESH;
+import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/auth")

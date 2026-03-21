@@ -1,11 +1,5 @@
 package com.odos.odos_server_v2.domain.diary.dto;
 
-import java.util.Collections;
-import java.util.List;
-
-import lombok.Builder;
-import lombok.Getter;
-
 import com.odos.odos_server_v2.domain.challenge.dto.ChallengeSummaryResponse;
 import com.odos.odos_server_v2.domain.diary.entity.Diary;
 import com.odos.odos_server_v2.domain.diary.entity.DiaryGoal;
@@ -13,6 +7,10 @@ import com.odos.odos_server_v2.domain.diary.entity.DiaryImage;
 import com.odos.odos_server_v2.domain.diary.entity.DiaryLike;
 import com.odos.odos_server_v2.domain.member.entity.Member;
 import com.odos.odos_server_v2.domain.shared.dto.LikeDto;
+import java.util.Collections;
+import java.util.List;
+import lombok.Builder;
+import lombok.Getter;
 
 @Builder
 @Getter
