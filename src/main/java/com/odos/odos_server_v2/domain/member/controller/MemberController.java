@@ -1,5 +1,9 @@
 package com.odos.odos_server_v2.domain.member.controller;
 
+import lombok.RequiredArgsConstructor;
+
+import org.springframework.web.bind.annotation.*;
+
 import com.odos.odos_server_v2.domain.member.CurrentUserContext;
 import com.odos.odos_server_v2.domain.member.dto.MyPageDto;
 import com.odos.odos_server_v2.domain.member.dto.NicknameRequest;
@@ -15,8 +19,6 @@ import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "회원", description = "회원 API")
 @RestController
@@ -285,5 +287,33 @@ public class MemberController {
     Long memberId = CurrentUserContext.getCurrentMemberId();
     memberService.editProfileImage(memberId, profileImageRequest.getObjectKey());
     return ApiResponse.success(Message.UPDATE_PROFILE_IMAGE);
+  }
+
+  @Operation(summary = "다른 회원 프로필 조회", description = "특정 회원의 프로필 정보를 조회한다.")
+  @ApiResponses({
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "200",
+        description = "다른 회원 프로필 조회 성공",
+        content =
+            @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = MyPageDto.class))),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "404",
+        description = "회원을 찾을 수 없음",
+        content =
+            @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class),
+                examples =
+                    @ExampleObject(
+                        value =
+                            """
+                            { "code": "USER-003", "message": "회원을 찾을 수 없습니다." }
+                            """)))
+  })
+  @GetMapping("/profile/{memberId}")
+  public ApiResponse<MyPageDto> getOtherProfile(@PathVariable Long memberId) {
+    return ApiResponse.success(Message.GET_OTHERS_PROFILE, memberService.getMyPage(memberId));
   }
 }
