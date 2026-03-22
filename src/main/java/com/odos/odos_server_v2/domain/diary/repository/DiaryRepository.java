@@ -35,4 +35,12 @@ public interface DiaryRepository extends JpaRepository<Diary, Long> {
       @Param("endDate") LocalDate endDate,
       @Param("id") Long id,
       @Param("writer") Long writer);
+
+  @Query(
+      """
+        select d
+        from Diary d
+        where d.isPublic = true and d.member.id = :memberId
+        """)
+  List<Diary> findOthersPublicDiaries(@Param("memberId") Long memberId);
 }

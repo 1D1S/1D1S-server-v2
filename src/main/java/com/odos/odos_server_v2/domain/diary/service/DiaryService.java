@@ -437,4 +437,28 @@ public class DiaryService {
                     imageService.getFileUrl(diary.getMember().getProfileUrl())))
         .collect(Collectors.toList());
   }
+
+  // 다른 사람 프로필 조회 시 공개 다이어리만 조회
+  @Transactional
+  public List<DiaryResponse> getOtherPublicDiaries(Long memberId) {
+    try {
+      Member member =
+          memberRepository
+              .findById(memberId)
+              .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+      List<Diary> diaries = diaryRepository.findOthersPublicDiaries(memberId);
+      List<DiaryResponse> diaryResponses = new ArrayList<>();
+      for (Diary diary : diaries) {
+        diaryResponses.add(
+            DiaryResponse.from(
+                member,
+                diary,
+                challengeService.toChallengeSummary(diary.getChallenge(), memberId),
+                imageService.getFileUrl(diary.getMember().getProfileUrl())));
+      }
+      return diaryResponses;
+    } catch (Exception e) {
+      return Collections.emptyList();
+    }
+  }
 }

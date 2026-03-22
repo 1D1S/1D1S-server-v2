@@ -77,6 +77,27 @@ public class MemberService {
         .build();
   }
 
+  public MyPageDto getOtherMyPage(Long id) {
+    Member member =
+        memberRepository
+            .findById(id)
+            .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+    if (member.getIsPublic()) {
+      return MyPageDto.builder()
+          .nickname(member.getNickname())
+          .profileUrl(imageService.getFileUrl(member.getProfileUrl()))
+          .email(member.getEmail())
+          .provider(member.getSignupRoute().name())
+          .streak(getStreakByMemberId(id))
+          .challengeList(challengeService.getMemberChallenge(id, id))
+          .diaryList(diaryService.getOtherPublicDiaries(id))
+          .build();
+    } else {
+      // 비공개
+      throw new CustomException(ErrorCode.MEMBER_PROFILE_PRIVATE);
+    }
+  }
+
   public SideBarDto getSideBar(Long id) {
     Member member =
         memberRepository
