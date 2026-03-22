@@ -1,16 +1,5 @@
 package com.odos.odos_server_v2.domain.diary.service;
 
-import java.io.IOException;
-import java.util.*;
-import java.util.stream.Collectors;
-
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-
-import org.springframework.data.domain.PageRequest;
-import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
-
 import com.odos.odos_server_v2.domain.challenge.dto.ChallengeSummaryResponse;
 import com.odos.odos_server_v2.domain.challenge.entity.Challenge;
 import com.odos.odos_server_v2.domain.challenge.entity.ChallengeGoal;
@@ -35,6 +24,14 @@ import com.odos.odos_server_v2.domain.shared.service.ImageService;
 import com.odos.odos_server_v2.exception.CustomException;
 import com.odos.odos_server_v2.exception.ErrorCode;
 import jakarta.transaction.Transactional;
+import java.io.IOException;
+import java.util.*;
+import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 @Service
 @RequiredArgsConstructor
@@ -446,18 +443,18 @@ public class DiaryService {
   public List<DiaryResponse> getOtherPublicDiaries(Long memberId) {
     try {
       Member member =
-              memberRepository
-                      .findById(memberId)
-                      .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+          memberRepository
+              .findById(memberId)
+              .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
       List<Diary> diaries = diaryRepository.findOthersPublicDiaries(memberId);
       List<DiaryResponse> diaryResponses = new ArrayList<>();
       for (Diary diary : diaries) {
-          diaryResponses.add(
-                  DiaryResponse.from(
-                          member,
-                          diary,
-                          challengeService.toChallengeSummary(diary.getChallenge(), memberId),
-                          imageService.getFileUrl(diary.getMember().getProfileUrl())));
+        diaryResponses.add(
+            DiaryResponse.from(
+                member,
+                diary,
+                challengeService.toChallengeSummary(diary.getChallenge(), memberId),
+                imageService.getFileUrl(diary.getMember().getProfileUrl())));
       }
       return diaryResponses;
     } catch (Exception e) {
