@@ -367,7 +367,7 @@ public class MemberController {
                     @ExampleObject(
                         value =
                             """
-                            { "code": "MEMBER-004", "message": "비공개 프로필입니다." }
+                            { "code": "USER-005", "message": "비공개 프로필입니다." }
                             """))),
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
         responseCode = "404",
