@@ -27,6 +27,6 @@ SET dg.challenge_goal_id = host_g.id
 
 WHERE c.type = 'FIXED'
   AND c.start_date BETWEEN '2026-03-16' AND '2026-03-21'
-  AND d.created_date >= '2026-03-16 00:00:00'
-  AND d.created_date <  '2026-03-21 00:00:00'
+  AND d.created_at >= '2026-03-16 00:00:00'
+  AND d.created_at <  '2026-03-21 00:00:00'
   AND dg.challenge_goal_id <> host_g.id;
