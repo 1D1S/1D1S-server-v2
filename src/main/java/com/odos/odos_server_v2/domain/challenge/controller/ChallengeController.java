@@ -123,6 +123,7 @@ public class ChallengeController {
                                 },
                                 "challengeDetail": {
                                   "description": "매일 1시간씩 코딩 공부를 진행합니다.",
+                                  "allowMidJoin": true,
                                   "myStatus": "PARTICIPANT",
                                   "participationRate": 75.0,
                                   "goalCompletionRate": 60.5

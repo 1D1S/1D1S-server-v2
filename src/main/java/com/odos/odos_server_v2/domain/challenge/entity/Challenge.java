@@ -35,6 +35,8 @@ public class Challenge {
 
   @Column private LocalDate endDate;
 
+  @Column private boolean allowMidJoin;
+
   @Column private long maxParticipantsCnt;
 
   @Column
