@@ -7,6 +7,8 @@ import com.odos.odos_server_v2.domain.challenge.dto.ParticipantResponse;
 import com.odos.odos_server_v2.domain.challenge.service.ChallengeService;
 import com.odos.odos_server_v2.domain.diary.dto.DiaryStreakResponse;
 import com.odos.odos_server_v2.domain.member.CurrentUserContext;
+import com.odos.odos_server_v2.domain.shared.Enum.Category;
+import com.odos.odos_server_v2.domain.shared.dto.OffsetPagination;
 import com.odos.odos_server_v2.domain.shared.dto.Pagination;
 import com.odos.odos_server_v2.response.ApiResponse;
 import com.odos.odos_server_v2.response.ErrorResponse;
@@ -554,7 +556,9 @@ public class ChallengeController {
     return ApiResponse.success(Message.LEAVE_CHALLENGE);
   }
 
-  @Operation(summary = "챌린지 목록 조회", description = "커서 기반 페이징으로 챌린지 목록을 조회한다. 키워드로 검색할 수 있다.")
+  @Operation(
+      summary = "챌린지 목록 조회 (커서 기반)",
+      description = "커서 기반 페이징으로 챌린지 목록을 조회한다. 키워드로 검색할 수 있다.")
   @ApiResponses({
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
         responseCode = "200",
@@ -619,6 +623,81 @@ public class ChallengeController {
         challengeService.getChallengeList(memberId, limit, cursor, keyword);
 
     return ApiResponse.success(Message.GET_CHALLENGE_LIST, page);
+  }
+
+  @Operation(
+      summary = "챌린지 목록 조회 (오프셋 기반)",
+      description = "오프셋 기반 페이징으로 챌린지 목록을 조회한다. 키워드 검색 및 카테고리 필터링을 지원한다.")
+  @ApiResponses({
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "200",
+        description = "챌린지 목록 조회 성공",
+        content =
+            @Content(
+                mediaType = "application/json",
+                examples =
+                    @ExampleObject(
+                        value =
+                            """
+                                            {
+                                              "message": "챌린지 리스트 불러오기 성공했습니다.",
+                                              "data": {
+                                                "items": [
+                                                  {
+                                                    "challengeId": 1,
+                                                    "title": "30일 코딩 챌린지",
+                                                    "category": "DEV",
+                                                    "startDate": "2025-09-01",
+                                                    "endDate": "2025-09-30",
+                                                    "maxParticipantCnt": 10,
+                                                    "challengeType": "FIXED",
+                                                    "participantCnt": 5,
+                                                    "likeInfo": { "likedByMe": false, "likeCnt": 3 }
+                                                  }
+                                                ],
+                                                "pageInfo": {
+                                                  "page": 0,
+                                                  "size": 10,
+                                                  "totalElements": 53,
+                                                  "totalPages": 6,
+                                                  "hasNextPage": true
+                                                }
+                                              }
+                                            }
+                                            """))),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "401",
+        description = "인증되지 않은 접근",
+        content =
+            @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class),
+                examples =
+                    @ExampleObject(
+                        value =
+                            """
+                                            { "code": "AUTH-001", "message": "인증되지 않은 접근입니다." }
+                                            """)))
+  })
+  @GetMapping("/offset")
+  public ApiResponse<OffsetPagination<ChallengeSummaryResponse>> challengeListByOffset(
+      @Parameter(description = "페이지 번호 (0부터 시작, 기본값: 0)")
+          @RequestParam(name = "page", defaultValue = "0")
+          int page,
+      @Parameter(description = "페이지당 조회 수 (기본값: 10)")
+          @RequestParam(name = "size", defaultValue = "10")
+          int size,
+      @Parameter(description = "검색 키워드") @RequestParam(name = "keyword", required = false)
+          String keyword,
+      @Parameter(description = "카테고리 필터 (예: DEV, HEALTH, STUDY 등)")
+          @RequestParam(name = "category", required = false)
+          Category category) {
+
+    Long memberId = CurrentUserContext.getCurrentMemberIdOrNull();
+    OffsetPagination<ChallengeSummaryResponse> response =
+        challengeService.getChallengeListByOffset(memberId, page, size, keyword, category);
+
+    return ApiResponse.success(Message.GET_CHALLENGE_LIST, response);
   }
 
   @Operation(summary = "챌린지 좋아요", description = "챌린지에 좋아요를 추가한다.")

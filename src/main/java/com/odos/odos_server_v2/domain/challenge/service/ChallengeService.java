@@ -17,7 +17,9 @@ import com.odos.odos_server_v2.domain.diary.repository.DiaryGoalRepository;
 import com.odos.odos_server_v2.domain.diary.repository.DiaryRepository;
 import com.odos.odos_server_v2.domain.member.entity.Member;
 import com.odos.odos_server_v2.domain.member.repository.MemberRepository;
+import com.odos.odos_server_v2.domain.shared.Enum.Category;
 import com.odos.odos_server_v2.domain.shared.dto.LikeDto;
+import com.odos.odos_server_v2.domain.shared.dto.OffsetPagination;
 import com.odos.odos_server_v2.domain.shared.dto.PageInfo;
 import com.odos.odos_server_v2.domain.shared.dto.Pagination;
 import com.odos.odos_server_v2.domain.shared.service.CursorService;
@@ -25,10 +27,12 @@ import com.odos.odos_server_v2.domain.shared.service.ImageService;
 import com.odos.odos_server_v2.exception.CustomException;
 import com.odos.odos_server_v2.exception.ErrorCode;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Collections;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -66,6 +70,7 @@ public class ChallengeService {
             .type(challengeRequest.getChallengeType())
             .description(challengeRequest.getDescription())
             .hostMember(member)
+            .createdAt(LocalDateTime.now())
             .build();
 
     challengeRepository.save(challenge);
@@ -94,6 +99,19 @@ public class ChallengeService {
             .findById(memberId)
             .orElseThrow(() -> new CustomException(ErrorCode.UNAUTHORIZED));
     return toChallengeResponse(challenge, member);
+  }
+
+  public OffsetPagination<ChallengeSummaryResponse> getChallengeListByOffset(
+      Long memberId, int page, int size, String keyword, Category category) {
+
+    Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+
+    Page<Challenge> challengePage = challengeRepository.findByFilters(keyword, category, pageable);
+
+    Page<ChallengeSummaryResponse> responsePage =
+        challengePage.map(challenge -> toChallengeSummary(challenge, memberId));
+
+    return OffsetPagination.from(responsePage);
   }
 
   @Transactional

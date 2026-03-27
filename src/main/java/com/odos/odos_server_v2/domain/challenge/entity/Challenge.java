@@ -6,11 +6,13 @@ import com.odos.odos_server_v2.domain.member.entity.Member;
 import com.odos.odos_server_v2.domain.shared.Enum.Category;
 import jakarta.persistence.*;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.CreatedDate;
 
 @Entity
 @AllArgsConstructor
@@ -40,6 +42,8 @@ public class Challenge {
   private ChallengeType type;
 
   @Column private String description;
+
+  @Column @CreatedDate private LocalDateTime createdAt;
 
   @ManyToOne
   @JoinColumn(name = "host_member_id")
