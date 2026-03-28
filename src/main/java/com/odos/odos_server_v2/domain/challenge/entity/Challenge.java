@@ -45,6 +45,8 @@ public class Challenge {
 
   @Column private String description;
 
+  @Column private String thumbnailImage;
+
   @Column @CreatedDate private LocalDateTime createdAt;
 
   @ManyToOne

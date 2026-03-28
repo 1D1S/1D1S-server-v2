@@ -1,0 +1,1 @@
+ALTER TABLE challenge ADD COLUMN thumbnail_image VARCHAR(255) DEFAULT NULL;
