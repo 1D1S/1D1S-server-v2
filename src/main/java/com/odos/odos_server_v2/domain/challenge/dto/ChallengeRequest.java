@@ -18,6 +18,9 @@ public class ChallengeRequest {
   @Schema(description = "챌린지 제목", example = "30일 코딩 챌린지")
   private String title;
 
+  @Schema(description = "챌린지 썸네일 이미지", example = "529fabd9-ae8e-4746-b82c-77725fe1a3ae")
+  private String thumbnailImage;
+
   @Schema(description = "챌린지 카테고리", example = "DEV")
   private Category category;
 
