@@ -63,6 +63,7 @@ public class ChallengeService {
     Challenge challenge =
         Challenge.builder()
             .title(challengeRequest.getTitle())
+            .thumbnailImage(challengeRequest.getThumbnailImage())
             .category(challengeRequest.getCategory())
             .startDate(challengeRequest.getStartDate())
             .endDate(challengeRequest.getEndDate())
@@ -350,6 +351,7 @@ public class ChallengeService {
     return new ChallengeSummaryResponse(
         challengeId,
         challenge.getTitle(),
+        imageService.getFileUrl(challenge.getThumbnailImage()),
         challenge.getCategory(),
         challenge.getStartDate(),
         challenge.getEndDate(),
