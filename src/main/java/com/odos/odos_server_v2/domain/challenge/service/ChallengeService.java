@@ -71,6 +71,7 @@ public class ChallengeService {
             .description(challengeRequest.getDescription())
             .hostMember(member)
             .createdAt(LocalDateTime.now())
+            .allowMidJoin(challengeRequest.getAllowMidJoin())
             .build();
 
     challengeRepository.save(challenge);
@@ -361,6 +362,7 @@ public class ChallengeService {
   private ChallengeDetailDto toChallengeDetail(Challenge challenge, Long memberId) {
     return new ChallengeDetailDto(
         challenge.getDescription(),
+        challenge.isAllowMidJoin(),
         getMemberStatus(challenge.getId(), memberId),
         getParticipationRate(challenge),
         getGoalCompletionRate(challenge));
