@@ -105,7 +105,7 @@ public class ChallengeService {
   public OffsetPagination<ChallengeSummaryResponse> getChallengeListByOffset(
       Long memberId, int page, int size, String keyword, Category category) {
 
-    Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+    Pageable pageable = PageRequest.of(page, size);
 
     Page<Challenge> challengePage = challengeRepository.findByFilters(keyword, category, pageable);
 

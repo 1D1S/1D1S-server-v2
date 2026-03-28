@@ -30,7 +30,7 @@ public interface ChallengeRepository extends JpaRepository<Challenge, Long> {
         SELECT c FROM Challenge c
         WHERE (:keyword IS NULL OR c.title LIKE CONCAT('%', :keyword, '%'))
           AND (:category IS NULL OR c.category = :category)
-        ORDER BY c.createdAt DESC
+        ORDER BY c.id DESC
         """)
   Page<Challenge> findByFilters(
       @Param("keyword") String keyword, @Param("category") Category category, Pageable pageable);
