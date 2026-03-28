@@ -49,6 +49,7 @@ public class ChallengeController {
                               "data": {
                                 "challengeId": 1,
                                 "title": "30일 코딩 챌린지",
+                                "thumbnailImage": "https://..",
                                 "category": "DEV",
                                 "startDate": "2025-09-01",
                                 "endDate": "2025-09-30",
@@ -113,6 +114,7 @@ public class ChallengeController {
                                 "challengeSummary": {
                                   "challengeId": 1,
                                   "title": "30일 코딩 챌린지",
+                                  "thumbnailImage": "https://..",
                                   "category": "DEV",
                                   "startDate": "2025-09-01",
                                   "endDate": "2025-09-30",
@@ -401,6 +403,7 @@ public class ChallengeController {
                                 {
                                   "challengeId": 1,
                                   "title": "30일 코딩 챌린지",
+                                  "thumbnailImage": "https://..",
                                   "category": "DEV",
                                   "startDate": "2025-09-01",
                                   "endDate": "2025-09-30",
@@ -442,6 +445,7 @@ public class ChallengeController {
                                 {
                                   "challengeId": 1,
                                   "title": "30일 코딩 챌린지",
+                                  "thumbnailImage": "https://..",
                                   "category": "DEV",
                                   "startDate": "2025-09-01",
                                   "endDate": "2025-09-30",
@@ -578,6 +582,7 @@ public class ChallengeController {
                                   {
                                     "challengeId": 1,
                                     "title": "30일 코딩 챌린지",
+                                    "thumbnailImage": "https://..",
                                     "category": "DEV",
                                     "startDate": "2025-09-01",
                                     "endDate": "2025-09-30",
@@ -640,32 +645,33 @@ public class ChallengeController {
                     @ExampleObject(
                         value =
                             """
-                                            {
-                                              "message": "챌린지 리스트 불러오기 성공했습니다.",
-                                              "data": {
-                                                "items": [
-                                                  {
-                                                    "challengeId": 1,
-                                                    "title": "30일 코딩 챌린지",
-                                                    "category": "DEV",
-                                                    "startDate": "2025-09-01",
-                                                    "endDate": "2025-09-30",
-                                                    "maxParticipantCnt": 10,
-                                                    "challengeType": "FIXED",
-                                                    "participantCnt": 5,
-                                                    "likeInfo": { "likedByMe": false, "likeCnt": 3 }
-                                                  }
-                                                ],
-                                                "pageInfo": {
-                                                  "page": 0,
-                                                  "size": 10,
-                                                  "totalElements": 53,
-                                                  "totalPages": 6,
-                                                  "hasNextPage": true
-                                                }
-                                              }
-                                            }
-                                            """))),
+                            {
+                              "message": "챌린지 리스트 불러오기 성공했습니다.",
+                              "data": {
+                                "items": [
+                                  {
+                                    "challengeId": 1,
+                                    "title": "30일 코딩 챌린지",
+                                    "thumbnailImage": "https://..",
+                                    "category": "DEV",
+                                    "startDate": "2025-09-01",
+                                    "endDate": "2025-09-30",
+                                    "maxParticipantCnt": 10,
+                                    "challengeType": "FIXED",
+                                    "participantCnt": 5,
+                                    "likeInfo": { "likedByMe": false, "likeCnt": 3 }
+                                  }
+                                ],
+                                "pageInfo": {
+                                  "page": 0,
+                                  "size": 10,
+                                  "totalElements": 53,
+                                  "totalPages": 6,
+                                  "hasNextPage": true
+                                }
+                              }
+                            }
+                            """))),
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
         responseCode = "401",
         description = "인증되지 않은 접근",
@@ -839,6 +845,7 @@ public class ChallengeController {
                                 {
                                   "challengeId": 1,
                                   "title": "30일 코딩 챌린지",
+                                  "thumbnailImage": "https://..",
                                   "category": "DEV",
                                   "startDate": "2025-09-01",
                                   "endDate": "2025-09-30",
