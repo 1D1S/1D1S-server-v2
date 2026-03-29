@@ -28,7 +28,14 @@ import org.springframework.web.bind.annotation.*;
 public class ChallengeController {
   private final ChallengeService challengeService;
 
-  @Operation(summary = "챌린지 생성", description = "새로운 챌린지를 생성한다.")
+  @Operation(
+      summary = "챌린지 생성",
+      description =
+          """
+          새로운 챌린지를 생성한다.
+
+          챌린지 썸네일 이미지 등록 시 presigned URL 발급 API를 통해 이미지를 업로드 한 뒤, 해당 키 값을 thumbnailImage 필드에 담아 전송한다. ( /image/presigned-url API 참고 )
+          """)
   @ApiResponses({
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
         responseCode = "200",

@@ -236,7 +236,14 @@ public class MemberController {
     return ApiResponse.success(Message.UPDATE_NICKNAME);
   }
 
-  @Operation(summary = "프로필 이미지 변경", description = "로그인한 회원의 프로필 이미지를 변경한다.")
+  @Operation(
+      summary = "프로필 이미지 변경",
+      description =
+          """
+  로그인한 회원의 프로필 이미지를 변경한다.
+
+  프로필 이미지 수정 시 presigned URL 발급 API를 통해 이미지를 업로드 한 뒤, 해당 키 값을 objectKey 필드에 담아 전송한다. ( /image/presigned-url API 참고 )
+  """)
   @ApiResponses({
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
         responseCode = "200",

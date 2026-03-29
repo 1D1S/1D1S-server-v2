@@ -31,9 +31,12 @@ public class SignupController {
   @Operation(
       summary = "회원가입 추가 정보 입력",
       description =
-          "OAuth2 소셜 로그인 이후 닉네임, 직업, 생년월일, 성별, 관심 카테고리 등 추가 정보를 입력하여 회원가입을 완료한다."
-              + " 닉네임은 한글 또는 영어로 8자 이내이며 특수문자는 불가하다."
-              + " 관심 카테고리는 1개 이상 3개 이하로 선택해야 한다.")
+          """
+              OAuth2 소셜 로그인 이후 닉네임, 직업, 생년월일, 성별, 관심 카테고리 등 추가 정보를 입력하여 회원가입을 완료한다.
+              - 닉네임은 한글 또는 영어로 8자 이내이며 특수문자는 불가하다.
+              - 관심 카테고리는 1개 이상 3개 이하로 선택해야 한다.
+              - 프로필 이미지 등록 시 presigned URL 발급 API를 통해 이미지를 업로드 한 뒤, 해당 키 값을 profileImageKey 필드에 담아 전송한다. ( /image/presigned-url API 참고 )
+              """)
   @ApiResponses({
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
         responseCode = "200",
