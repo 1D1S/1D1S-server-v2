@@ -46,9 +46,11 @@ public enum ErrorCode {
   CHALLENGE_NOT_ACCESS(HttpStatus.FORBIDDEN, "CHALLENGE_008", "챌린지 수정 권한이 없습니다."),
   MAX_PARTICIPANT(
       HttpStatus.UNPROCESSABLE_ENTITY, "CHALLENGE_009", "최대 참여자 수는 현재 참여 중인 인원보다 적게 설정할 수 없습니다."),
-  ALREADY_STARTED_CHALLENGE(
+  CANNOT_EDIT_CHALLENGE_GOALS(
       HttpStatus.UNPROCESSABLE_ENTITY, "CHALLENGE_010", "챌린지 시작 후에는 목표를 변경 할 수 없습니다."),
-  CANNOT_ACCEPT_PARTICIPANT(HttpStatus.UNPROCESSABLE_ENTITY, "CHALLENGE_011", "최대 참여 인원에 도달했습니다.");
+  CANNOT_ACCEPT_PARTICIPANT(HttpStatus.UNPROCESSABLE_ENTITY, "CHALLENGE_011", "최대 참여 인원에 도달했습니다."),
+  CANNOT_APPLY_PARTICIPANT(
+      HttpStatus.UNPROCESSABLE_ENTITY, "CHALLENGE_012", "챌린지 시작 후에는 챌린지에 신청할 수 없습니다.");
 
   private final HttpStatus status;
   private final String code;
