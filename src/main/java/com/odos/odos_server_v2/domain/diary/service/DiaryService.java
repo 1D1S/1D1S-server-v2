@@ -65,7 +65,9 @@ public class DiaryService {
         challengeService.toChallengeSummary(challenge, memberId);
 
     Participant participant =
-        participantRepository.findByMemberIdAndChallengeId(memberId, challenge.getId());
+        participantRepository
+            .findByMemberIdAndChallengeId(memberId, challenge.getId())
+            .orElseThrow(() -> new CustomException(ErrorCode.PARTICIPANT_NOT_FOUND));
     if (participant == null) {
       throw new CustomException(ErrorCode.PARTICIPANT_NOT_FOUND);
     }
@@ -136,7 +138,9 @@ public class DiaryService {
         challengeService.toChallengeSummary(challenge, memberId);
 
     Participant participant =
-        participantRepository.findByMemberIdAndChallengeId(memberId, challenge.getId());
+        participantRepository
+            .findByMemberIdAndChallengeId(memberId, challenge.getId())
+            .orElseThrow(() -> new CustomException(ErrorCode.PARTICIPANT_NOT_FOUND));
     if (participant == null) {
       throw new CustomException(ErrorCode.PARTICIPANT_NOT_FOUND);
     }

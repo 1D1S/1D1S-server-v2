@@ -61,4 +61,28 @@ public class Challenge {
 
   @OneToMany(mappedBy = "challenge", cascade = CascadeType.ALL)
   private List<Diary> diaries;
+
+  public void updateTitle(String title) {
+    this.title = title;
+  }
+
+  public void updateThumbnailImage(String thumbnailImage) {
+    this.thumbnailImage = thumbnailImage;
+  }
+
+  public void updateCategory(Category category) {
+    this.category = category;
+  }
+
+  public void updateDescription(String description) {
+    this.description = description;
+  }
+
+  public void updateAllowMidJoin(boolean allowMidJoin) {
+    this.allowMidJoin = allowMidJoin;
+  }
+
+  public void updateMaxParticipantCnt(Integer maxParticipantCnt) {
+    this.maxParticipantsCnt = maxParticipantCnt;
+  }
 }
