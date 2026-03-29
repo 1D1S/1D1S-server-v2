@@ -15,6 +15,9 @@ public class ChallengeDetailDto {
   @Schema(description = "챌린지 설명", example = "매일 1시간씩 코딩 공부를 진행합니다.")
   private String description;
 
+  @Schema(description = "중도 참여 허용 여부", example = "true")
+  private boolean allowMidJoin;
+
   @Schema(
       description =
           "현재 로그인한 사용자의 참여 상태 (PENDING: 대기, PARTICIPANT: 참여, HOST: 호스트, REJECTED: 거절, LEAVE: 탈퇴, NONE: 미참여)",

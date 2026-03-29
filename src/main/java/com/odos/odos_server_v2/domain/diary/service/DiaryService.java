@@ -440,13 +440,14 @@ public class DiaryService {
 
   // 다른 사람 프로필 조회 시 공개 다이어리만 조회
   @Transactional
-  public List<DiaryResponse> getOtherPublicDiaries(Long memberId) {
+  public List<DiaryResponse> getOtherPublicDiaries(Long otherMemberId) {
+    Long memberId = CurrentUserContext.getCurrentMemberId();
     try {
       Member member =
           memberRepository
               .findById(memberId)
               .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
-      List<Diary> diaries = diaryRepository.findOthersPublicDiaries(memberId);
+      List<Diary> diaries = diaryRepository.findOthersPublicDiaries(otherMemberId);
       List<DiaryResponse> diaryResponses = new ArrayList<>();
       for (Diary diary : diaries) {
         diaryResponses.add(

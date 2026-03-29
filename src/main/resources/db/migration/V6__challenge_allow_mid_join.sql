@@ -1,0 +1,1 @@
+ALTER TABLE challenge ADD COLUMN allow_mid_join BOOLEAN NOT NULL DEFAULT TRUE;

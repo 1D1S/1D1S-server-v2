@@ -1,7 +1,9 @@
 package com.odos.odos_server_v2.domain.challenge.repository;
 
 import com.odos.odos_server_v2.domain.challenge.entity.Challenge;
+import com.odos.odos_server_v2.domain.shared.Enum.Category;
 import java.util.List;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -22,4 +24,14 @@ public interface ChallengeRepository extends JpaRepository<Challenge, Long> {
   """)
   List<Challenge> searchPage(
       @Param("cursorId") Long cursorId, @Param("keyword") String keyword, Pageable pageable);
+
+  @Query(
+      """
+        SELECT c FROM Challenge c
+        WHERE (:keyword IS NULL OR c.title LIKE CONCAT('%', :keyword, '%'))
+          AND (:category IS NULL OR c.category = :category)
+        ORDER BY c.id DESC
+        """)
+  Page<Challenge> findByFilters(
+      @Param("keyword") String keyword, @Param("category") Category category, Pageable pageable);
 }

@@ -30,12 +30,17 @@ public class ImageController {
       summary = "presigned url 발급",
       description =
           """
-          presigned url을 발급한다. 현재는 프로필 이미지 저장 및 수정에 사용한다.
+          presigned url을 발급한다. 프로필 이미지 저장 및 수정, 챌린지 썸네일 이미지 저장 및 수정에 사용한다.
 
           [프로필 이미지 저장]
           1. /image/presigned-url API 호출
           2. 응답의 presignedUrl 필드 값에 이미지 저장
           3. 응답의 objectKey 값을 /signup/info API의 profileImageKey 필드에 넣어 호출
+
+          [챌린지 썸네일 이미지 저장]
+          1. /image/presigned-url API 호출
+          2. 응답의 presignedUrl 필드 값에 이미지 저장
+          3. 응답의 objectKey 값을 /create API의 thumbnailImage 필드에 넣어 호출
           """)
   @ApiResponses({
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
