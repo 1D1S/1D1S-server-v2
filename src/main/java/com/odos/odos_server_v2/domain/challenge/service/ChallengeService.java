@@ -91,6 +91,86 @@ public class ChallengeService {
     return toChallengeSummary(challenge, memberId);
   }
 
+  @Transactional
+  public ChallengeSummaryResponse editChallenge(
+      Long challengeId, ChallengeEditRequest challengeEditRequest, Long memberId) {
+    memberRepository
+        .findById(memberId)
+        .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+    Challenge challenge =
+        challengeRepository
+            .findById(challengeId)
+            .orElseThrow(() -> new CustomException(ErrorCode.CHALLENGE_NOT_FOUND));
+
+    if (!challenge.getHostMember().getId().equals(memberId)) {
+      throw new CustomException(ErrorCode.CHALLENGE_NOT_ACCESS);
+    }
+
+    if (challengeEditRequest.getMaxParticipantCnt() != null) {
+      challengeEditRequest
+          .getMaxParticipantCnt()
+          .ifPresent(
+              newMax -> {
+                if (newMax < getParticipantCnt(challengeId)) {
+                  throw new CustomException(ErrorCode.MAX_PARTICIPANT);
+                }
+                challenge.updateMaxParticipantCnt(newMax);
+              });
+    }
+    if (challengeEditRequest.getGoals() != null) {
+      if (!challenge.getStartDate().isAfter(LocalDate.now())) {
+        throw new CustomException(ErrorCode.CANNOT_EDIT_CHALLENGE_GOALS);
+      }
+
+      List<ParticipantStatus> participantStatuses;
+      if (challenge.getType().equals(ChallengeType.FIXED)) {
+        participantStatuses = List.of(ParticipantStatus.HOST, ParticipantStatus.PARTICIPANT);
+      } else {
+        participantStatuses = List.of(ParticipantStatus.HOST);
+      }
+      List<Participant> participants =
+          participantRepository.findByChallengeIdAndStatusIn(challengeId, participantStatuses);
+
+      challengeGoalRepository.deleteAllByParticipantIn(participants);
+
+      challengeEditRequest
+          .getGoals()
+          .ifPresent(
+              goals -> {
+                List<ChallengeGoal> newGoals =
+                    participants.stream()
+                        .flatMap(
+                            participant ->
+                                goals.stream()
+                                    .map(
+                                        goal ->
+                                            ChallengeGoal.builder()
+                                                .participant(participant)
+                                                .content(goal)
+                                                .build()))
+                        .toList();
+                challengeGoalRepository.saveAll(newGoals);
+              });
+    }
+    if (challengeEditRequest.getTitle() != null) {
+      challenge.updateTitle(challengeEditRequest.getTitle().orElse(null));
+    }
+    if (challengeEditRequest.getThumbnailImage() != null) {
+      challenge.updateThumbnailImage(challengeEditRequest.getThumbnailImage().orElse(null));
+    }
+    if (challengeEditRequest.getCategory() != null) {
+      challenge.updateCategory(challengeEditRequest.getCategory().orElse(null));
+    }
+    if (challengeEditRequest.getDescription() != null) {
+      challenge.updateDescription(challengeEditRequest.getDescription().orElse(null));
+    }
+    if (challengeEditRequest.getAllowMidJoin() != null) {
+      challenge.updateAllowMidJoin(challengeEditRequest.getAllowMidJoin().orElse(false));
+    }
+
+    return toChallengeSummary(challenge, memberId);
+  }
+
   public ChallengeResponse getChallenge(Long challengeId, Long memberId) {
     Challenge challenge =
         challengeRepository
@@ -130,6 +210,9 @@ public class ChallengeService {
     if (participantRepository.existsByChallengeIdAndMemberId(challengeId, memberId)) {
       throw new CustomException(ErrorCode.ALREADY_APPLIED);
     }
+    if (challenge.getStartDate().isBefore(LocalDate.now())) {
+      throw new CustomException(ErrorCode.CANNOT_APPLY_PARTICIPANT);
+    }
     Participant participant =
         Participant.builder()
             .member(member)
@@ -145,8 +228,9 @@ public class ChallengeService {
       }
     } else {
       Participant hostParticipant =
-          participantRepository.findByMemberIdAndChallengeId(
-              challenge.getHostMember().getId(), challengeId);
+          participantRepository
+              .findByMemberIdAndChallengeId(challenge.getHostMember().getId(), challengeId)
+              .orElseThrow(() -> new CustomException(ErrorCode.PARTICIPANT_NOT_FOUND));
       List<ChallengeGoal> challengeGoals = hostParticipant.getChallengeGoals();
       for (ChallengeGoal cg : challengeGoals) {
         challengeGoalRepository.save(
@@ -162,12 +246,15 @@ public class ChallengeService {
         participantRepository
             .findById(participantId)
             .orElseThrow(() -> new CustomException(ErrorCode.PARTICIPANT_NOT_FOUND));
-    if (participant.getChallenge().getHostMember().getId().equals(memberId)) {
-      participant.setStatus(ParticipantStatus.PARTICIPANT);
-      participantRepository.save(participant);
-    } else {
+
+    Challenge challenge = participant.getChallenge();
+    if (!challenge.getHostMember().getId().equals(memberId)) {
       throw new CustomException(ErrorCode.NO_AUTHORITY);
+    } else if (getParticipantCnt(challenge.getId()) >= challenge.getMaxParticipantsCnt()) {
+      throw new CustomException(ErrorCode.CANNOT_ACCEPT_PARTICIPANT);
     }
+    participant.setStatus(ParticipantStatus.PARTICIPANT);
+    participantRepository.save(participant);
   }
 
   @Transactional
@@ -181,6 +268,31 @@ public class ChallengeService {
       participantRepository.save(participant);
     } else {
       throw new CustomException(ErrorCode.NO_AUTHORITY);
+    }
+  }
+
+  @Transactional
+  public void editChallengeGoal(Long challengeId, Long memberId, List<String> goals) {
+    Challenge challenge =
+        challengeRepository
+            .findById(challengeId)
+            .orElseThrow(() -> new CustomException(ErrorCode.CHALLENGE_NOT_FOUND));
+    if (challenge.getType().equals(ChallengeType.FIXED)) {
+      throw new CustomException(ErrorCode.NO_AUTHORITY);
+    }
+    if (!challenge.getStartDate().isAfter(LocalDate.now())) {
+      throw new CustomException(ErrorCode.CANNOT_EDIT_CHALLENGE_GOALS);
+    }
+    Participant participant =
+        participantRepository
+            .findByMemberIdAndChallengeId(memberId, challengeId)
+            .orElseThrow(() -> new CustomException(ErrorCode.PARTICIPANT_NOT_FOUND));
+
+    challengeGoalRepository.deleteAllByParticipant(participant);
+
+    for (String g : goals) {
+      ChallengeGoal goal = ChallengeGoal.builder().content(g).participant(participant).build();
+      challengeGoalRepository.save(goal);
     }
   }
 
@@ -201,7 +313,9 @@ public class ChallengeService {
       throw new CustomException(ErrorCode.CANNOT_LEAVE_CHALLENGE);
     } else {
       Participant participant =
-          participantRepository.findByMemberIdAndChallengeId(memberId, challengeId);
+          participantRepository
+              .findByMemberIdAndChallengeId(memberId, challengeId)
+              .orElseThrow(() -> new CustomException(ErrorCode.PARTICIPANT_NOT_FOUND));
       if (participant == null) {
         throw new CustomException(ErrorCode.PARTICIPANT_NOT_FOUND);
       }
@@ -305,6 +419,7 @@ public class ChallengeService {
       challengeGoals =
           participantRepository
               .findByMemberIdAndChallengeId(challenge.getHostMember().getId(), challengeId)
+              .orElseThrow(() -> new CustomException(ErrorCode.PARTICIPANT_NOT_FOUND))
               .getChallengeGoals();
     } else {
       ParticipantStatus status = getMemberStatus(challengeId, memberId);
@@ -312,6 +427,7 @@ public class ChallengeService {
         challengeGoals =
             participantRepository
                 .findByMemberIdAndChallengeId(memberId, challengeId)
+                .orElseThrow(() -> new CustomException(ErrorCode.PARTICIPANT_NOT_FOUND))
                 .getChallengeGoals();
       } else {
         challengeGoals = Collections.emptyList();
@@ -328,7 +444,9 @@ public class ChallengeService {
     List<Participant> participants =
         participantRepository.findByChallengeIdAndStatusIn(challengeId, participantStatuses);
     Participant participant =
-        participantRepository.findByMemberIdAndChallengeId(member.getId(), challenge.getId());
+        participantRepository
+            .findByMemberIdAndChallengeId(member.getId(), challenge.getId())
+            .orElseThrow(() -> new CustomException(ErrorCode.PARTICIPANT_NOT_FOUND));
     return new ChallengeResponse(
         toChallengeSummary(challenge, memberId),
         toChallengeDetail(challenge, memberId),
@@ -397,7 +515,9 @@ public class ChallengeService {
 
   private ParticipantStatus getMemberStatus(Long challengeId, Long memberId) {
     Participant participant =
-        participantRepository.findByMemberIdAndChallengeId(memberId, challengeId);
+        participantRepository
+            .findByMemberIdAndChallengeId(memberId, challengeId)
+            .orElseThrow(() -> new CustomException(ErrorCode.PARTICIPANT_NOT_FOUND));
     if (participant == null) {
       return ParticipantStatus.NONE;
     }
@@ -452,8 +572,9 @@ public class ChallengeService {
     if (days == 0) return 0;
     // 목표의 개수
     Participant participant =
-        participantRepository.findByMemberIdAndChallengeId(
-            challenge.getHostMember().getId(), challengeId);
+        participantRepository
+            .findByMemberIdAndChallengeId(challenge.getHostMember().getId(), challengeId)
+            .orElseThrow(() -> new CustomException(ErrorCode.PARTICIPANT_NOT_FOUND));
     long goalCnt = challengeGoalRepository.countByParticipantId(participant.getId());
     if (goalCnt <= 0) return 0;
 
