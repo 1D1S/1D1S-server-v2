@@ -91,6 +91,86 @@ public class ChallengeService {
     return toChallengeSummary(challenge, memberId);
   }
 
+  @Transactional
+  public ChallengeSummaryResponse editChallenge(
+      Long challengeId, ChallengeEditRequest challengeEditRequest, Long memberId) {
+    memberRepository
+        .findById(memberId)
+        .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+    Challenge challenge =
+        challengeRepository
+            .findById(challengeId)
+            .orElseThrow(() -> new CustomException(ErrorCode.CHALLENGE_NOT_FOUND));
+
+    if (!challenge.getHostMember().getId().equals(memberId)) {
+      throw new CustomException(ErrorCode.CHALLENGE_NOT_ACCESS);
+    }
+
+    if (challengeEditRequest.getMaxParticipantCnt() != null) {
+      challengeEditRequest
+          .getMaxParticipantCnt()
+          .ifPresent(
+              newMax -> {
+                if (newMax < getParticipantCnt(challengeId)) {
+                  throw new CustomException(ErrorCode.MAX_PARTICIPANT);
+                }
+                challenge.updateMaxParticipantCnt(newMax);
+              });
+    }
+    if (challengeEditRequest.getGoals() != null) {
+      if (challenge.getStartDate().isBefore(LocalDate.now())) {
+        throw new CustomException(ErrorCode.ALREADY_STARTED_CHALLENGE);
+      }
+
+      List<ParticipantStatus> participantStatuses;
+      if (challenge.getType().equals(ChallengeType.FIXED)) {
+        participantStatuses = List.of(ParticipantStatus.HOST, ParticipantStatus.PARTICIPANT);
+      } else {
+        participantStatuses = List.of(ParticipantStatus.HOST);
+      }
+      List<Participant> participants =
+          participantRepository.findByChallengeIdAndStatusIn(challengeId, participantStatuses);
+
+      challengeGoalRepository.deleteAllByParticipantIn(participants);
+
+      challengeEditRequest
+          .getGoals()
+          .ifPresent(
+              goals -> {
+                List<ChallengeGoal> newGoals =
+                    participants.stream()
+                        .flatMap(
+                            participant ->
+                                goals.stream()
+                                    .map(
+                                        goal ->
+                                            ChallengeGoal.builder()
+                                                .participant(participant)
+                                                .content(goal)
+                                                .build()))
+                        .toList();
+                challengeGoalRepository.saveAll(newGoals);
+              });
+    }
+    if (challengeEditRequest.getTitle() != null) {
+      challenge.updateTitle(challengeEditRequest.getTitle().orElse(null));
+    }
+    if (challengeEditRequest.getThumbnailImage() != null) {
+      challenge.updateThumbnailImage(challengeEditRequest.getThumbnailImage().orElse(null));
+    }
+    if (challengeEditRequest.getCategory() != null) {
+      challenge.updateCategory(challengeEditRequest.getCategory().orElse(null));
+    }
+    if (challengeEditRequest.getDescription() != null) {
+      challenge.updateDescription(challengeEditRequest.getDescription().orElse(null));
+    }
+    if (challengeEditRequest.getAllowMidJoin() != null) {
+      challenge.updateAllowMidJoin(challengeEditRequest.getAllowMidJoin().orElse(false));
+    }
+
+    return toChallengeSummary(challenge, memberId);
+  }
+
   public ChallengeResponse getChallenge(Long challengeId, Long memberId) {
     Challenge challenge =
         challengeRepository
@@ -162,12 +242,15 @@ public class ChallengeService {
         participantRepository
             .findById(participantId)
             .orElseThrow(() -> new CustomException(ErrorCode.PARTICIPANT_NOT_FOUND));
-    if (participant.getChallenge().getHostMember().getId().equals(memberId)) {
-      participant.setStatus(ParticipantStatus.PARTICIPANT);
-      participantRepository.save(participant);
-    } else {
+
+    Challenge challenge = participant.getChallenge();
+    if (!challenge.getHostMember().getId().equals(memberId)) {
       throw new CustomException(ErrorCode.NO_AUTHORITY);
+    } else if (getParticipantCnt(challenge.getId()) >= challenge.getMaxParticipantsCnt()) {
+      throw new CustomException(ErrorCode.CANNOT_ACCEPT_PARTICIPANT);
     }
+    participant.setStatus(ParticipantStatus.PARTICIPANT);
+    participantRepository.save(participant);
   }
 
   @Transactional
