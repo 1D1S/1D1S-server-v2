@@ -118,8 +118,8 @@ public class ChallengeService {
               });
     }
     if (challengeEditRequest.getGoals() != null) {
-      if (challenge.getStartDate().isBefore(LocalDate.now())) {
-        throw new CustomException(ErrorCode.ALREADY_STARTED_CHALLENGE);
+      if (!challenge.getStartDate().isAfter(LocalDate.now())) {
+        throw new CustomException(ErrorCode.CANNOT_EDIT_CHALLENGE_GOALS);
       }
 
       List<ParticipantStatus> participantStatuses;
@@ -210,6 +210,9 @@ public class ChallengeService {
     if (participantRepository.existsByChallengeIdAndMemberId(challengeId, memberId)) {
       throw new CustomException(ErrorCode.ALREADY_APPLIED);
     }
+    if (challenge.getStartDate().isBefore(LocalDate.now())) {
+      throw new CustomException(ErrorCode.CANNOT_APPLY_PARTICIPANT);
+    }
     Participant participant =
         Participant.builder()
             .member(member)
@@ -277,7 +280,9 @@ public class ChallengeService {
     if (challenge.getType().equals(ChallengeType.FIXED)) {
       throw new CustomException(ErrorCode.NO_AUTHORITY);
     }
-
+    if (!challenge.getStartDate().isAfter(LocalDate.now())) {
+      throw new CustomException(ErrorCode.CANNOT_EDIT_CHALLENGE_GOALS);
+    }
     Participant participant =
         participantRepository
             .findByMemberIdAndChallengeId(memberId, challengeId)
