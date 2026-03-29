@@ -268,6 +268,29 @@ public class ChallengeService {
     }
   }
 
+  @Transactional
+  public void editChallengeGoal(Long challengeId, Long memberId, List<String> goals) {
+    Challenge challenge =
+        challengeRepository
+            .findById(challengeId)
+            .orElseThrow(() -> new CustomException(ErrorCode.CHALLENGE_NOT_FOUND));
+    if (challenge.getType().equals(ChallengeType.FIXED)) {
+      throw new CustomException(ErrorCode.NO_AUTHORITY);
+    }
+
+    Participant participant =
+        participantRepository
+            .findByMemberIdAndChallengeId(memberId, challengeId)
+            .orElseThrow(() -> new CustomException(ErrorCode.PARTICIPANT_NOT_FOUND));
+
+    challengeGoalRepository.deleteAllByParticipant(participant);
+
+    for (String g : goals) {
+      ChallengeGoal goal = ChallengeGoal.builder().content(g).participant(participant).build();
+      challengeGoalRepository.save(goal);
+    }
+  }
+
   public List<ChallengeSummaryResponse> getRandomChallenges(Long memberId, int size) {
     List<Challenge> all = challengeRepository.findAll();
     Collections.shuffle(all);

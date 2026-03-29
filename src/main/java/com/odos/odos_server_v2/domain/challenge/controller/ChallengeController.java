@@ -463,6 +463,66 @@ public class ChallengeController {
     return ApiResponse.success(Message.REJECT_PARTICIPANT);
   }
 
+  @Operation(
+      summary = "챌린지 목표 수정",
+      description = "자유 목표 챌린지의 목표를 수정한다. (참여자 전용, 호스트는 챌린지 수정 API 사용)")
+  @ApiResponses({
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "200",
+        description = "챌린지 목표 수정 성공",
+        content =
+            @Content(
+                mediaType = "application/json",
+                examples =
+                    @ExampleObject(
+                        value =
+                            """
+                                            { "message": "챌린지 목표 수정 성공했습니다." }
+                                            """))),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "401",
+        description = "인증되지 않은 접근 또는 권한 없음",
+        content =
+            @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class),
+                examples = {
+                  @ExampleObject(
+                      name = "인증되지 않은 접근",
+                      value =
+                          """
+                                                    { "code": "AUTH-001", "message": "인증되지 않은 접근입니다." }
+                                                    """),
+                  @ExampleObject(
+                      name = "권한 없음",
+                      value =
+                          """
+                                                    { "code": "CHALLENGE_004", "message": "권한이 없습니다." }
+                                                    """)
+                })),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "404",
+        description = "참여자를 찾을 수 없음",
+        content =
+            @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class),
+                examples =
+                    @ExampleObject(
+                        value =
+                            """
+                                            { "code": "CHALLENGE_003", "message": "참여자를 찾을 수 없습니다." }
+                                            """)))
+  })
+  @PatchMapping("/{challengeId}/challenge-goal")
+  public ApiResponse<Void> editChallengeGoal(
+      @Parameter(description = "챌린지 ID") @PathVariable Long challengeId,
+      @RequestBody List<String> goals) {
+    Long memberId = CurrentUserContext.getCurrentMemberId();
+    challengeService.editChallengeGoal(challengeId, memberId, goals);
+    return ApiResponse.success(Message.EDIT_CHALLENGE_GOAL);
+  }
+
   @Operation(summary = "랜덤 챌린지 조회", description = "지정한 개수만큼 랜덤으로 챌린지를 조회한다. 비로그인 상태로도 조회할 수 있다.")
   @ApiResponses({
     @io.swagger.v3.oas.annotations.responses.ApiResponse(

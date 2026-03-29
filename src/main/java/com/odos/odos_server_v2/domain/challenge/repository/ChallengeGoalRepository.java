@@ -20,4 +20,6 @@ public interface ChallengeGoalRepository extends JpaRepository<ChallengeGoal, Lo
       @Param("memberId") Long memberId, @Param("challengeId") Long challengeId);
 
   void deleteAllByParticipantIn(List<Participant> participants);
+
+  void deleteAllByParticipant(Participant participant);
 }
