@@ -225,8 +225,9 @@ public class ChallengeService {
       }
     } else {
       Participant hostParticipant =
-          participantRepository.findByMemberIdAndChallengeId(
-              challenge.getHostMember().getId(), challengeId);
+          participantRepository
+              .findByMemberIdAndChallengeId(challenge.getHostMember().getId(), challengeId)
+              .orElseThrow(() -> new CustomException(ErrorCode.PARTICIPANT_NOT_FOUND));
       List<ChallengeGoal> challengeGoals = hostParticipant.getChallengeGoals();
       for (ChallengeGoal cg : challengeGoals) {
         challengeGoalRepository.save(
@@ -284,7 +285,9 @@ public class ChallengeService {
       throw new CustomException(ErrorCode.CANNOT_LEAVE_CHALLENGE);
     } else {
       Participant participant =
-          participantRepository.findByMemberIdAndChallengeId(memberId, challengeId);
+          participantRepository
+              .findByMemberIdAndChallengeId(memberId, challengeId)
+              .orElseThrow(() -> new CustomException(ErrorCode.PARTICIPANT_NOT_FOUND));
       if (participant == null) {
         throw new CustomException(ErrorCode.PARTICIPANT_NOT_FOUND);
       }
@@ -388,6 +391,7 @@ public class ChallengeService {
       challengeGoals =
           participantRepository
               .findByMemberIdAndChallengeId(challenge.getHostMember().getId(), challengeId)
+              .orElseThrow(() -> new CustomException(ErrorCode.PARTICIPANT_NOT_FOUND))
               .getChallengeGoals();
     } else {
       ParticipantStatus status = getMemberStatus(challengeId, memberId);
@@ -395,6 +399,7 @@ public class ChallengeService {
         challengeGoals =
             participantRepository
                 .findByMemberIdAndChallengeId(memberId, challengeId)
+                .orElseThrow(() -> new CustomException(ErrorCode.PARTICIPANT_NOT_FOUND))
                 .getChallengeGoals();
       } else {
         challengeGoals = Collections.emptyList();
@@ -411,7 +416,9 @@ public class ChallengeService {
     List<Participant> participants =
         participantRepository.findByChallengeIdAndStatusIn(challengeId, participantStatuses);
     Participant participant =
-        participantRepository.findByMemberIdAndChallengeId(member.getId(), challenge.getId());
+        participantRepository
+            .findByMemberIdAndChallengeId(member.getId(), challenge.getId())
+            .orElseThrow(() -> new CustomException(ErrorCode.PARTICIPANT_NOT_FOUND));
     return new ChallengeResponse(
         toChallengeSummary(challenge, memberId),
         toChallengeDetail(challenge, memberId),
@@ -480,7 +487,9 @@ public class ChallengeService {
 
   private ParticipantStatus getMemberStatus(Long challengeId, Long memberId) {
     Participant participant =
-        participantRepository.findByMemberIdAndChallengeId(memberId, challengeId);
+        participantRepository
+            .findByMemberIdAndChallengeId(memberId, challengeId)
+            .orElseThrow(() -> new CustomException(ErrorCode.PARTICIPANT_NOT_FOUND));
     if (participant == null) {
       return ParticipantStatus.NONE;
     }
@@ -535,8 +544,9 @@ public class ChallengeService {
     if (days == 0) return 0;
     // 목표의 개수
     Participant participant =
-        participantRepository.findByMemberIdAndChallengeId(
-            challenge.getHostMember().getId(), challengeId);
+        participantRepository
+            .findByMemberIdAndChallengeId(challenge.getHostMember().getId(), challengeId)
+            .orElseThrow(() -> new CustomException(ErrorCode.PARTICIPANT_NOT_FOUND));
     long goalCnt = challengeGoalRepository.countByParticipantId(participant.getId());
     if (goalCnt <= 0) return 0;
 
