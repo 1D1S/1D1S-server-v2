@@ -12,10 +12,8 @@ import org.springframework.stereotype.Component;
 public class MemberDeleteScheduler {
     private final MemberDeleteService memberDeleteService;
 
-    //@Scheduled(cron = "0 0 3 * * *")
-    @Scheduled(cron = "0 */3 * * * *")
+    @Scheduled(cron = "0 0 3 * * *")
     public void deleteWithdrawnMembers() {
-        log.info("스케줄러 작동");
         memberDeleteService.processDeletion();
     }
 }

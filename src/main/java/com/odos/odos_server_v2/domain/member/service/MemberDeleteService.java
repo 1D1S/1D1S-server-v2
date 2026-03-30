@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.odos.odos_server_v2.domain.member.CurrentUserContext;
 import com.odos.odos_server_v2.domain.member.entity.Member;
 import com.odos.odos_server_v2.domain.member.repository.MemberRepository;
 
@@ -21,7 +22,8 @@ public class MemberDeleteService {
    * 1. 회원 탈퇴 요청 (Soft Delete)
    */
   @Transactional
-  public void requestWithdraw(Long memberId) {
+  public void requestWithdraw() {
+    Long memberId = CurrentUserContext.getCurrentMemberId();
     Member member = memberRepository.findById(memberId)
         .orElseThrow(() -> new IllegalArgumentException("회원이 존재하지 않습니다."));
 

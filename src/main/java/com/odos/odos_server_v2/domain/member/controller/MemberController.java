@@ -444,8 +444,7 @@ public class MemberController {
   })
   @DeleteMapping()
   public ApiResponse<Void> deleteMember() {
-    Long memberId = CurrentUserContext.getCurrentMemberId();
-    memberDeleteService.requestWithdraw(memberId);
+    memberDeleteService.requestWithdraw();
     return ApiResponse.success(Message.MEMBER_DELETE);
   }
 }
