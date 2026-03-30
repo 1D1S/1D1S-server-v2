@@ -64,13 +64,8 @@ public class DiaryService {
     ChallengeSummaryResponse challengeSummary =
         challengeService.toChallengeSummary(challenge, memberId);
 
-    Participant participant =
-        participantRepository
-            .findByMemberIdAndChallengeId(memberId, challenge.getId())
-            .orElseThrow(() -> new CustomException(ErrorCode.PARTICIPANT_NOT_FOUND));
-    if (participant == null) {
-      throw new CustomException(ErrorCode.PARTICIPANT_NOT_FOUND);
-    }
+    Optional<Participant> participant =
+        participantRepository.findByMemberIdAndChallengeId(memberId, challenge.getId());
 
     Diary diary =
         Diary.builder()
@@ -95,7 +90,7 @@ public class DiaryService {
           challengeGoalRepository.getFixedGoals(
               challenge.getHostMember().getId(), challenge.getId());
     } else {
-      challengeGoals = Objects.requireNonNull(participant).getChallengeGoals();
+      challengeGoals = Objects.requireNonNull(participant.get()).getChallengeGoals();
     }
     List<DiaryGoal> diaryGoals = new ArrayList<>();
     List<Long> achievedGoalIds =

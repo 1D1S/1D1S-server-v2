@@ -1,6 +1,7 @@
 package com.odos.odos_server_v2.domain.member.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.util.HashMap;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -30,6 +31,27 @@ public class StreakDto {
 
   @Schema(description = "최대 연속 일지 작성 일수", example = "15")
   private int maxStreak;
+
+  @Schema(
+      description = "목표 최장 스트릭",
+      example =
+          """
+          [
+            {
+              "알고리즘 1문제 풀기": 1
+            },
+            {
+              "책 10페이지 읽기": 1
+            }
+          ]
+          """)
+  private List<HashMap<String, Integer>> longestGoalStreak;
+
+  @Schema(description = "참여한 챌린지 수", example = "10")
+  private int totalChallengeCount;
+
+  @Schema(description = "완료한 단기 챌린지 수", example = "5")
+  private int completedFiniteChallengeCount;
 
   @Schema(description = "이번 달 날짜별 일지 작성 현황")
   List<CalendarStreakDto> calendar;
