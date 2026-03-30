@@ -1,23 +1,23 @@
 package com.odos.odos_server_v2.domain.member.entity;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+
+import lombok.*;
+
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
 import com.odos.odos_server_v2.domain.challenge.entity.Challenge;
 import com.odos.odos_server_v2.domain.challenge.entity.ChallengeLike;
 import com.odos.odos_server_v2.domain.challenge.entity.Participant;
 import com.odos.odos_server_v2.domain.diary.entity.Diary;
 import com.odos.odos_server_v2.domain.diary.entity.DiaryLike;
 import com.odos.odos_server_v2.domain.diary.entity.DiaryReport;
-import com.odos.odos_server_v2.domain.member.entity.Enum.Gender;
-import com.odos.odos_server_v2.domain.member.entity.Enum.Job;
-import com.odos.odos_server_v2.domain.member.entity.Enum.MemberRole;
-import com.odos.odos_server_v2.domain.member.entity.Enum.SignupRoute;
+import com.odos.odos_server_v2.domain.member.entity.Enum.*;
 import com.odos.odos_server_v2.domain.shared.Enum.Category;
 import jakarta.persistence.*;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import lombok.*;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @Entity
 @EntityListeners(AuditingEntityListener.class)
@@ -66,6 +66,13 @@ public class Member {
   private Boolean isPublic;
 
   private LocalDateTime nicknameLastModifiedAt;
+
+  @Builder.Default
+  @Enumerated(EnumType.STRING)
+  @Column(nullable = false)
+  private MemberStatus status = MemberStatus.ACTIVE;
+
+  private LocalDateTime deletedAt;
 
   @Builder.Default
   @OneToMany(mappedBy = "hostMember", cascade = CascadeType.ALL)
@@ -142,5 +149,10 @@ public class Member {
 
   public void updateProfileImage(String objectKey) {
     this.profileUrl = objectKey;
+  }
+
+  public void withdraw() {
+    this.status = MemberStatus.WITHDRAWN;
+    this.deletedAt = LocalDateTime.now();
   }
 }
