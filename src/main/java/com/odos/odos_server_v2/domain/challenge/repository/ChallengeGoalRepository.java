@@ -22,4 +22,6 @@ public interface ChallengeGoalRepository extends JpaRepository<ChallengeGoal, Lo
   void deleteAllByParticipantIn(List<Participant> participants);
 
   void deleteAllByParticipant(Participant participant);
+
+  List<ChallengeGoal> findAllByParticipant_Member_Id(Long memberId);
 }
