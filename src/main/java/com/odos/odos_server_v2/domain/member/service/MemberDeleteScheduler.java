@@ -10,10 +10,10 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class MemberDeleteScheduler {
-    private final MemberDeleteService memberDeleteService;
+  private final MemberDeleteService memberDeleteService;
 
-    @Scheduled(cron = "0 0 3 * * *")
-    public void deleteWithdrawnMembers() {
-        memberDeleteService.processDeletion();
-    }
+  @Scheduled(cron = "0 0 3 * * *")
+  public void deleteWithdrawnMembers() {
+    memberDeleteService.processDeletion();
+  }
 }

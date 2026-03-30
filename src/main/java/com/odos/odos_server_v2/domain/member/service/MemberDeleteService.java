@@ -18,14 +18,14 @@ public class MemberDeleteService {
 
   private final MemberRepository memberRepository;
 
-  /**
-   * 1. 회원 탈퇴 요청 (Soft Delete)
-   */
+  /** 1. 회원 탈퇴 요청 (Soft Delete) */
   @Transactional
   public void requestWithdraw() {
     Long memberId = CurrentUserContext.getCurrentMemberId();
-    Member member = memberRepository.findById(memberId)
-        .orElseThrow(() -> new IllegalArgumentException("회원이 존재하지 않습니다."));
+    Member member =
+        memberRepository
+            .findById(memberId)
+            .orElseThrow(() -> new IllegalArgumentException("회원이 존재하지 않습니다."));
 
     // 탈퇴 상태 변경
     member.withdraw();
@@ -33,10 +33,7 @@ public class MemberDeleteService {
     // 주최 중인 챌린지 host 위임
   }
 
-  /**
-   * 2. 실제 삭제 (Hard Delete)
-   * - 탈퇴 후 7일 지난 회원
-   */
+  /** 2. 실제 삭제 (Hard Delete) - 탈퇴 후 7일 지난 회원 */
   @Transactional
   public void hardDelete(Member member) {
 
@@ -50,9 +47,7 @@ public class MemberDeleteService {
     memberRepository.delete(member);
   }
 
-  /**
-   * 3. 스케줄러에서 실행
-   */
+  /** 3. 스케줄러에서 실행 */
   @Transactional
   public void processDeletion() {
 

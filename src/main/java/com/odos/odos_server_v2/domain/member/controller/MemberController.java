@@ -382,17 +382,25 @@ public class MemberController {
                             """))),
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
         responseCode = "404",
-        description = "회원을 찾을 수 없음",
+        description = "회원을 찾을 수 없거나 삭제 처리된 회원",
         content =
             @Content(
                 mediaType = "application/json",
                 schema = @Schema(implementation = ErrorResponse.class),
-                examples =
-                    @ExampleObject(
-                        value =
-                            """
-                            { "code": "USER-003", "message": "회원을 찾을 수 없습니다." }
-                            """)))
+                examples = {
+                  @ExampleObject(
+                      name = "회원 없음",
+                      value =
+                          """
+                                            { "code": "USER-003", "message": "회원을 찾을 수 없습니다." }
+                                            """),
+                  @ExampleObject(
+                      name = "삭제 처리된 회원",
+                      value =
+                          """
+                                            { "code": "USER-006", "message": "삭제 처리된 회원입니다." }
+                                            """)
+                }))
   })
   @GetMapping("/profile/{memberId}")
   public ApiResponse<MyPageDto> getOtherProfile(@PathVariable Long memberId) {
