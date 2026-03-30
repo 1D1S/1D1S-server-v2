@@ -16,6 +16,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "회원", description = "회원 API")
@@ -111,9 +113,11 @@ public class MemberController {
                             """)))
   })
   @GetMapping("/my-page")
-  public ApiResponse<MyPageDto> getMyPage() {
+  public ApiResponse<MyPageDto> getMyPage(
+      @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size) {
+    Pageable pageable = PageRequest.of(page, size);
     Long memberId = CurrentUserContext.getCurrentMemberId();
-    return ApiResponse.success(Message.GET_MYPAGE, memberService.getMyPage(memberId));
+    return ApiResponse.success(Message.GET_MYPAGE, memberService.getMyPage(memberId, pageable));
   }
 
   @Operation(summary = "사이드바 조회", description = "로그인한 회원의 사이드바 정보를 조회한다.")
@@ -384,7 +388,12 @@ public class MemberController {
                             """)))
   })
   @GetMapping("/profile/{memberId}")
-  public ApiResponse<MyPageDto> getOtherProfile(@PathVariable Long memberId) {
-    return ApiResponse.success(Message.GET_OTHERS_PROFILE, memberService.getOtherMyPage(memberId));
+  public ApiResponse<MyPageDto> getOtherProfile(
+      @PathVariable Long memberId,
+      @RequestParam(defaultValue = "0") int page,
+      @RequestParam(defaultValue = "10") int size) {
+    Pageable pageable = PageRequest.of(page, size);
+    return ApiResponse.success(
+        Message.GET_OTHERS_PROFILE, memberService.getOtherMyPage(memberId, pageable));
   }
 }
