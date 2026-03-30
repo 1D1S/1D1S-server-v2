@@ -53,6 +53,16 @@ public class MemberController {
                                   "currentMonthDiaryCount": 10,
                                   "currentMonthGoalCount": 40,
                                   "maxStreak": 15,
+                                  "longestGoalStreak": [
+                                      {
+                                        "알고리즘 1문제 풀기": 1
+                                      },
+                                      {
+                                        "책 10페이지 읽기": 1
+                                      }
+                                    ],
+                                    "totalChallengeCount": 2,
+                                    "completedFiniteChallengeCount": 1,
                                   "calendar": [
                                     { "date": "2025-09-01", "count": 2 },
                                     { "date": "2025-09-02", "count": 1 }
@@ -320,6 +330,16 @@ public class MemberController {
                                   "currentMonthDiaryCount": 10,
                                   "currentMonthGoalCount": 40,
                                   "maxStreak": 15,
+                                  "longestGoalStreak": [
+                                      {
+                                        "알고리즘 1문제 풀기": 1
+                                      },
+                                      {
+                                        "책 10페이지 읽기": 1
+                                      }
+                                    ],
+                                    "totalChallengeCount": 2,
+                                    "completedFiniteChallengeCount": 1,
                                   "calendar": [
                                     { "date": "2025-09-01", "count": 2 },
                                     { "date": "2025-09-02", "count": 1 }
