@@ -6,6 +6,7 @@ import com.odos.odos_server_v2.domain.member.dto.NicknameRequest;
 import com.odos.odos_server_v2.domain.member.dto.ProfileImageRequest;
 import com.odos.odos_server_v2.domain.member.dto.SideBarDto;
 import com.odos.odos_server_v2.domain.member.service.MemberService;
+import com.odos.odos_server_v2.domain.shared.dto.OffsetPagination;
 import com.odos.odos_server_v2.response.ApiResponse;
 import com.odos.odos_server_v2.response.ErrorResponse;
 import com.odos.odos_server_v2.response.Message;
@@ -35,56 +36,64 @@ public class MemberController {
         content =
             @Content(
                 mediaType = "application/json",
-                schema = @Schema(implementation = MyPageDto.class),
+                schema = @Schema(implementation = OffsetPagination.class),
                 examples =
                     @ExampleObject(
                         value =
                             """
-                            {
-                              "message": "마이페이지 조회 성공했습니다.",
-                              "data": {
-                                "nickname": "홍길동",
-                                "profileUrl": "https://example.com/profile.jpg",
-                                "email" : "1day1streak@naver.com",
-                                "provider": "NAVER",
-                                "streak": {
-                                  "todayGoalCount": 3,
-                                  "currentStreak": 5,
-                                  "totalDiaryCount": 30,
-                                  "totalGoalCount": 120,
-                                  "currentMonthDiaryCount": 10,
-                                  "currentMonthGoalCount": 40,
-                                  "maxStreak": 15,
-                                  "calendar": [
-                                    { "date": "2025-09-01", "count": 2 },
-                                    { "date": "2025-09-02", "count": 1 }
-                                  ]
-                                },
-                                "challengeList": [
-                                  {
-                                    "challengeId": 1,
-                                    "title": "30일 코딩 챌린지",
-                                    "category": "DEV",
-                                    "startDate": "2025-09-01",
-                                    "endDate": "2025-09-30",
-                                    "maxParticipantCnt": 10,
-                                    "challengeType": "FIXED",
-                                    "participantCnt": 5,
-                                    "likeInfo": { "likedByMe": false, "likeCnt": 3 }
-                                  }
-                                ],
-                                "diaryList": [
-                                  {
-                                    "id": 1,
-                                    "title": "오늘의 일지",
-                                    "content": "오늘은 알고리즘 문제를 풀었습니다.",
-                                    "isPublic": true,
-                                    "likeInfo": { "likedByMe": false, "likeCnt": 2 }
-                                  }
-                                ]
-                              }
-                            }
-                            """))),
+                                    {
+                                      "message": "마이페이지 조회 성공했습니다.",
+                                      "data": {
+                                        "nickname": "홍길동",
+                                        "profileUrl": "https://example.com/profile.jpg",
+                                        "email" : "1day1streak@naver.com",
+                                        "provider": "NAVER",
+                                        "streak": {
+                                          "todayGoalCount": 3,
+                                          "currentStreak": 5,
+                                          "totalDiaryCount": 30,
+                                          "totalGoalCount": 120,
+                                          "currentMonthDiaryCount": 10,
+                                          "currentMonthGoalCount": 40,
+                                          "maxStreak": 15,
+                                          "calendar": [
+                                            { "date": "2025-09-01", "count": 2 },
+                                            { "date": "2025-09-02", "count": 1 }
+                                          ]
+                                        },
+                                        "challengeList": [
+                                          {
+                                            "challengeId": 1,
+                                            "title": "30일 코딩 챌린지",
+                                            "category": "DEV",
+                                            "startDate": "2025-09-01",
+                                            "endDate": "2025-09-30",
+                                            "maxParticipantCnt": 10,
+                                            "challengeType": "FIXED",
+                                            "participantCnt": 5,
+                                            "likeInfo": { "likedByMe": false, "likeCnt": 3 }
+                                          }
+                                        ],
+                                        "diaryList": [
+                                          {
+                                            "id": 1,
+                                            "title": "오늘의 일지",
+                                            "content": "오늘은 알고리즘 문제를 풀었습니다.",
+                                            "isPublic": true,
+                                            "likeInfo": { "likedByMe": false, "likeCnt": 2 }
+                                          }
+                                        ],
+
+                                          "pageInfo": {
+                                            "page": 0,
+                                            "size": 1,
+                                            "totalElements": 1,
+                                            "totalPages": 1,
+                                            "hasNextPage": false
+                                          }
+                                      }
+                                    }
+                                    """))),
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
         responseCode = "401",
         description = "인증되지 않은 접근",
@@ -299,7 +308,7 @@ public class MemberController {
         content =
             @Content(
                 mediaType = "application/json",
-                schema = @Schema(implementation = MyPageDto.class),
+                schema = @Schema(implementation = OffsetPagination.class),
                 examples =
                     @ExampleObject(
                         value =
@@ -343,7 +352,14 @@ public class MemberController {
                                     "isPublic": true,
                                     "likeInfo": { "likedByMe": false, "likeCnt": 2 }
                                   }
-                                ]
+                                ],
+                                "pageInfo": {
+                                            "page": 0,
+                                            "size": 1,
+                                            "totalElements": 1,
+                                            "totalPages": 1,
+                                            "hasNextPage": false
+                                }
                               }
                             }
                             """))),
