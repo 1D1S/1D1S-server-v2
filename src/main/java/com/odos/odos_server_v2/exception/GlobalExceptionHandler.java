@@ -16,13 +16,13 @@ public class GlobalExceptionHandler {
   @ExceptionHandler(CustomException.class)
   public ResponseEntity<ErrorResponse> handleCustomException(CustomException ex) {
     ErrorCode errorCode = ex.getErrorCode();
+    log.warn("CustomException 발생", ex);
     return ResponseEntity.status(errorCode.getStatus()) // HttpStatus 적용
         .body(ErrorResponse.of(errorCode)); // JSON 바디 반환
   }
 
   @ExceptionHandler(Exception.class)
   public ResponseEntity<ErrorResponse> handleUnexpectedException(Exception ex) {
-
     log.error("Unexpected Exception 발생", ex);
     return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
         .body(new ErrorResponse("500", "Internal Server Error"));
