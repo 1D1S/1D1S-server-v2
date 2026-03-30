@@ -6,11 +6,13 @@ import com.odos.odos_server_v2.domain.member.entity.Member;
 import com.odos.odos_server_v2.domain.shared.Enum.Category;
 import jakarta.persistence.*;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.CreatedDate;
 
 @Entity
 @AllArgsConstructor
@@ -33,6 +35,8 @@ public class Challenge {
 
   @Column private LocalDate endDate;
 
+  @Column private boolean allowMidJoin;
+
   @Column private long maxParticipantsCnt;
 
   @Column
@@ -40,6 +44,10 @@ public class Challenge {
   private ChallengeType type;
 
   @Column private String description;
+
+  @Column private String thumbnailImage;
+
+  @Column @CreatedDate private LocalDateTime createdAt;
 
   @ManyToOne
   @JoinColumn(name = "host_member_id")
@@ -53,4 +61,28 @@ public class Challenge {
 
   @OneToMany(mappedBy = "challenge", cascade = CascadeType.ALL)
   private List<Diary> diaries;
+
+  public void updateTitle(String title) {
+    this.title = title;
+  }
+
+  public void updateThumbnailImage(String thumbnailImage) {
+    this.thumbnailImage = thumbnailImage;
+  }
+
+  public void updateCategory(Category category) {
+    this.category = category;
+  }
+
+  public void updateDescription(String description) {
+    this.description = description;
+  }
+
+  public void updateAllowMidJoin(boolean allowMidJoin) {
+    this.allowMidJoin = allowMidJoin;
+  }
+
+  public void updateMaxParticipantCnt(Integer maxParticipantCnt) {
+    this.maxParticipantsCnt = maxParticipantCnt;
+  }
 }

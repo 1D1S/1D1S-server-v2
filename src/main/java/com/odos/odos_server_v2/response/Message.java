@@ -25,10 +25,12 @@ public class Message {
 
   // challenge
   public static String CREATE_CHALLENGE = "챌린지 생성 성공했습니다.";
+  public static String EDIT_CHALLENGE = "챌린지 수정 성공했습니다.";
   public static String GET_CHALLENGE = "챌린지 상세 조회 성공했습니다.";
   public static String APPLY_CHALLENGE = "챌린지 신청 성공했습니다.";
   public static String ACCEPT_PARTICIPANT = "참여자 수락 성공했습니다.";
   public static String REJECT_PARTICIPANT = "참여자 거절 성공했습니다.";
+  public static String EDIT_CHALLENGE_GOAL = "챌린지 목표 수정 성공했습니다.";
   public static String GET_RANDOM_CHALLENGES = "챌린지 랜덤 불러오기 성공했습니다.";
   public static String LEAVE_CHALLENGE = "챌린지 탈퇴하기 성공했습니다.";
   public static String GET_CHALLENGE_LIST = "챌린지 리스트 불러오기 성공했습니다.";
