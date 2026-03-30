@@ -5,6 +5,7 @@ import com.odos.odos_server_v2.domain.diary.dto.DiaryResponse;
 import com.odos.odos_server_v2.domain.diary.dto.ReportRequest;
 import com.odos.odos_server_v2.domain.diary.service.DiaryService;
 import com.odos.odos_server_v2.domain.member.CurrentUserContext;
+import com.odos.odos_server_v2.domain.shared.dto.OffsetPagination;
 import com.odos.odos_server_v2.domain.shared.dto.Pagination;
 import com.odos.odos_server_v2.response.ApiResponse;
 import com.odos.odos_server_v2.response.Message;
@@ -20,6 +21,8 @@ import java.io.IOException;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -830,9 +833,9 @@ public class DiaryController {
   @Operation(
       summary = "나의 일지 조회",
       description =
-          "로그인한 유저가 작성한 일지를 모두 조회한다."
-              + "- Member 쪽에 나의 챌린지, 일지 조회, 나의 스트릭 정보 조회하는 API에서 쓰시면 됩니다."
-              + "- 여기에서는 나의 일지 조회로 보통 일지조회와 작동 방식은 동일")
+          "로그인한 유저가 작성한 일지를 페이지네이션으로 조회한다."
+              + "- Member 쪽에 나의 챌린지, 일지 조회, 나의 스트릭 정보 조회하는 API에서 해당 내용 호출 메서드가 사용됨."
+              + "- 여기에서는 나의 일지 조회만 확인할 수 있습니다.")
   @ApiResponses({
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
         responseCode = "200",
@@ -919,8 +922,10 @@ public class DiaryController {
                                     """)))
   })
   @GetMapping("/my")
-  public ApiResponse<List<DiaryResponse>> getMyDiaries() {
-    List<DiaryResponse> result = diaryService.getMyDiaries();
+  public ApiResponse<OffsetPagination<DiaryResponse>> getMyDiaries(
+      @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size) {
+    Pageable pageable = PageRequest.of(page, size);
+    OffsetPagination<DiaryResponse> result = diaryService.getMyDiaries(pageable);
     return ApiResponse.success(Message.DIARY_GET_MY_ALL_SUCCESS, result);
   }
 
