@@ -31,6 +31,7 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -179,7 +180,7 @@ public class ChallengeService {
     Member member =
         memberRepository
             .findById(memberId)
-            .orElseThrow(() -> new CustomException(ErrorCode.UNAUTHORIZED));
+            .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
     return toChallengeResponse(challenge, member);
   }
 
@@ -443,10 +444,6 @@ public class ChallengeService {
     }
     List<Participant> participants =
         participantRepository.findByChallengeIdAndStatusIn(challengeId, participantStatuses);
-    Participant participant =
-        participantRepository
-            .findByMemberIdAndChallengeId(member.getId(), challenge.getId())
-            .orElseThrow(() -> new CustomException(ErrorCode.PARTICIPANT_NOT_FOUND));
     return new ChallengeResponse(
         toChallengeSummary(challenge, memberId),
         toChallengeDetail(challenge, memberId),
@@ -514,14 +511,13 @@ public class ChallengeService {
   }
 
   private ParticipantStatus getMemberStatus(Long challengeId, Long memberId) {
-    Participant participant =
-        participantRepository
-            .findByMemberIdAndChallengeId(memberId, challengeId)
-            .orElseThrow(() -> new CustomException(ErrorCode.PARTICIPANT_NOT_FOUND));
-    if (participant == null) {
+    Optional<Participant> participant =
+        participantRepository.findByMemberIdAndChallengeId(memberId, challengeId);
+    if (participant.isEmpty()) {
       return ParticipantStatus.NONE;
+    } else {
+      return participant.get().getStatus();
     }
-    return participant.getStatus();
   }
 
   private double getParticipationRate(Challenge challenge) {
