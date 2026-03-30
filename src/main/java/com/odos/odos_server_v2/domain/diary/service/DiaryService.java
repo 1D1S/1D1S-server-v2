@@ -27,7 +27,6 @@ import com.odos.odos_server_v2.exception.ErrorCode;
 import jakarta.transaction.Transactional;
 import java.io.IOException;
 import java.util.*;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -415,7 +414,7 @@ public class DiaryService {
   }
 
   @Transactional
-  public List<DiaryResponse> getChallengeDiaries(Long challengeId) { // TODO : 이것도 페이지네이션으로 수정
+  public OffsetPagination<DiaryResponse> getChallengeDiaries(Long challengeId, Pageable pageable) {
     Long memberId = CurrentUserContext.getCurrentMemberId();
     Member member =
         memberRepository
@@ -426,17 +425,18 @@ public class DiaryService {
             .findById(challengeId)
             .orElseThrow(() -> new CustomException(ErrorCode.CHALLENGE_NOT_FOUND));
     ChallengeSummaryResponse summary = challengeService.toChallengeSummary(challenge, memberId);
-    return challenge.getDiaries().stream()
-        .filter(Objects::nonNull)
-        .filter(diary -> diary.getIsPublic().equals(Boolean.TRUE))
-        .map(
+
+    Page<Diary> diaries =
+        diaryRepository.findDiariesByChallengeIdAndIsPublic(challengeId, Boolean.TRUE, pageable);
+    Page<DiaryResponse> result =
+        diaries.map(
             diary ->
                 DiaryResponse.from(
                     member,
                     diary,
                     summary,
-                    imageService.getFileUrl(diary.getMember().getProfileUrl())))
-        .collect(Collectors.toList());
+                    imageService.getFileUrl(diary.getMember().getProfileUrl())));
+    return OffsetPagination.from(result);
   }
 
   // 다른 사람 프로필 조회 시 공개 다이어리만 조회

@@ -52,4 +52,7 @@ public interface DiaryRepository extends JpaRepository<Diary, Long> {
             where d.isPublic = true and d.member.id = :memberId
             """)
   Page<Diary> findOthersPublicDiariesByOffset(@Param("memberId") Long memberId, Pageable pageable);
+
+  Page<Diary> findDiariesByChallengeIdAndIsPublic(
+      Long challengeId, Boolean isPublic, Pageable pageable);
 }
