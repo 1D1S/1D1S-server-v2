@@ -6,6 +6,7 @@ import com.odos.odos_server_v2.domain.member.dto.NicknameRequest;
 import com.odos.odos_server_v2.domain.member.dto.ProfileImageRequest;
 import com.odos.odos_server_v2.domain.member.dto.SideBarDto;
 import com.odos.odos_server_v2.domain.member.service.MemberService;
+import com.odos.odos_server_v2.domain.shared.dto.OffsetPagination;
 import com.odos.odos_server_v2.response.ApiResponse;
 import com.odos.odos_server_v2.response.ErrorResponse;
 import com.odos.odos_server_v2.response.Message;
@@ -16,6 +17,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "회원", description = "회원 API")
@@ -33,7 +36,7 @@ public class MemberController {
         content =
             @Content(
                 mediaType = "application/json",
-                schema = @Schema(implementation = MyPageDto.class),
+                schema = @Schema(implementation = OffsetPagination.class),
                 examples =
                     @ExampleObject(
                         value =
@@ -89,7 +92,14 @@ public class MemberController {
                                     "isPublic": true,
                                     "likeInfo": { "likedByMe": false, "likeCnt": 2 }
                                   }
-                                ]
+                                ],
+                                  "pageInfo": {
+                                  "page": 0,
+                                  "size": 1,
+                                  "totalElements": 1,
+                                  "totalPages": 1,
+                                  "hasNextPage": false
+                                  }
                               }
                             }
                             """))),
@@ -121,9 +131,11 @@ public class MemberController {
                             """)))
   })
   @GetMapping("/my-page")
-  public ApiResponse<MyPageDto> getMyPage() {
+  public ApiResponse<MyPageDto> getMyPage(
+      @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size) {
+    Pageable pageable = PageRequest.of(page, size);
     Long memberId = CurrentUserContext.getCurrentMemberId();
-    return ApiResponse.success(Message.GET_MYPAGE, memberService.getMyPage(memberId));
+    return ApiResponse.success(Message.GET_MYPAGE, memberService.getMyPage(memberId, pageable));
   }
 
   @Operation(summary = "사이드바 조회", description = "로그인한 회원의 사이드바 정보를 조회한다.")
@@ -312,7 +324,7 @@ public class MemberController {
         content =
             @Content(
                 mediaType = "application/json",
-                schema = @Schema(implementation = MyPageDto.class),
+                schema = @Schema(implementation = OffsetPagination.class),
                 examples =
                     @ExampleObject(
                         value =
@@ -366,7 +378,14 @@ public class MemberController {
                                     "isPublic": true,
                                     "likeInfo": { "likedByMe": false, "likeCnt": 2 }
                                   }
-                                ]
+                                ],
+                                "pageInfo": {
+                                            "page": 0,
+                                            "size": 1,
+                                            "totalElements": 1,
+                                            "totalPages": 1,
+                                            "hasNextPage": false
+                                }
                               }
                             }
                             """))),
@@ -411,7 +430,12 @@ public class MemberController {
                             """)))
   })
   @GetMapping("/profile/{memberId}")
-  public ApiResponse<MyPageDto> getOtherProfile(@PathVariable Long memberId) {
-    return ApiResponse.success(Message.GET_OTHERS_PROFILE, memberService.getOtherMyPage(memberId));
+  public ApiResponse<MyPageDto> getOtherProfile(
+      @PathVariable Long memberId,
+      @RequestParam(defaultValue = "0") int page,
+      @RequestParam(defaultValue = "10") int size) {
+    Pageable pageable = PageRequest.of(page, size);
+    return ApiResponse.success(
+        Message.GET_OTHERS_PROFILE, memberService.getOtherMyPage(memberId, pageable));
   }
 }
