@@ -25,6 +25,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -62,7 +63,7 @@ public class MemberService {
     member.updateProfileImage(objectKey);
   }
 
-  public MyPageDto getMyPage(Long id) {
+  public MyPageDto getMyPage(Long id, Pageable pageable) {
     Member member =
         memberRepository
             .findById(id)
@@ -74,11 +75,11 @@ public class MemberService {
         .provider(member.getSignupRoute().name())
         .streak(getStreakByMemberId(id))
         .challengeList(challengeService.getMemberChallenge(id, id))
-        .diaryList(diaryService.getMyDiaries())
+        .diaryList(diaryService.getMyDiaries(pageable))
         .build();
   }
 
-  public MyPageDto getOtherMyPage(Long id) {
+  public MyPageDto getOtherMyPage(Long id, Pageable pageable) {
     Member member =
         memberRepository
             .findById(id)
@@ -91,7 +92,7 @@ public class MemberService {
           .provider(member.getSignupRoute().name())
           .streak(getStreakByMemberId(id))
           .challengeList(challengeService.getMemberChallenge(id, id))
-          .diaryList(diaryService.getOtherPublicDiaries(id))
+          .diaryList(diaryService.getOtherPublicDiariesByOffset(id, pageable))
           .build();
     } else {
       // 비공개
