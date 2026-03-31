@@ -27,6 +27,7 @@ import com.odos.odos_server_v2.exception.ErrorCode;
 import jakarta.transaction.Transactional;
 import java.io.IOException;
 import java.util.*;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -173,6 +174,25 @@ public class DiaryService {
     List<DiaryGoal> diaryGoals = new ArrayList<>();
     List<Long> achievedGoalIds =
         request.getAchievedGoalIds() != null ? request.getAchievedGoalIds() : new ArrayList<>();
+
+    Set<Long> achievedGoalIdSet =
+        new HashSet<>(
+            request.getAchievedGoalIds() != null
+                ? request.getAchievedGoalIds()
+                : new ArrayList<>());
+
+    boolean isAllGoalsCompleted =
+        challengeGoals.stream().allMatch(goal -> achievedGoalIdSet.contains(goal.getId()));
+    diary.updateIsAllGoalsCompleted(isAllGoalsCompleted);
+
+    Set<Long> challengeGoalIdSet =
+        challengeGoals.stream().map(ChallengeGoal::getId).collect(Collectors.toSet());
+
+    for (Long id : achievedGoalIds) {
+      if (!challengeGoalIdSet.contains(id)) {
+        throw new CustomException(ErrorCode.DIARY_NOT_CREATED);
+      }
+    }
 
     for (ChallengeGoal challengeGoal : challengeGoals) {
       boolean isCompleted = achievedGoalIds.contains(challengeGoal.getId());
