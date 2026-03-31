@@ -66,8 +66,7 @@ public class DiaryController {
         content =
             @Content(
                 mediaType = "application/json",
-                schema =
-                    @Schema(implementation = com.odos.odos_server_v2.response.ApiResponse.class),
+                schema = @Schema(implementation = DiaryResponse.class),
                 examples =
                     @ExampleObject(
                         name = "생성 성공 예시",
@@ -114,6 +113,7 @@ public class DiaryController {
                                                             "achievementRate": 50
                                                         }
                                             }
+                                          }
                                           """))),
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
         responseCode = "401",
@@ -121,7 +121,7 @@ public class DiaryController {
         content =
             @Content(
                 mediaType = "application/json",
-                schema = @Schema(implementation = ApiResponse.class),
+                schema = @Schema(implementation = ErrorResponse.class),
                 examples =
                     @ExampleObject(
                         name = "인증 실패",
@@ -138,7 +138,7 @@ public class DiaryController {
         content =
             @Content(
                 mediaType = "application/json",
-                schema = @Schema(implementation = ApiResponse.class),
+                schema = @Schema(implementation = ErrorResponse.class),
                 examples = {
                   @ExampleObject(
                       name = "회원 없음",
@@ -206,8 +206,7 @@ public class DiaryController {
         content =
             @Content(
                 mediaType = "application/json",
-                schema =
-                    @Schema(implementation = com.odos.odos_server_v2.response.ApiResponse.class),
+                schema = @Schema(implementation = DiaryResponse.class),
                 examples =
                     @ExampleObject(
                         name = "조회 성공 예시",
@@ -254,6 +253,7 @@ public class DiaryController {
                                                             "achievementRate": 50
                                                         }
                                             }
+                                          }
                                           """))),
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
         responseCode = "401",
@@ -261,15 +261,15 @@ public class DiaryController {
         content =
             @Content(
                 mediaType = "application/json",
-                schema = @Schema(implementation = ApiResponse.class),
+                schema = @Schema(implementation = ErrorResponse.class),
                 examples =
                     @ExampleObject(
                         name = "인증 실패",
                         value =
                             """
               {
-                "code": 401,
-                "message": "일지 생성에 실패했습니다. 로그인 후 다시 시도해주세요.",
+                "code": "USER-003",
+                "message": "일지 생성에 실패했습니다. 로그인 후 다시 시도해주세요."
               }
               """)))
   })
@@ -279,20 +279,20 @@ public class DiaryController {
       content =
           @Content(
               mediaType = "application/json",
-              schema = @Schema(implementation = com.odos.odos_server_v2.response.ApiResponse.class),
+              schema = @Schema(implementation = ErrorResponse.class),
               examples = {
                 @ExampleObject(
                     name = "챌린지 없음",
                     value =
                         """
-                                        { "code": "CHALLENGE_001", message: "챌린지를 찾을 수 없습니다." }
+                                        { "code": "CHALLENGE_001", "message": "챌린지를 찾을 수 없습니다." }
                                         """),
                 @ExampleObject(
                     name = "참여자 아님",
                     value =
                         """
                                         {
-                                          { "code": "CHALLENGE_003", message: "챌린지 참여자가 아닙니다." }
+                                          { "code": "CHALLENGE_003", "message": "챌린지 참여자가 아닙니다." }
                                         }
                                         """)
               }))
@@ -312,8 +312,7 @@ public class DiaryController {
         content =
             @Content(
                 mediaType = "application/json",
-                schema =
-                    @Schema(implementation = com.odos.odos_server_v2.response.ApiResponse.class),
+                schema = @Schema(implementation = DiaryResponse.class),
                 examples =
                     @ExampleObject(
                         name = "조회 성공 예시",
@@ -359,6 +358,7 @@ public class DiaryController {
                                                             ],
                                                             "achievementRate": 50
                                                         }
+                                              }
                                             }
                                             """))),
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
@@ -367,14 +367,13 @@ public class DiaryController {
         content =
             @Content(
                 mediaType = "application/json",
-                schema =
-                    @Schema(implementation = com.odos.odos_server_v2.response.ApiResponse.class),
+                schema = @Schema(implementation = ErrorResponse.class),
                 examples = {
                   @ExampleObject(
                       name = "잘못된 diaryId 형식",
                       value =
                           """
-                                                { "code": "CHALLENGE_001", message: "챌린지를 찾을 수 없습니다." }
+                                                { "code": "CHALLENGE_001", "message": "챌린지를 찾을 수 없습니다." }
                                                 """),
                   @ExampleObject(
                       name = "존재하지 않는 일지",
@@ -392,8 +391,7 @@ public class DiaryController {
         content =
             @Content(
                 mediaType = "application/json",
-                schema =
-                    @Schema(implementation = com.odos.odos_server_v2.response.ApiResponse.class),
+                schema = @Schema(implementation = ErrorResponse.class),
                 examples =
                     @ExampleObject(
                         name = "비공개 일지 접근 권한 없음",
@@ -585,16 +583,14 @@ public class DiaryController {
         content =
             @Content(
                 mediaType = "application/json",
-                schema =
-                    @Schema(implementation = com.odos.odos_server_v2.response.ApiResponse.class))),
+                schema = @Schema(implementation = ErrorResponse.class))),
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
         responseCode = "400",
         description = "일지 부분 조회 실패(요청 값 검증 실패 등)",
         content =
             @Content(
                 mediaType = "application/json",
-                schema =
-                    @Schema(implementation = com.odos.odos_server_v2.response.ApiResponse.class)))
+                schema = @Schema(implementation = ErrorResponse.class)))
   })
   @GetMapping("")
   public ApiResponse<Pagination<DiaryResponse>> getAllDiaryBySize(
@@ -632,16 +628,14 @@ public class DiaryController {
         content =
             @Content(
                 mediaType = "application/json",
-                schema =
-                    @Schema(implementation = com.odos.odos_server_v2.response.ApiResponse.class))),
+                schema = @Schema(implementation = DiaryResponse.class))),
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
         responseCode = "400",
         description = "일지 조회 실패(요청 값 검증 실패 등)",
         content =
             @Content(
                 mediaType = "application/json",
-                schema =
-                    @Schema(implementation = com.odos.odos_server_v2.response.ApiResponse.class)))
+                schema = @Schema(implementation = ErrorResponse.class)))
   })
   @GetMapping("/all")
   public ApiResponse<List<DiaryResponse>> getAllDiary() {
@@ -657,8 +651,7 @@ public class DiaryController {
         content =
             @Content(
                 mediaType = "application/json",
-                schema =
-                    @Schema(implementation = com.odos.odos_server_v2.response.ApiResponse.class),
+                schema = @Schema(implementation = DiaryResponse.class),
                 examples =
                     @ExampleObject(
                         name = "랜덤 조회 성공 예시",
@@ -712,8 +705,8 @@ public class DiaryController {
                                                            "achievement": null,
                                                            "achievementRate": 0
                                                        }
-                                                   },
-                                                   ....
+                                                   }
+                                               ]
                                           }
                                           """)))
   })
@@ -751,7 +744,7 @@ public class DiaryController {
         content =
             @Content(
                 mediaType = "application/json",
-                schema = @Schema(implementation = ApiResponse.class),
+                schema = @Schema(implementation = ErrorResponse.class),
                 examples =
                     @ExampleObject(
                         name = "일지 없음",
@@ -800,8 +793,7 @@ public class DiaryController {
         content =
             @Content(
                 mediaType = "application/json",
-                schema =
-                    @Schema(implementation = com.odos.odos_server_v2.response.ApiResponse.class),
+                schema = @Schema(implementation = ErrorResponse.class),
                 examples = {
                   @ExampleObject(
                       name = "일지 없음",
@@ -870,8 +862,7 @@ public class DiaryController {
         content =
             @Content(
                 mediaType = "application/json",
-                schema =
-                    @Schema(implementation = com.odos.odos_server_v2.response.ApiResponse.class),
+                schema = @Schema(implementation = ErrorResponse.class),
                 examples = {
                   @ExampleObject(
                       name = "일지 없음",
@@ -956,8 +947,7 @@ public class DiaryController {
         content =
             @Content(
                 mediaType = "application/json",
-                schema =
-                    @Schema(implementation = com.odos.odos_server_v2.response.ApiResponse.class),
+                schema = @Schema(implementation = ErrorResponse.class),
                 examples = {
                   @ExampleObject(
                       name = "일지 없음",
@@ -999,8 +989,7 @@ public class DiaryController {
         content =
             @Content(
                 mediaType = "application/json",
-                schema =
-                    @Schema(implementation = com.odos.odos_server_v2.response.ApiResponse.class),
+                schema = @Schema(implementation = DiaryResponse.class),
                 examples =
                     @ExampleObject(
                         name = "나의 일지 조회 성공 예시",
@@ -1054,9 +1043,9 @@ public class DiaryController {
                                                            "achievement": null,
                                                            "achievementRate": 0
                                                        }
-                                                   },
-                                                   ....
-                                          }
+                                                   }
+                                               ]
+                                        }
                                         """))),
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
         responseCode = "400",
@@ -1064,8 +1053,7 @@ public class DiaryController {
         content =
             @Content(
                 mediaType = "application/json",
-                schema =
-                    @Schema(implementation = com.odos.odos_server_v2.response.ApiResponse.class),
+                schema = @Schema(implementation = ErrorResponse.class),
                 examples =
                     @ExampleObject(
                         name = "로그인 사용자 조회 불가능",
@@ -1073,7 +1061,7 @@ public class DiaryController {
                             """
                                     {
                                       "message": "MEMBER_NOT_FOUND",
-                                      "code": AUTH-003
+                                      "code": "AUTH-003"
                                     }
                                     """)))
   })
@@ -1126,8 +1114,7 @@ public class DiaryController {
         content =
             @Content(
                 mediaType = "application/json",
-                schema =
-                    @Schema(implementation = com.odos.odos_server_v2.response.ApiResponse.class),
+                schema = @Schema(implementation = ErrorResponse.class),
                 examples = {
                   @ExampleObject(
                       name = "존재하지 않는 일지",
@@ -1135,7 +1122,7 @@ public class DiaryController {
                           """
                                             {
                                               "message": "DIARY_NOT_FOUND",
-                                              "code": DIARY-002
+                                              "code": "DIARY-002"
                                             }
                                             """),
                 }))
@@ -1199,8 +1186,7 @@ public class DiaryController {
         content =
             @Content(
                 mediaType = "application/json",
-                schema =
-                    @Schema(implementation = com.odos.odos_server_v2.response.ApiResponse.class),
+                schema = @Schema(implementation = ErrorResponse.class),
                 examples = {
                   @ExampleObject(
                       name = "존재하지 않는 일지",
@@ -1208,7 +1194,7 @@ public class DiaryController {
                           """
                                             {
                                               "message": "DIARY_NOT_FOUND",
-                                              "data": null
+                                              "code": "DIARY-002"
                                             }
                                             """),
                 }))

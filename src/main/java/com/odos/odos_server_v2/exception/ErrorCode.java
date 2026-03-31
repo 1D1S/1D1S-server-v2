@@ -42,7 +42,15 @@ public enum ErrorCode {
   NO_AUTHORITY(HttpStatus.UNAUTHORIZED, "CHALLENGE_004", "권한이 없습니다."),
   ALREADY_LIKED(HttpStatus.BAD_REQUEST, "CHALLENGE_005", "이미 좋아요를 눌렀습니다."),
   CHALLENGE_LIKE_NOT_FOUND(HttpStatus.BAD_REQUEST, "CHALLENGE_006", "챌린지 좋아요 정보가 없습니다."),
-  CANNOT_LEAVE_CHALLENGE(HttpStatus.BAD_REQUEST, "CHALLENGE_007", "챌린치 탈퇴가 불가능합니다.");
+  CANNOT_LEAVE_CHALLENGE(HttpStatus.BAD_REQUEST, "CHALLENGE_007", "챌린치 탈퇴가 불가능합니다."),
+  CHALLENGE_NOT_ACCESS(HttpStatus.FORBIDDEN, "CHALLENGE_008", "챌린지 수정 권한이 없습니다."),
+  MAX_PARTICIPANT(
+      HttpStatus.UNPROCESSABLE_ENTITY, "CHALLENGE_009", "최대 참여자 수는 현재 참여 중인 인원보다 적게 설정할 수 없습니다."),
+  CANNOT_EDIT_CHALLENGE_GOALS(
+      HttpStatus.UNPROCESSABLE_ENTITY, "CHALLENGE_010", "챌린지 시작 후에는 목표를 변경 할 수 없습니다."),
+  CANNOT_ACCEPT_PARTICIPANT(HttpStatus.UNPROCESSABLE_ENTITY, "CHALLENGE_011", "최대 참여 인원에 도달했습니다."),
+  CANNOT_APPLY_PARTICIPANT(
+      HttpStatus.UNPROCESSABLE_ENTITY, "CHALLENGE_012", "챌린지 시작 후에는 챌린지에 신청할 수 없습니다.");
 
   private final HttpStatus status;
   private final String code;

@@ -41,59 +41,68 @@ public class MemberController {
                     @ExampleObject(
                         value =
                             """
-                                    {
-                                      "message": "마이페이지 조회 성공했습니다.",
-                                      "data": {
-                                        "nickname": "홍길동",
-                                        "profileUrl": "https://example.com/profile.jpg",
-                                        "email" : "1day1streak@naver.com",
-                                        "provider": "NAVER",
-                                        "streak": {
-                                          "todayGoalCount": 3,
-                                          "currentStreak": 5,
-                                          "totalDiaryCount": 30,
-                                          "totalGoalCount": 120,
-                                          "currentMonthDiaryCount": 10,
-                                          "currentMonthGoalCount": 40,
-                                          "maxStreak": 15,
-                                          "calendar": [
-                                            { "date": "2025-09-01", "count": 2 },
-                                            { "date": "2025-09-02", "count": 1 }
-                                          ]
-                                        },
-                                        "challengeList": [
-                                          {
-                                            "challengeId": 1,
-                                            "title": "30일 코딩 챌린지",
-                                            "category": "DEV",
-                                            "startDate": "2025-09-01",
-                                            "endDate": "2025-09-30",
-                                            "maxParticipantCnt": 10,
-                                            "challengeType": "FIXED",
-                                            "participantCnt": 5,
-                                            "likeInfo": { "likedByMe": false, "likeCnt": 3 }
-                                          }
-                                        ],
-                                        "diaryList": [
-                                          {
-                                            "id": 1,
-                                            "title": "오늘의 일지",
-                                            "content": "오늘은 알고리즘 문제를 풀었습니다.",
-                                            "isPublic": true,
-                                            "likeInfo": { "likedByMe": false, "likeCnt": 2 }
-                                          }
-                                        ],
-
-                                          "pageInfo": {
-                                            "page": 0,
-                                            "size": 1,
-                                            "totalElements": 1,
-                                            "totalPages": 1,
-                                            "hasNextPage": false
-                                          }
+                            {
+                              "message": "마이페이지 조회 성공했습니다.",
+                              "data": {
+                                "nickname": "홍길동",
+                                "profileUrl": "https://example.com/profile.jpg",
+                                "email" : "1day1streak@naver.com",
+                                "provider": "NAVER",
+                                "streak": {
+                                  "todayGoalCount": 3,
+                                  "currentStreak": 5,
+                                  "totalDiaryCount": 30,
+                                  "totalGoalCount": 120,
+                                  "currentMonthDiaryCount": 10,
+                                  "currentMonthGoalCount": 40,
+                                  "maxStreak": 15,
+                                  "longestGoalStreak": [
+                                      {
+                                        "알고리즘 1문제 풀기": 1
+                                      },
+                                      {
+                                        "책 10페이지 읽기": 1
                                       }
-                                    }
-                                    """))),
+                                    ],
+                                    "totalChallengeCount": 2,
+                                    "completedFiniteChallengeCount": 1,
+                                  "calendar": [
+                                    { "date": "2025-09-01", "count": 2 },
+                                    { "date": "2025-09-02", "count": 1 }
+                                  ]
+                                },
+                                "challengeList": [
+                                  {
+                                    "challengeId": 1,
+                                    "title": "30일 코딩 챌린지",
+                                    "category": "DEV",
+                                    "startDate": "2025-09-01",
+                                    "endDate": "2025-09-30",
+                                    "maxParticipantCnt": 10,
+                                    "challengeType": "FIXED",
+                                    "participantCnt": 5,
+                                    "likeInfo": { "likedByMe": false, "likeCnt": 3 }
+                                  }
+                                ],
+                                "diaryList": [
+                                  {
+                                    "id": 1,
+                                    "title": "오늘의 일지",
+                                    "content": "오늘은 알고리즘 문제를 풀었습니다.",
+                                    "isPublic": true,
+                                    "likeInfo": { "likedByMe": false, "likeCnt": 2 }
+                                  }
+                                ],
+                                  "pageInfo": {
+                                  "page": 0,
+                                  "size": 1,
+                                  "totalElements": 1,
+                                  "totalPages": 1,
+                                  "hasNextPage": false
+                                  }
+                              }
+                            }
+                            """))),
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
         responseCode = "401",
         description = "인증되지 않은 접근",
@@ -249,7 +258,14 @@ public class MemberController {
     return ApiResponse.success(Message.UPDATE_NICKNAME);
   }
 
-  @Operation(summary = "프로필 이미지 변경", description = "로그인한 회원의 프로필 이미지를 변경한다.")
+  @Operation(
+      summary = "프로필 이미지 변경",
+      description =
+          """
+  로그인한 회원의 프로필 이미지를 변경한다.
+
+  프로필 이미지 수정 시 presigned URL 발급 API를 통해 이미지를 업로드 한 뒤, 해당 키 값을 objectKey 필드에 담아 전송한다. ( /image/presigned-url API 참고 )
+  """)
   @ApiResponses({
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
         responseCode = "200",
@@ -326,6 +342,16 @@ public class MemberController {
                                   "currentMonthDiaryCount": 10,
                                   "currentMonthGoalCount": 40,
                                   "maxStreak": 15,
+                                  "longestGoalStreak": [
+                                      {
+                                        "알고리즘 1문제 풀기": 1
+                                      },
+                                      {
+                                        "책 10페이지 읽기": 1
+                                      }
+                                    ],
+                                    "totalChallengeCount": 2,
+                                    "completedFiniteChallengeCount": 1,
                                   "calendar": [
                                     { "date": "2025-09-01", "count": 2 },
                                     { "date": "2025-09-02", "count": 1 }

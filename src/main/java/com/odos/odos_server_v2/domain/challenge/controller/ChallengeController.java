@@ -1,9 +1,6 @@
 package com.odos.odos_server_v2.domain.challenge.controller;
 
-import com.odos.odos_server_v2.domain.challenge.dto.ChallengeRequest;
-import com.odos.odos_server_v2.domain.challenge.dto.ChallengeResponse;
-import com.odos.odos_server_v2.domain.challenge.dto.ChallengeSummaryResponse;
-import com.odos.odos_server_v2.domain.challenge.dto.ParticipantResponse;
+import com.odos.odos_server_v2.domain.challenge.dto.*;
 import com.odos.odos_server_v2.domain.challenge.service.ChallengeService;
 import com.odos.odos_server_v2.domain.diary.dto.DiaryStreakResponse;
 import com.odos.odos_server_v2.domain.member.CurrentUserContext;
@@ -31,7 +28,14 @@ import org.springframework.web.bind.annotation.*;
 public class ChallengeController {
   private final ChallengeService challengeService;
 
-  @Operation(summary = "챌린지 생성", description = "새로운 챌린지를 생성한다.")
+  @Operation(
+      summary = "챌린지 생성",
+      description =
+          """
+          새로운 챌린지를 생성한다.
+
+          챌린지 썸네일 이미지 등록 시 presigned URL 발급 API를 통해 이미지를 업로드 한 뒤, 해당 키 값을 thumbnailImage 필드에 담아 전송한다. ( /image/presigned-url API 참고 )
+          """)
   @ApiResponses({
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
         responseCode = "200",
@@ -93,6 +97,88 @@ public class ChallengeController {
     Long memberId = CurrentUserContext.getCurrentMemberId();
     return ApiResponse.success(
         Message.CREATE_CHALLENGE, challengeService.createChallenge(challengeRequest, memberId));
+  }
+
+  @Operation(
+      summary = "챌린지 수정",
+      description =
+          """
+            챌린지를 수정한다.
+
+            변경할 필드만 요청에 포함하고, 변경하지 않는 필드는 생략한다.
+
+            - 필드를 포함하면 해당 값으로 업데이트된다.
+            - 필드를 생략하면 기존 값이 유지된다.
+            - 필드 값을 null로 명시하면 해당 값이 삭제된다.
+
+            예: 썸네일 이미지
+            - 변경: presigned URL 발급 API를 통해 이미지를 업로드한 뒤, 해당 키 값을 thumbnailImage 필드에 담아 전송한다. ( /image/presigned-url API 참고 )
+            - 유지: thumbnailImage 필드를 요청에 포함하지 않는다.
+            - 삭제: thumbnailImage 필드에 null을 전송한다.
+            """)
+  @ApiResponses({
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "200",
+        description = "챌린지 수정 성공",
+        content =
+            @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ChallengeSummaryResponse.class),
+                examples =
+                    @ExampleObject(
+                        value =
+                            """
+                                            {
+                                              "message": "챌린지 수정 성공했습니다.",
+                                              "data": {
+                                                "challengeId": 1,
+                                                "title": "30일 코딩 챌린지",
+                                                "thumbnailImage": "https://..",
+                                                "category": "DEV",
+                                                "startDate": "2025-09-01",
+                                                "endDate": "2025-09-30",
+                                                "maxParticipantCnt": 10,
+                                                "challengeType": "FIXED",
+                                                "participantCnt": 1,
+                                                "likeInfo": { "likedByMe": false, "likeCnt": 0 }
+                                              }
+                                            }
+                                            """))),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "401",
+        description = "인증되지 않은 접근",
+        content =
+            @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class),
+                examples =
+                    @ExampleObject(
+                        value =
+                            """
+                                            { "code": "AUTH-001", "message": "인증되지 않은 접근입니다." }
+                                            """))),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "404",
+        description = "회원을 찾을 수 없음",
+        content =
+            @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class),
+                examples =
+                    @ExampleObject(
+                        value =
+                            """
+                                            { "code": "USER-003", "message": "회원을 찾을 수 없습니다." }
+                                            """)))
+  })
+  @PatchMapping("/{challengeId}")
+  public ApiResponse<ChallengeSummaryResponse> editChallenge(
+      @Parameter(description = "챌린지 ID") @PathVariable Long challengeId,
+      @RequestBody ChallengeEditRequest challengeRequest) {
+    Long memberId = CurrentUserContext.getCurrentMemberId();
+    return ApiResponse.success(
+        Message.EDIT_CHALLENGE,
+        challengeService.editChallenge(challengeId, challengeRequest, memberId));
   }
 
   @Operation(summary = "챌린지 상세 조회", description = "챌린지 ID로 챌린지의 상세 정보를 조회한다.")
@@ -382,6 +468,66 @@ public class ChallengeController {
     Long memberId = CurrentUserContext.getCurrentMemberId();
     challengeService.rejectParticipant(participantId, memberId);
     return ApiResponse.success(Message.REJECT_PARTICIPANT);
+  }
+
+  @Operation(
+      summary = "챌린지 목표 수정",
+      description = "자유 목표 챌린지의 목표를 수정한다. (참여자 전용, 호스트는 챌린지 수정 API 사용)")
+  @ApiResponses({
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "200",
+        description = "챌린지 목표 수정 성공",
+        content =
+            @Content(
+                mediaType = "application/json",
+                examples =
+                    @ExampleObject(
+                        value =
+                            """
+                                            { "message": "챌린지 목표 수정 성공했습니다." }
+                                            """))),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "401",
+        description = "인증되지 않은 접근 또는 권한 없음",
+        content =
+            @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class),
+                examples = {
+                  @ExampleObject(
+                      name = "인증되지 않은 접근",
+                      value =
+                          """
+                                                    { "code": "AUTH-001", "message": "인증되지 않은 접근입니다." }
+                                                    """),
+                  @ExampleObject(
+                      name = "권한 없음",
+                      value =
+                          """
+                                                    { "code": "CHALLENGE_004", "message": "권한이 없습니다." }
+                                                    """)
+                })),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "404",
+        description = "참여자를 찾을 수 없음",
+        content =
+            @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class),
+                examples =
+                    @ExampleObject(
+                        value =
+                            """
+                                            { "code": "CHALLENGE_003", "message": "참여자를 찾을 수 없습니다." }
+                                            """)))
+  })
+  @PatchMapping("/{challengeId}/challenge-goal")
+  public ApiResponse<Void> editChallengeGoal(
+      @Parameter(description = "챌린지 ID") @PathVariable Long challengeId,
+      @RequestBody List<String> goals) {
+    Long memberId = CurrentUserContext.getCurrentMemberId();
+    challengeService.editChallengeGoal(challengeId, memberId, goals);
+    return ApiResponse.success(Message.EDIT_CHALLENGE_GOAL);
   }
 
   @Operation(summary = "랜덤 챌린지 조회", description = "지정한 개수만큼 랜덤으로 챌린지를 조회한다. 비로그인 상태로도 조회할 수 있다.")
