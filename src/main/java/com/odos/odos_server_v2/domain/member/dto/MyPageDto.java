@@ -2,6 +2,7 @@ package com.odos.odos_server_v2.domain.member.dto;
 
 import com.odos.odos_server_v2.domain.challenge.dto.ChallengeSummaryResponse;
 import com.odos.odos_server_v2.domain.diary.dto.DiaryResponse;
+import com.odos.odos_server_v2.domain.shared.dto.OffsetPagination;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.List;
 import lombok.Builder;
@@ -31,5 +32,5 @@ public class MyPageDto {
   List<ChallengeSummaryResponse> challengeList;
 
   @Schema(description = "내가 작성한 일지 목록")
-  List<DiaryResponse> diaryList;
+  OffsetPagination<DiaryResponse> diaryList;
 }

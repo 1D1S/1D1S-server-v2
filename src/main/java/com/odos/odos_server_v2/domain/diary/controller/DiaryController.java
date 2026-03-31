@@ -5,6 +5,7 @@ import com.odos.odos_server_v2.domain.diary.dto.DiaryResponse;
 import com.odos.odos_server_v2.domain.diary.dto.ReportRequest;
 import com.odos.odos_server_v2.domain.diary.service.DiaryService;
 import com.odos.odos_server_v2.domain.member.CurrentUserContext;
+import com.odos.odos_server_v2.domain.shared.dto.OffsetPagination;
 import com.odos.odos_server_v2.domain.shared.dto.Pagination;
 import com.odos.odos_server_v2.response.ApiResponse;
 import com.odos.odos_server_v2.response.ErrorResponse;
@@ -21,6 +22,8 @@ import java.io.IOException;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -406,10 +409,165 @@ public class DiaryController {
     return ApiResponse.success(Message.DIARY_GET_SUCCESS, result);
   }
 
+  @Operation(
+      summary = "특정 챌린지의 공개 일지 offset 기반 페이지네이션 조회",
+      description = "챌린지 ID(challengeId)를 기반으로 공개 일지 리스트 정보를 조회한다.")
+  @ApiResponses({
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "200",
+        description = "특정 챌린지의 공개 일지 리스트 조회 성공",
+        content =
+            @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = OffsetPagination.class),
+                examples =
+                    @ExampleObject(
+                        name = "조회 성공 예시",
+                        value =
+                            """
+                                                    {
+                                                      "message": "특정 챌린지의 일지 리스트 조회 완료했습니다.",
+                                                      "data": {
+                                                        "items": [
+                                                          {
+                                                            "id": 6,
+                                                            "challenge": {
+                                                              "challengeId": 1,
+                                                              "title": "1D1S 베타 챌린지",
+                                                              "thumbnailImage": null,
+                                                              "category": "DEV",
+                                                              "startDate": "2026-03-16",
+                                                              "endDate": "2026-03-29",
+                                                              "maxParticipantCnt": 50,
+                                                              "challengeType": "FLEXIBLE",
+                                                              "participantCnt": 5,
+                                                              "likeInfo": {
+                                                                "likedByMe": false,
+                                                                "likeCnt": 5
+                                                              }
+                                                            },
+                                                            "author": {
+                                                              "id": 1,
+                                                              "nickname": "노근",
+                                                              "profileImage": "https://odos-bucket.s3.ap-northeast-2.amazonaws.com/b4da03ec-9721-4bb5-9e8d-0e2c52e76628"
+                                                            },
+                                                            "title": "1D1S 고치기",
+                                                            "content": "<p>오늘은 전반적으로 프로젝트를 훑어보고 버그를 확인했습니다.</p><p>전반적으로 이해하기 어렵다는 말을 많이 받아서, 이 부분에 대해서 개선을 조금 더 하려고 합니다.</p><p>화이팅...</p>",
+                                                            "imgUrl": [
+                                                              "2c889596-67c2-4721-84dd-02211b9bac5f_12312321.png"
+                                                            ],
+                                                            "isPublic": true,
+                                                            "likeInfo": {
+                                                              "likedByMe": false,
+                                                              "likeCnt": 2
+                                                            },
+                                                            "diaryInfo": {
+                                                              "createdAt": "2026-03-17T23:25:39",
+                                                              "challengedDate": "2026-03-17",
+                                                              "feeling": "SAD",
+                                                              "diaryGoal": [
+                                                                {
+                                                                  "challengeGoalId": 1,
+                                                                  "challengeGoalName": "1D1S 버그 수정!",
+                                                                  "isAchieved": true
+                                                                },
+                                                                {
+                                                                  "challengeGoalId": 2,
+                                                                  "challengeGoalName": "사용자 피드백 반영!",
+                                                                  "isAchieved": true
+                                                                }
+                                                              ],
+                                                              "achievementRate": 100
+                                                            }
+                                                          },
+                                                          {
+                                                            "id": 8,
+                                                            "challenge": {
+                                                              "challengeId": 1,
+                                                              "title": "1D1S 베타 챌린지",
+                                                              "thumbnailImage": null,
+                                                              "category": "DEV",
+                                                              "startDate": "2026-03-16",
+                                                              "endDate": "2026-03-29",
+                                                              "maxParticipantCnt": 50,
+                                                              "challengeType": "FLEXIBLE",
+                                                              "participantCnt": 5,
+                                                              "likeInfo": {
+                                                                "likedByMe": false,
+                                                                "likeCnt": 5
+                                                              }
+                                                            },
+                                                            "author": {
+                                                              "id": 3,
+                                                              "nickname": "호떡집에불이",
+                                                              "profileImage": "https://odos-bucket.s3.ap-northeast-2.amazonaws.com/c27ff887-221e-4f61-8de1-5b6324e7ea9f"
+                                                            },
+                                                            "title": "하루종일 일하기",
+                                                            "content": "<p>오늘은 하루종일 일했다. <br>정말 힘들었다.</p><p>저녁으로 오리고기 구워먹었는데 맛있었다. <strong>매일 고기 먹고싶다. </strong></p>",
+                                                            "imgUrl": [],
+                                                            "isPublic": true,
+                                                            "likeInfo": {
+                                                              "likedByMe": false,
+                                                              "likeCnt": 1
+                                                            },
+                                                            "diaryInfo": {
+                                                              "createdAt": "2026-03-18T21:34:30",
+                                                              "challengedDate": "2026-03-17",
+                                                              "feeling": "HAPPY",
+                                                              "diaryGoal": [
+                                                                {
+                                                                  "challengeGoalId": 3,
+                                                                  "challengeGoalName": "오늘 한 일 정리하기",
+                                                                  "isAchieved": true
+                                                                }
+                                                              ],
+                                                              "achievementRate": 100
+                                                            }
+                                                          }
+                                                        ],
+                                                        "pageInfo": {
+                                                          "page": 1,
+                                                          "size": 2,
+                                                          "totalElements": 14,
+                                                          "totalPages": 7,
+                                                          "hasNextPage": true
+                                                        }
+                                                      }
+                                                    }
+                                                    """))),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "400",
+        description = "일지 리스트 실패(요청 값 검증 실패 등)",
+        content =
+            @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class),
+                examples = {
+                  @ExampleObject(
+                      name = "잘못된 challengeId 형식",
+                      value =
+                          """
+                                                                          { "code": "CHALLENGE_001", "message": "챌린지를 찾을 수 없습니다." }
+                                                                          """),
+                  @ExampleObject(
+                      name = "존재하지 않는 멤버",
+                      value =
+                          """
+                                                                          {
+                                                                            "message": "회원을 찾을 수 없습니다.",
+                                                                            "code": "USER-003"
+                                                                          }
+                                                                          """),
+                }))
+  })
   @GetMapping("/challenges/{challengeId}")
-  public ApiResponse<List<DiaryResponse>> getChallengeDiaries(
-      @PathVariable(name = "challengeId") Long challengeId) {
-    List<DiaryResponse> diaries = diaryService.getChallengeDiaries(challengeId);
+  public ApiResponse<OffsetPagination<DiaryResponse>> getChallengeDiaries(
+      @PathVariable(name = "challengeId") Long challengeId,
+      @RequestParam(defaultValue = "0") int page,
+      @RequestParam(defaultValue = "10") int size) {
+    Pageable pageable = PageRequest.of(page, size);
+    OffsetPagination<DiaryResponse> diaries =
+        diaryService.getChallengeDiaries(challengeId, pageable);
     return ApiResponse.success(Message.CHALLENGE_DIARY_GET, diaries);
   }
 
@@ -821,9 +979,9 @@ public class DiaryController {
   @Operation(
       summary = "나의 일지 조회",
       description =
-          "로그인한 유저가 작성한 일지를 모두 조회한다."
-              + "- Member 쪽에 나의 챌린지, 일지 조회, 나의 스트릭 정보 조회하는 API에서 쓰시면 됩니다."
-              + "- 여기에서는 나의 일지 조회로 보통 일지조회와 작동 방식은 동일")
+          "로그인한 유저가 작성한 일지를 페이지네이션으로 조회한다."
+              + "- Member 쪽에 나의 챌린지, 일지 조회, 나의 스트릭 정보 조회하는 API에서 해당 내용 호출 메서드가 사용됨."
+              + "- 여기에서는 나의 일지 조회만 확인할 수 있습니다.")
   @ApiResponses({
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
         responseCode = "200",
@@ -908,8 +1066,10 @@ public class DiaryController {
                                     """)))
   })
   @GetMapping("/my")
-  public ApiResponse<List<DiaryResponse>> getMyDiaries() {
-    List<DiaryResponse> result = diaryService.getMyDiaries();
+  public ApiResponse<OffsetPagination<DiaryResponse>> getMyDiaries(
+      @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size) {
+    Pageable pageable = PageRequest.of(page, size);
+    OffsetPagination<DiaryResponse> result = diaryService.getMyDiaries(pageable);
     return ApiResponse.success(Message.DIARY_GET_MY_ALL_SUCCESS, result);
   }
 
