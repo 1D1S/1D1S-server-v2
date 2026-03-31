@@ -67,6 +67,7 @@ public class DiaryService {
     Optional<Participant> participant =
         participantRepository.findByMemberIdAndChallengeId(memberId, challenge.getId());
 
+    Boolean isCheckedAll = false;
     Diary diary =
         Diary.builder()
             .member(member)
@@ -76,6 +77,7 @@ public class DiaryService {
             .content(request.getContent())
             .feeling(request.getFeeling())
             .isPublic(request.getIsPublic())
+            .isAllGoalsCompleted(isCheckedAll)
             .diaryGoals(new ArrayList<>())
             .likes(new ArrayList<>())
             .build();
@@ -95,6 +97,17 @@ public class DiaryService {
     List<DiaryGoal> diaryGoals = new ArrayList<>();
     List<Long> achievedGoalIds =
         request.getAchievedGoalIds() != null ? request.getAchievedGoalIds() : new ArrayList<>();
+
+    Set<Long> achievedGoalIdSet =
+        new HashSet<>(
+            request.getAchievedGoalIds() != null
+                ? request.getAchievedGoalIds()
+                : new ArrayList<>());
+
+    boolean isAllGoalsCompleted =
+        challengeGoals.stream().allMatch(goal -> achievedGoalIdSet.contains(goal.getId()));
+
+    newDiary.updateIsAllGoalsCompleted(isAllGoalsCompleted);
 
     for (ChallengeGoal challengeGoal : challengeGoals) {
       boolean isCompleted = achievedGoalIds.contains(challengeGoal.getId());
