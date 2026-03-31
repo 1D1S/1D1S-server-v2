@@ -83,9 +83,7 @@ public class DiaryService {
             .build();
     Diary newDiary = diaryRepository.save(diary);
 
-    // 챌린지 목표를 기반으로 다이어리 목표달성 생성 및 저장
-    // 이슈발생 후 수정
-    // 챌린지 타입별 챌린지목표 ID 맞춰서 체크하도록
+    // 챌린지 타입별 목표를 기반으로 다이어리 목표달성 생성 및 저장
     List<ChallengeGoal> challengeGoals;
     if (challenge.getType().equals(ChallengeType.FIXED)) {
       challengeGoals =
@@ -106,14 +104,22 @@ public class DiaryService {
 
     boolean isAllGoalsCompleted =
         challengeGoals.stream().allMatch(goal -> achievedGoalIdSet.contains(goal.getId()));
-
     newDiary.updateIsAllGoalsCompleted(isAllGoalsCompleted);
+
+    Set<Long> challengeGoalIdSet =
+        challengeGoals.stream().map(ChallengeGoal::getId).collect(Collectors.toSet());
+
+    for (Long id : achievedGoalIds) {
+      if (!challengeGoalIdSet.contains(id)) {
+        throw new CustomException(ErrorCode.DIARY_NOT_CREATED);
+      }
+    }
 
     for (ChallengeGoal challengeGoal : challengeGoals) {
       boolean isCompleted = achievedGoalIds.contains(challengeGoal.getId());
       DiaryGoal diaryGoal =
           DiaryGoal.builder()
-              .diary(newDiary) // newDiary 이미 저장된 다이어리로 변경
+              .diary(newDiary)
               .challengeGoal(challengeGoal)
               .isCompleted(isCompleted)
               .build();
