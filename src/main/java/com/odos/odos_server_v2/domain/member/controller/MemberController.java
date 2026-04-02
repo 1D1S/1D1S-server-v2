@@ -1,11 +1,5 @@
 package com.odos.odos_server_v2.domain.member.controller;
 
-import lombok.RequiredArgsConstructor;
-
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.web.bind.annotation.*;
-
 import com.odos.odos_server_v2.domain.member.CurrentUserContext;
 import com.odos.odos_server_v2.domain.member.dto.MyPageDto;
 import com.odos.odos_server_v2.domain.member.dto.NicknameRequest;
@@ -24,6 +18,10 @@ import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "회원", description = "회원 API")
 @RestController
