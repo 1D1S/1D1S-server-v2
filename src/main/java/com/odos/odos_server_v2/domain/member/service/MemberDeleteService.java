@@ -17,7 +17,6 @@ import com.odos.odos_server_v2.domain.member.repository.MemberRepository;
 public class MemberDeleteService {
 
   private final MemberRepository memberRepository;
-
   /** 1. 회원 탈퇴 요청 (Soft Delete) */
   @Transactional
   public void requestWithdraw() {
@@ -36,14 +35,6 @@ public class MemberDeleteService {
   /** 2. 실제 삭제 (Hard Delete) - 탈퇴 후 7일 지난 회원 */
   @Transactional
   public void hardDelete(Member member) {
-
-    Long memberId = member.getId();
-
-    // 1. 일지 삭제
-
-    // 2. 챌린지 관련 처리
-
-    // 3. 회원 삭제
     memberRepository.delete(member);
   }
 

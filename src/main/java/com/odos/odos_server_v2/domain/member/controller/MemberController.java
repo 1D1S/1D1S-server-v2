@@ -9,6 +9,7 @@ import com.odos.odos_server_v2.domain.member.dto.MyPageDto;
 import com.odos.odos_server_v2.domain.member.dto.NicknameRequest;
 import com.odos.odos_server_v2.domain.member.dto.ProfileImageRequest;
 import com.odos.odos_server_v2.domain.member.dto.SideBarDto;
+import com.odos.odos_server_v2.domain.member.repository.MemberRepository;
 import com.odos.odos_server_v2.domain.member.service.MemberDeleteService;
 import com.odos.odos_server_v2.domain.member.service.MemberService;
 import com.odos.odos_server_v2.response.ApiResponse;
@@ -28,6 +29,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 public class MemberController {
   private final MemberService memberService;
   private final MemberDeleteService memberDeleteService;
+  private final MemberRepository memberRepository;
 
   @Operation(summary = "마이페이지 조회", description = "로그인한 회원의 마이페이지 정보를 조회한다.")
   @ApiResponses({
