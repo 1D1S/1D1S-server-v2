@@ -445,11 +445,12 @@ public class MemberController {
   })
   @GetMapping("/profile/{memberId}")
   public ApiResponse<MyPageDto> getOtherProfile(
-          @RequestParam(defaultValue = "0") int page,
-          @RequestParam(defaultValue = "10") int size,
-          @PathVariable Long memberId) {
-      Pageable pageable = PageRequest.of(page, size);
-    return ApiResponse.success(Message.GET_OTHERS_PROFILE, memberService.getOtherMyPage(memberId, pageable));
+      @RequestParam(defaultValue = "0") int page,
+      @RequestParam(defaultValue = "10") int size,
+      @PathVariable Long memberId) {
+    Pageable pageable = PageRequest.of(page, size);
+    return ApiResponse.success(
+        Message.GET_OTHERS_PROFILE, memberService.getOtherMyPage(memberId, pageable));
   }
 
   @Operation(summary = "회원 탈퇴", description = "로그인한 회원의 탈퇴를 요청한다. 실제 계정 삭제는 탈퇴 요청 후 7일 뒤 처리된다.")
