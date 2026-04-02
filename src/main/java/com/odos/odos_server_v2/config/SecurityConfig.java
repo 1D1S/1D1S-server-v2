@@ -18,6 +18,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.filter.CorsFilter;
 
 @Configuration
 @EnableWebSecurity
@@ -28,6 +29,7 @@ public class SecurityConfig {
   private final JwtAuthenticationFilter jwtAuthenticationFilter;
   private final OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler;
   private final OAuth2LoginFailureHandler oAuth2LoginFailureHandler;
+  private final LoggingFilter loggingFilter;
 
   @Bean
   public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -68,6 +70,7 @@ public class SecurityConfig {
                     .userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
                     .successHandler(oAuth2LoginSuccessHandler)
                     .failureHandler(oAuth2LoginFailureHandler))
+        .addFilterBefore(loggingFilter, CorsFilter.class)
         .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
         .addFilterBefore(new JwtTokenExceptionFilter(), JwtAuthenticationFilter.class);
 

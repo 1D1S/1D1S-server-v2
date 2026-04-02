@@ -16,8 +16,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.odos.odos_server_v2.domain.challenge.entity.Challenge;
 import com.odos.odos_server_v2.domain.challenge.entity.ChallengeGoal;
+import com.odos.odos_server_v2.domain.challenge.entity.Enum.ParticipantStatus;
 import com.odos.odos_server_v2.domain.challenge.entity.Participant;
 import com.odos.odos_server_v2.domain.challenge.repository.ChallengeGoalRepository;
+import com.odos.odos_server_v2.domain.challenge.repository.ParticipantRepository;
 import com.odos.odos_server_v2.domain.challenge.service.ChallengeService;
 import com.odos.odos_server_v2.domain.diary.entity.Diary;
 import com.odos.odos_server_v2.domain.diary.service.DiaryService;
@@ -31,6 +33,16 @@ import com.odos.odos_server_v2.domain.member.repository.MemberRepository;
 import com.odos.odos_server_v2.domain.shared.service.ImageService;
 import com.odos.odos_server_v2.exception.CustomException;
 import com.odos.odos_server_v2.exception.ErrorCode;
+import java.time.LocalDate;
+import java.time.YearMonth;
+import java.time.temporal.ChronoUnit;
+import java.util.*;
+import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -42,6 +54,7 @@ public class MemberService {
   private final ImageService imageService;
   private final ChallengeService challengeService;
   private final DiaryService diaryService;
+  private final ParticipantRepository participantRepository;
 
   @Transactional
   public void editNickname(Long memberId, String nickname) {
@@ -65,7 +78,7 @@ public class MemberService {
     member.updateProfileImage(objectKey);
   }
 
-  public MyPageDto getMyPage(Long id) {
+  public MyPageDto getMyPage(Long id, Pageable pageable) {
     Member member =
         memberRepository
             .findById(id)
@@ -77,11 +90,11 @@ public class MemberService {
         .provider(member.getSignupRoute().name())
         .streak(getStreakByMemberId(id))
         .challengeList(challengeService.getMemberChallenge(id, id))
-        .diaryList(diaryService.getMyDiaries())
+        .diaryList(diaryService.getMyDiaries(pageable))
         .build();
   }
 
-  public MyPageDto getOtherMyPage(Long id) {
+  public MyPageDto getOtherMyPage(Long id, Pageable pageable) {
     Member member =
         memberRepository
             .findById(id)
@@ -99,7 +112,7 @@ public class MemberService {
           .provider(member.getSignupRoute().name())
           .streak(getStreakByMemberId(id))
           .challengeList(challengeService.getMemberChallenge(id, id))
-          .diaryList(diaryService.getOtherPublicDiaries(id))
+          .diaryList(diaryService.getOtherPublicDiariesByOffset(id, pageable))
           .build();
     } else {
       // 비공개
@@ -147,6 +160,11 @@ public class MemberService {
         currentMonthGoalCount += d.getDiaryGoals().size();
       }
     }
+
+    List<HashMap<String, Integer>> longestGoalStreak = calculateLongestGoalStreak(id);
+    int totalChallengeCount = calculateTotalChallengeCount(id);
+    int completedFiniteChallengeCount = calculateCompletedFiniteChallengeCount(id);
+
     return new StreakDto(
         todayGoalCount,
         currentStreak,
@@ -155,6 +173,9 @@ public class MemberService {
         currentMonthDiaryCount,
         currentMonthGoalCount,
         maxStreak,
+        longestGoalStreak,
+        totalChallengeCount,
+        completedFiniteChallengeCount,
         calendar);
   }
 
@@ -259,5 +280,79 @@ public class MemberService {
     }
 
     return Math.max(max, temp);
+  }
+
+  private List<HashMap<String, Integer>> calculateLongestGoalStreak(Long memberId) {
+    List<ChallengeGoal> goals = challengeGoalRepository.findAllByParticipant_Member_Id(memberId);
+    log.info("goals size: {}", goals.size());
+
+    for (ChallengeGoal goal : goals) {
+      log.info("goal: {}, diaryGoals size: {}", goal.getContent(), goal.getDiaryGoals().size());
+    }
+
+    int globalMax = 0;
+    List<HashMap<String, Integer>> result = new ArrayList<>();
+
+    for (ChallengeGoal goal : goals) {
+      Set<LocalDate> dates =
+          goal.getDiaryGoals().stream()
+              .map(dg -> dg.getDiary().getCompletedDate())
+              .collect(Collectors.toSet());
+
+      int streak = calculateMaxStreak(dates);
+
+      if (streak > globalMax) {
+        globalMax = streak;
+        result.clear();
+        HashMap<String, Integer> map = new HashMap<>();
+        map.put(goal.getContent(), streak);
+        result.add(map);
+      } else if (streak == globalMax && streak > 0) {
+        HashMap<String, Integer> map = new HashMap<>();
+        map.put(goal.getContent(), streak);
+        result.add(map);
+      }
+    }
+
+    return result;
+  }
+
+  private int calculateTotalChallengeCount(Long memberId) {
+    LocalDate today = LocalDate.now();
+
+    List<Participant> participants =
+        participantRepository.findByMemberIdAndStatusIn(
+            memberId, List.of(ParticipantStatus.HOST, ParticipantStatus.PARTICIPANT));
+
+    return (int)
+        participants.stream().filter(p -> !p.getChallenge().getStartDate().isAfter(today)).count();
+  }
+
+  private int calculateCompletedFiniteChallengeCount(Long memberId) {
+    LocalDate today = LocalDate.now();
+    List<Participant> participants =
+        participantRepository.findByMemberIdAndStatusIn(
+            memberId, List.of(ParticipantStatus.HOST, ParticipantStatus.PARTICIPANT));
+
+    return (int)
+        participants.stream()
+            .filter(
+                p -> {
+                  Challenge c = p.getChallenge();
+                  if (c.getEndDate().equals(LocalDate.of(9999, 12, 31))) return false;
+                  if (!c.getEndDate().isBefore(today)) return false;
+
+                  long totalDays = ChronoUnit.DAYS.between(c.getStartDate(), c.getEndDate()) + 1;
+
+                  long diaryDays =
+                      p.getChallengeGoals().stream()
+                          .flatMap(cg -> cg.getDiaryGoals().stream())
+                          .map(dg -> dg.getDiary().getCompletedDate())
+                          .distinct()
+                          .count();
+
+                  return (double) diaryDays / totalDays >= 0.7;
+                })
+            .count();
   }
 }

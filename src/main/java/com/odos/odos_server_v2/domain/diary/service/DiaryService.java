@@ -17,6 +17,7 @@ import com.odos.odos_server_v2.domain.diary.repository.*;
 import com.odos.odos_server_v2.domain.member.CurrentUserContext;
 import com.odos.odos_server_v2.domain.member.entity.Member;
 import com.odos.odos_server_v2.domain.member.repository.MemberRepository;
+import com.odos.odos_server_v2.domain.shared.dto.OffsetPagination;
 import com.odos.odos_server_v2.domain.shared.dto.PageInfo;
 import com.odos.odos_server_v2.domain.shared.dto.Pagination;
 import com.odos.odos_server_v2.domain.shared.service.CursorService;
@@ -26,10 +27,11 @@ import com.odos.odos_server_v2.exception.ErrorCode;
 import jakarta.transaction.Transactional;
 import java.io.IOException;
 import java.util.*;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -64,13 +66,8 @@ public class DiaryService {
     ChallengeSummaryResponse challengeSummary =
         challengeService.toChallengeSummary(challenge, memberId);
 
-    Participant participant =
-        participantRepository
-            .findByMemberIdAndChallengeId(memberId, challenge.getId())
-            .orElseThrow(() -> new CustomException(ErrorCode.PARTICIPANT_NOT_FOUND));
-    if (participant == null) {
-      throw new CustomException(ErrorCode.PARTICIPANT_NOT_FOUND);
-    }
+    Optional<Participant> participant =
+        participantRepository.findByMemberIdAndChallengeId(memberId, challenge.getId());
 
     Diary diary =
         Diary.builder()
@@ -95,7 +92,7 @@ public class DiaryService {
           challengeGoalRepository.getFixedGoals(
               challenge.getHostMember().getId(), challenge.getId());
     } else {
-      challengeGoals = Objects.requireNonNull(participant).getChallengeGoals();
+      challengeGoals = Objects.requireNonNull(participant.get()).getChallengeGoals();
     }
     List<DiaryGoal> diaryGoals = new ArrayList<>();
     List<Long> achievedGoalIds =
@@ -364,27 +361,25 @@ public class DiaryService {
 
   // 마이페이지 다이어리 조회를 위한 서비스 메서드
   @Transactional
-  public List<DiaryResponse> getMyDiaries() {
-    try {
-      Long memberId = CurrentUserContext.getCurrentMemberId();
-      Member member =
-          memberRepository
-              .findById(memberId)
-              .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
-      List<Diary> diaries = diaryRepository.findDiariesByMember_Id(memberId);
-      List<DiaryResponse> diaryResponses = new ArrayList<>();
-      for (Diary diary : diaries) {
-        diaryResponses.add(
-            DiaryResponse.from(
-                member,
-                diary,
-                challengeService.toChallengeSummary(diary.getChallenge(), memberId),
-                imageService.getFileUrl(diary.getMember().getProfileUrl())));
-      }
-      return diaryResponses;
-    } catch (Exception e) {
-      return Collections.emptyList();
-    }
+  public OffsetPagination<DiaryResponse> getMyDiaries(Pageable pageable) {
+
+    Long memberId = CurrentUserContext.getCurrentMemberId();
+    Member member =
+        memberRepository
+            .findById(memberId)
+            .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+    Page<Diary> diaries = diaryRepository.findDiariesByMember_Id(memberId, pageable);
+
+    Page<DiaryResponse> diaryResponsePage =
+        diaries.map(
+            diary ->
+                DiaryResponse.from(
+                    member,
+                    diary,
+                    challengeService.toChallengeSummary(diary.getChallenge(), memberId),
+                    imageService.getFileUrl(diary.getMember().getProfileUrl())));
+
+    return OffsetPagination.from(diaryResponsePage);
   }
 
   @Transactional
@@ -418,7 +413,7 @@ public class DiaryService {
   }
 
   @Transactional
-  public List<DiaryResponse> getChallengeDiaries(Long challengeId) {
+  public OffsetPagination<DiaryResponse> getChallengeDiaries(Long challengeId, Pageable pageable) {
     Long memberId = CurrentUserContext.getCurrentMemberId();
     Member member =
         memberRepository
@@ -429,17 +424,18 @@ public class DiaryService {
             .findById(challengeId)
             .orElseThrow(() -> new CustomException(ErrorCode.CHALLENGE_NOT_FOUND));
     ChallengeSummaryResponse summary = challengeService.toChallengeSummary(challenge, memberId);
-    return challenge.getDiaries().stream()
-        .filter(Objects::nonNull)
-        .filter(diary -> diary.getIsPublic().equals(Boolean.TRUE))
-        .map(
+
+    Page<Diary> diaries =
+        diaryRepository.findDiariesByChallengeIdAndIsPublic(challengeId, Boolean.TRUE, pageable);
+    Page<DiaryResponse> result =
+        diaries.map(
             diary ->
                 DiaryResponse.from(
                     member,
                     diary,
                     summary,
-                    imageService.getFileUrl(diary.getMember().getProfileUrl())))
-        .collect(Collectors.toList());
+                    imageService.getFileUrl(diary.getMember().getProfileUrl())));
+    return OffsetPagination.from(result);
   }
 
   // 다른 사람 프로필 조회 시 공개 다이어리만 조회
@@ -465,5 +461,29 @@ public class DiaryService {
     } catch (Exception e) {
       return Collections.emptyList();
     }
+  }
+
+  @Transactional
+  public OffsetPagination<DiaryResponse> getOtherPublicDiariesByOffset(
+      Long otherMemberId, Pageable pageable) {
+    Long memberId = CurrentUserContext.getCurrentMemberId();
+
+    Member member =
+        memberRepository
+            .findById(memberId)
+            .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+
+    Page<Diary> diaries = diaryRepository.findOthersPublicDiariesByOffset(otherMemberId, pageable);
+
+    Page<DiaryResponse> diaryResponsePage =
+        diaries.map(
+            diary ->
+                DiaryResponse.from(
+                    member,
+                    diary,
+                    challengeService.toChallengeSummary(diary.getChallenge(), memberId),
+                    imageService.getFileUrl(diary.getMember().getProfileUrl())));
+
+    return OffsetPagination.from(diaryResponsePage);
   }
 }
