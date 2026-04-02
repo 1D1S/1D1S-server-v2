@@ -1,5 +1,11 @@
 package com.odos.odos_server_v2.domain.member.controller;
 
+import lombok.RequiredArgsConstructor;
+
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.web.bind.annotation.*;
+
 import com.odos.odos_server_v2.domain.member.CurrentUserContext;
 import com.odos.odos_server_v2.domain.member.dto.MyPageDto;
 import com.odos.odos_server_v2.domain.member.dto.NicknameRequest;
@@ -18,10 +24,6 @@ import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "회원", description = "회원 API")
 @RestController
@@ -442,8 +444,12 @@ public class MemberController {
                 }))
   })
   @GetMapping("/profile/{memberId}")
-  public ApiResponse<MyPageDto> getOtherProfile(@PathVariable Long memberId) {
-    return ApiResponse.success(Message.GET_OTHERS_PROFILE, memberService.getOtherMyPage(memberId));
+  public ApiResponse<MyPageDto> getOtherProfile(
+          @RequestParam(defaultValue = "0") int page,
+          @RequestParam(defaultValue = "10") int size,
+          @PathVariable Long memberId) {
+      Pageable pageable = PageRequest.of(page, size);
+    return ApiResponse.success(Message.GET_OTHERS_PROFILE, memberService.getOtherMyPage(memberId, pageable));
   }
 
   @Operation(summary = "회원 탈퇴", description = "로그인한 회원의 탈퇴를 요청한다. 실제 계정 삭제는 탈퇴 요청 후 7일 뒤 처리된다.")
