@@ -17,6 +17,7 @@ import com.odos.odos_server_v2.domain.member.repository.MemberRepository;
 public class MemberDeleteService {
 
   private final MemberRepository memberRepository;
+
   /** 1. 회원 탈퇴 요청 (Soft Delete) */
   @Transactional
   public void requestWithdraw() {
