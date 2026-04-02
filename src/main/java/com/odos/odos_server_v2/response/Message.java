@@ -46,6 +46,7 @@ public class Message {
   public static String UPDATE_NICKNAME = "닉네임 변경 성공했습니다.";
   public static String UPDATE_PROFILE_IMAGE = "프로필 이미지 변경 성공했습니다.";
   public static String GET_OTHERS_PROFILE = "다른 사람 프로필 조회 성공했습니다.";
+  public static String MEMBER_DELETE = "회원 탈퇴 요청 성공했습니다.";
 
   // image
   public static String CREATE_PRESIGNED_URL_SUCCESS = "presigned url 발급 성공했습니다.";
