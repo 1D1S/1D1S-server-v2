@@ -100,4 +100,8 @@ public class Diary extends BaseTimeEntity {
   public void addDiaryImage(DiaryImage diaryImage) {
     this.images.add(diaryImage);
   }
+
+  public void updateIsAllGoalsCompleted(Boolean isChecked) {
+    this.isAllGoalsCompleted = isChecked;
+  }
 }
