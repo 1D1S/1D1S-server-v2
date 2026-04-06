@@ -4,6 +4,7 @@ import com.odos.odos_server_v2.domain.challenge.dto.ChallengeSummaryResponse;
 import com.odos.odos_server_v2.domain.challenge.entity.Challenge;
 import com.odos.odos_server_v2.domain.challenge.entity.ChallengeGoal;
 import com.odos.odos_server_v2.domain.challenge.entity.Enum.ChallengeType;
+import com.odos.odos_server_v2.domain.challenge.entity.Enum.ParticipantStatus;
 import com.odos.odos_server_v2.domain.challenge.entity.Participant;
 import com.odos.odos_server_v2.domain.challenge.repository.ChallengeGoalRepository;
 import com.odos.odos_server_v2.domain.challenge.repository.ChallengeRepository;
@@ -467,9 +468,17 @@ public class DiaryService {
             .findById(challengeId)
             .orElseThrow(() -> new CustomException(ErrorCode.CHALLENGE_NOT_FOUND));
     ChallengeSummaryResponse summary = challengeService.toChallengeSummary(challenge, memberId);
+    Page<Diary> diaries = null;
+    if ((participantRepository.existsByChallengeIdAndMemberIdAndStatus(
+            challengeId, memberId, ParticipantStatus.PARTICIPANT)
+        || (participantRepository.existsByChallengeIdAndMemberIdAndStatus(
+            challengeId, memberId, ParticipantStatus.HOST)))) {
+      diaries = diaryRepository.findAllByChallengeId(challengeId, pageable);
+    } else {
+      diaries =
+          diaryRepository.findDiariesByChallengeIdAndIsPublic(challengeId, Boolean.TRUE, pageable);
+    }
 
-    Page<Diary> diaries =
-        diaryRepository.findDiariesByChallengeIdAndIsPublic(challengeId, Boolean.TRUE, pageable);
     Page<DiaryResponse> result =
         diaries.map(
             diary ->
