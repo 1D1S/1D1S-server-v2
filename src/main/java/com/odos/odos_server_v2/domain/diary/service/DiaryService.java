@@ -67,8 +67,10 @@ public class DiaryService {
     ChallengeSummaryResponse challengeSummary =
         challengeService.toChallengeSummary(challenge, memberId);
 
-    Optional<Participant> participant =
-        participantRepository.findByMemberIdAndChallengeId(memberId, challenge.getId());
+    Participant participant =
+        participantRepository
+            .findByMemberIdAndChallengeId(memberId, challenge.getId())
+            .orElseThrow(() -> new CustomException(ErrorCode.PARTICIPANT_NOT_FOUND));
 
     Boolean isCheckedAll = false;
     Diary diary =
@@ -93,7 +95,7 @@ public class DiaryService {
           challengeGoalRepository.getFixedGoals(
               challenge.getHostMember().getId(), challenge.getId());
     } else {
-      challengeGoals = Objects.requireNonNull(participant.get()).getChallengeGoals();
+      challengeGoals = participant.getChallengeGoals();
     }
     List<DiaryGoal> diaryGoals = new ArrayList<>();
     List<Long> achievedGoalIds =
@@ -147,6 +149,11 @@ public class DiaryService {
         diaryRepository
             .findById(diaryId)
             .orElseThrow(() -> new CustomException(ErrorCode.DIARY_NOT_FOUND));
+
+    if (!diary.getMember().getId().equals(memberId)) {
+      throw new CustomException(ErrorCode.DIARY_NOT_ACCESS);
+    }
+
     Challenge challenge =
         challengeRepository
             .findById(request.getChallengeId())
@@ -158,9 +165,6 @@ public class DiaryService {
         participantRepository
             .findByMemberIdAndChallengeId(memberId, challenge.getId())
             .orElseThrow(() -> new CustomException(ErrorCode.PARTICIPANT_NOT_FOUND));
-    if (participant == null) {
-      throw new CustomException(ErrorCode.PARTICIPANT_NOT_FOUND);
-    }
 
     List<ChallengeGoal> challengeGoals;
     if (challenge.getType().equals(ChallengeType.FIXED)) {
@@ -168,7 +172,7 @@ public class DiaryService {
           challengeGoalRepository.getFixedGoals(
               challenge.getHostMember().getId(), challenge.getId());
     } else {
-      challengeGoals = Objects.requireNonNull(participant).getChallengeGoals();
+      challengeGoals = participant.getChallengeGoals();
     }
 
     List<DiaryGoal> diaryGoals = new ArrayList<>();
