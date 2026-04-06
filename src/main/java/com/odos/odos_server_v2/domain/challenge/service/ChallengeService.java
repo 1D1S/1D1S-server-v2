@@ -27,7 +27,6 @@ import com.odos.odos_server_v2.domain.shared.service.ImageService;
 import com.odos.odos_server_v2.exception.CustomException;
 import com.odos.odos_server_v2.exception.ErrorCode;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Collections;
 import java.util.List;
@@ -72,7 +71,7 @@ public class ChallengeService {
             .type(challengeRequest.getChallengeType())
             .description(challengeRequest.getDescription())
             .hostMember(member)
-            .createdAt(LocalDateTime.now())
+            // .createdAt(LocalDateTime.now())
             .allowMidJoin(challengeRequest.getAllowMidJoin())
             .build();
 
@@ -303,6 +302,13 @@ public class ChallengeService {
     return all.stream().limit(size).map(ch -> toChallengeSummary(ch, memberId)).toList();
   }
 
+  public void withdrawMemberLeaveChallengeHost(Long memberId) {
+    List<Challenge> challenges = challengeRepository.findByHostMemberId(memberId);
+    for (Challenge c : challenges) {
+      leaveChallengeHost(memberId, c.getId());
+    }
+  }
+
   @Transactional
   public void leaveChallenge(Long memberId, Long challengeId) {
     Challenge challenge =
@@ -311,7 +317,7 @@ public class ChallengeService {
             .orElseThrow(() -> new CustomException(ErrorCode.CHALLENGE_NOT_FOUND));
     // 호스트라면 탈퇴할 수 없음, 추후 수정 필요
     if (challenge.getHostMember().getId().equals(memberId)) {
-      throw new CustomException(ErrorCode.CANNOT_LEAVE_CHALLENGE);
+      leaveChallengeHost(memberId, challengeId);
     } else {
       Participant participant =
           participantRepository
@@ -323,6 +329,71 @@ public class ChallengeService {
       // 일지 소프트 딜리트 필요
       participant.setStatus(ParticipantStatus.LEAVE);
     }
+  }
+
+  public void leaveChallengeHost(Long memberId, Long challengeId) {
+    Challenge challenge =
+        challengeRepository
+            .findById(challengeId)
+            .orElseThrow(() -> new CustomException(ErrorCode.CHALLENGE_NOT_FOUND));
+    if (!challenge.getHostMember().getId().equals(memberId)) {
+      throw new CustomException(ErrorCode.NO_AUTHORITY);
+    }
+    List<Participant> participants =
+        participantRepository.findByChallengeIdAndStatusIn(
+            challengeId, List.of(ParticipantStatus.HOST, ParticipantStatus.PARTICIPANT));
+
+    // 호스트 본인 제외
+    Participant currentHost =
+        participants.stream()
+            .filter(p -> p.getStatus() == ParticipantStatus.HOST)
+            .findFirst()
+            .orElseThrow(() -> new IllegalStateException("호스트를 찾을 수 없습니다"));
+
+    List<Participant> candidates =
+        participants.stream().filter(p -> p.getStatus() != ParticipantStatus.HOST).toList();
+
+    if (candidates.isEmpty()) {
+      // 남은 참가자 없으면 챌린지 자체를 닫거나 삭제
+      throw new IllegalStateException("위임할 참가자가 없습니다");
+    }
+
+    Participant nextHost = null;
+    long maxCount = -1;
+
+    for (Participant p : candidates) {
+      long count = countDiaryGoals(p.getId());
+
+      if (count > maxCount) {
+        maxCount = count;
+        nextHost = p;
+      } else if (count == maxCount) {
+        // 동점이면 닉네임 가나다순 (사전순 앞)
+        if (nextHost == null
+            || p.getMember().getNickname().compareTo(nextHost.getMember().getNickname()) < 0) {
+          nextHost = p;
+        }
+      }
+    }
+
+    // 권한 위임
+    nextHost.setStatus(ParticipantStatus.HOST);
+    currentHost.setStatus(ParticipantStatus.LEAVE);
+
+    challenge.setHostMember(nextHost.getMember());
+
+    participantRepository.save(nextHost);
+    participantRepository.save(currentHost);
+    challengeRepository.save(challenge);
+  }
+
+  private long countDiaryGoals(Long participantId) {
+    List<ChallengeGoal> challengeGoals = challengeGoalRepository.findByParticipantId(participantId);
+    long total = 0;
+    for (ChallengeGoal cg : challengeGoals) {
+      total += diaryGoalRepository.countByChallengeGoalId(cg.getId());
+    }
+    return total;
   }
 
   public Pagination<ChallengeSummaryResponse> getChallengeList(
