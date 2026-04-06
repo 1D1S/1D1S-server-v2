@@ -55,13 +55,9 @@ public class Diary extends BaseTimeEntity {
   @OneToMany(mappedBy = "diary", cascade = CascadeType.ALL, orphanRemoval = true)
   private List<DiaryGoal> diaryGoals = new ArrayList<>();
 
-  ;
-
   @Builder.Default
   @OneToMany(mappedBy = "diary", cascade = CascadeType.ALL)
   private List<DiaryImage> images = new ArrayList<>();
-
-  ;
 
   @Builder.Default
   @OneToMany(mappedBy = "diary", cascade = CascadeType.ALL)
@@ -84,6 +80,7 @@ public class Diary extends BaseTimeEntity {
     this.feeling = request.getFeeling();
     this.content = request.getContent();
     this.isPublic = request.getIsPublic();
+    this.completedDate = request.getAchievedDate();
     this.challenge = challenge;
     this.diaryGoals.clear();
     this.diaryGoals.addAll(diaryGoals);
@@ -99,5 +96,9 @@ public class Diary extends BaseTimeEntity {
 
   public void addDiaryImage(DiaryImage diaryImage) {
     this.images.add(diaryImage);
+  }
+
+  public void updateIsAllGoalsCompleted(Boolean isChecked) {
+    this.isAllGoalsCompleted = isChecked;
   }
 }
