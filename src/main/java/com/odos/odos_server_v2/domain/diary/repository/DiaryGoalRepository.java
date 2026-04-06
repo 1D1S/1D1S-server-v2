@@ -7,4 +7,6 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface DiaryGoalRepository extends JpaRepository<DiaryGoal, Long> {
   long countByDiary_Challenge_IdAndIsCompletedTrue(Long challengeId);
+
+  long countByChallengeGoalId(Long challengeGoalId);
 }
