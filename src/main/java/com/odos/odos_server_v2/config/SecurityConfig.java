@@ -46,6 +46,8 @@ public class SecurityConfig {
                     .permitAll()
                     .requestMatchers(HttpMethod.GET, "/challenges/**")
                     .permitAll()
+                    .requestMatchers(HttpMethod.GET, "/comments/**")
+                    .permitAll()
                     .requestMatchers(
                         "/",
                         "/auth/**",
