@@ -56,6 +56,8 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
       jwtTokenProvider.updateRefreshToken(member.getId(), refreshToken);
     }
 
+    jwtTokenProvider.sendAccessAndRefreshToken(response, accessToken, refreshToken);
+
     boolean isProfileComplete =
         member.getNickname() != null
             // && member.getMemberProfileImageUrl() != null
@@ -65,17 +67,11 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
             && member.getIsPublic() != null;
 
     OAuth2LoginResponse dto =
-        OAuth2LoginResponse.builder()
-            .accessToken(accessToken)
-            .refreshToken(refreshToken)
-            .isProfileComplete(isProfileComplete)
-            .build();
+        OAuth2LoginResponse.builder().isProfileComplete(isProfileComplete).build();
 
-    response.setStatus(HttpServletResponse.SC_OK);
     response.setContentType("application/json;charset=UTF-8");
     ApiResponse<OAuth2LoginResponse> apiResponse = ApiResponse.success(LOGIN_SUCCESS, dto);
     response.getWriter().write(objectMapper.writeValueAsString(apiResponse));
-
     // log.debug("OAuth2 login success - {} (profileComplete={})", email, isProfileComplete);
   }
 }
