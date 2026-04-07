@@ -46,11 +46,20 @@ public class MemberService {
   private final DiaryService diaryService;
   private final ParticipantRepository participantRepository;
 
+  public void checkNicknameDuplicate(String nickname) {
+    if (memberRepository.existsByNickname(nickname)) {
+      throw new CustomException(ErrorCode.NICKNAME_ALREADY_EXISTS);
+    }
+  }
+
   @Transactional
   public void editNickname(Long memberId, String nickname) {
     String regex = "^[가-힣a-zA-Z]{1,8}$";
     if (!nickname.matches(regex)) {
       throw new CustomException(ErrorCode.INVALID_NICKNAME_FORMAT);
+    }
+    if (memberRepository.existsByNicknameAndIdNot(nickname, memberId)) {
+      throw new CustomException(ErrorCode.NICKNAME_ALREADY_EXISTS);
     }
     Member member =
         memberRepository

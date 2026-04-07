@@ -17,4 +17,8 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
 
   @Query("SELECT m FROM Member m WHERE m.deletedAt IS NOT NULL AND m.deletedAt < :threshold")
   List<Member> findDeletableMembers(LocalDateTime threshold);
+
+  boolean existsByNickname(String nickname);
+
+  boolean existsByNicknameAndIdNot(String nickname, Long id);
 }

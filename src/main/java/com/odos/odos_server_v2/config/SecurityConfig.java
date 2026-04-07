@@ -57,6 +57,7 @@ public class SecurityConfig {
                         "/js/**",
                         "/challenges/random",
                         "/diaries/random",
+                        "/member/nickname/check",
                         "/swagger",
                         "/swagger-ui.html",
                         "/swagger-ui/**",

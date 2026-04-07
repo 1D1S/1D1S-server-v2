@@ -32,6 +32,40 @@ public class MemberController {
   private final MemberDeleteService memberDeleteService;
   private final MemberRepository memberRepository;
 
+  @Operation(summary = "닉네임 중복 확인", description = "닉네임이 사용 가능한지 확인한다. 인증 없이 호출 가능하다.")
+  @ApiResponses({
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "200",
+        description = "사용 가능한 닉네임",
+        content =
+            @Content(
+                mediaType = "application/json",
+                examples =
+                    @ExampleObject(
+                        value =
+                            """
+                            { "message": "사용 가능한 닉네임입니다." }
+                            """))),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "409",
+        description = "이미 사용 중인 닉네임",
+        content =
+            @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class),
+                examples =
+                    @ExampleObject(
+                        value =
+                            """
+                            { "code": "USER-007", "message": "이미 사용 중인 닉네임입니다." }
+                            """)))
+  })
+  @GetMapping("/nickname/check")
+  public ApiResponse<Void> checkNickname(@RequestParam String nickname) {
+    memberService.checkNicknameDuplicate(nickname);
+    return ApiResponse.success(Message.NICKNAME_AVAILABLE);
+  }
+
   @Operation(summary = "마이페이지 조회", description = "로그인한 회원의 마이페이지 정보를 조회한다.")
   @ApiResponses({
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
