@@ -13,12 +13,14 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
 @Builder
+@EntityListeners(AuditingEntityListener.class)
 @Table(name = "challenge")
 public class Challenge {
 
@@ -84,5 +86,9 @@ public class Challenge {
 
   public void updateMaxParticipantCnt(Integer maxParticipantCnt) {
     this.maxParticipantsCnt = maxParticipantCnt;
+  }
+
+  public void setHostMember(Member member) {
+    this.hostMember = member;
   }
 }

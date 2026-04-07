@@ -55,4 +55,7 @@ public interface DiaryRepository extends JpaRepository<Diary, Long> {
 
   Page<Diary> findDiariesByChallengeIdAndIsPublic(
       Long challengeId, Boolean isPublic, Pageable pageable);
+
+  // 같은 챌린지의 참여자이면 비공개일지까지 조회되도록
+  Page<Diary> findAllByChallengeId(Long challengeId, Pageable pageable);
 }

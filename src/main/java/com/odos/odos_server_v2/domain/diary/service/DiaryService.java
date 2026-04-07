@@ -4,6 +4,7 @@ import com.odos.odos_server_v2.domain.challenge.dto.ChallengeSummaryResponse;
 import com.odos.odos_server_v2.domain.challenge.entity.Challenge;
 import com.odos.odos_server_v2.domain.challenge.entity.ChallengeGoal;
 import com.odos.odos_server_v2.domain.challenge.entity.Enum.ChallengeType;
+import com.odos.odos_server_v2.domain.challenge.entity.Enum.ParticipantStatus;
 import com.odos.odos_server_v2.domain.challenge.entity.Participant;
 import com.odos.odos_server_v2.domain.challenge.repository.ChallengeGoalRepository;
 import com.odos.odos_server_v2.domain.challenge.repository.ChallengeRepository;
@@ -27,6 +28,7 @@ import com.odos.odos_server_v2.exception.ErrorCode;
 import jakarta.transaction.Transactional;
 import java.io.IOException;
 import java.util.*;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -66,9 +68,12 @@ public class DiaryService {
     ChallengeSummaryResponse challengeSummary =
         challengeService.toChallengeSummary(challenge, memberId);
 
-    Optional<Participant> participant =
-        participantRepository.findByMemberIdAndChallengeId(memberId, challenge.getId());
+    Participant participant =
+        participantRepository
+            .findByMemberIdAndChallengeId(memberId, challenge.getId())
+            .orElseThrow(() -> new CustomException(ErrorCode.PARTICIPANT_NOT_FOUND));
 
+    Boolean isCheckedAll = false;
     Diary diary =
         Diary.builder()
             .member(member)
@@ -78,31 +83,49 @@ public class DiaryService {
             .content(request.getContent())
             .feeling(request.getFeeling())
             .isPublic(request.getIsPublic())
+            .isAllGoalsCompleted(isCheckedAll)
             .diaryGoals(new ArrayList<>())
             .likes(new ArrayList<>())
             .build();
     Diary newDiary = diaryRepository.save(diary);
 
-    // 챌린지 목표를 기반으로 다이어리 목표달성 생성 및 저장
-    // 이슈발생 후 수정
-    // 챌린지 타입별 챌린지목표 ID 맞춰서 체크하도록
+    // 챌린지 타입별 목표를 기반으로 다이어리 목표달성 생성 및 저장
     List<ChallengeGoal> challengeGoals;
     if (challenge.getType().equals(ChallengeType.FIXED)) {
       challengeGoals =
           challengeGoalRepository.getFixedGoals(
               challenge.getHostMember().getId(), challenge.getId());
     } else {
-      challengeGoals = Objects.requireNonNull(participant.get()).getChallengeGoals();
+      challengeGoals = participant.getChallengeGoals();
     }
     List<DiaryGoal> diaryGoals = new ArrayList<>();
     List<Long> achievedGoalIds =
         request.getAchievedGoalIds() != null ? request.getAchievedGoalIds() : new ArrayList<>();
 
+    Set<Long> achievedGoalIdSet =
+        new HashSet<>(
+            request.getAchievedGoalIds() != null
+                ? request.getAchievedGoalIds()
+                : new ArrayList<>());
+
+    boolean isAllGoalsCompleted =
+        challengeGoals.stream().allMatch(goal -> achievedGoalIdSet.contains(goal.getId()));
+    newDiary.updateIsAllGoalsCompleted(isAllGoalsCompleted);
+
+    Set<Long> challengeGoalIdSet =
+        challengeGoals.stream().map(ChallengeGoal::getId).collect(Collectors.toSet());
+
+    for (Long id : achievedGoalIds) {
+      if (!challengeGoalIdSet.contains(id)) {
+        throw new CustomException(ErrorCode.DIARY_NOT_CREATED);
+      }
+    }
+
     for (ChallengeGoal challengeGoal : challengeGoals) {
       boolean isCompleted = achievedGoalIds.contains(challengeGoal.getId());
       DiaryGoal diaryGoal =
           DiaryGoal.builder()
-              .diary(newDiary) // newDiary 이미 저장된 다이어리로 변경
+              .diary(newDiary)
               .challengeGoal(challengeGoal)
               .isCompleted(isCompleted)
               .build();
@@ -127,6 +150,11 @@ public class DiaryService {
         diaryRepository
             .findById(diaryId)
             .orElseThrow(() -> new CustomException(ErrorCode.DIARY_NOT_FOUND));
+
+    if (!diary.getMember().getId().equals(memberId)) {
+      throw new CustomException(ErrorCode.DIARY_NOT_ACCESS);
+    }
+
     Challenge challenge =
         challengeRepository
             .findById(request.getChallengeId())
@@ -138,9 +166,6 @@ public class DiaryService {
         participantRepository
             .findByMemberIdAndChallengeId(memberId, challenge.getId())
             .orElseThrow(() -> new CustomException(ErrorCode.PARTICIPANT_NOT_FOUND));
-    if (participant == null) {
-      throw new CustomException(ErrorCode.PARTICIPANT_NOT_FOUND);
-    }
 
     List<ChallengeGoal> challengeGoals;
     if (challenge.getType().equals(ChallengeType.FIXED)) {
@@ -148,12 +173,31 @@ public class DiaryService {
           challengeGoalRepository.getFixedGoals(
               challenge.getHostMember().getId(), challenge.getId());
     } else {
-      challengeGoals = Objects.requireNonNull(participant).getChallengeGoals();
+      challengeGoals = participant.getChallengeGoals();
     }
 
     List<DiaryGoal> diaryGoals = new ArrayList<>();
     List<Long> achievedGoalIds =
         request.getAchievedGoalIds() != null ? request.getAchievedGoalIds() : new ArrayList<>();
+
+    Set<Long> achievedGoalIdSet =
+        new HashSet<>(
+            request.getAchievedGoalIds() != null
+                ? request.getAchievedGoalIds()
+                : new ArrayList<>());
+
+    boolean isAllGoalsCompleted =
+        challengeGoals.stream().allMatch(goal -> achievedGoalIdSet.contains(goal.getId()));
+    diary.updateIsAllGoalsCompleted(isAllGoalsCompleted);
+
+    Set<Long> challengeGoalIdSet =
+        challengeGoals.stream().map(ChallengeGoal::getId).collect(Collectors.toSet());
+
+    for (Long id : achievedGoalIds) {
+      if (!challengeGoalIdSet.contains(id)) {
+        throw new CustomException(ErrorCode.DIARY_NOT_CREATED);
+      }
+    }
 
     for (ChallengeGoal challengeGoal : challengeGoals) {
       boolean isCompleted = achievedGoalIds.contains(challengeGoal.getId());
@@ -424,9 +468,17 @@ public class DiaryService {
             .findById(challengeId)
             .orElseThrow(() -> new CustomException(ErrorCode.CHALLENGE_NOT_FOUND));
     ChallengeSummaryResponse summary = challengeService.toChallengeSummary(challenge, memberId);
+    Page<Diary> diaries = null;
+    if ((participantRepository.existsByChallengeIdAndMemberIdAndStatus(
+            challengeId, memberId, ParticipantStatus.PARTICIPANT)
+        || (participantRepository.existsByChallengeIdAndMemberIdAndStatus(
+            challengeId, memberId, ParticipantStatus.HOST)))) {
+      diaries = diaryRepository.findAllByChallengeId(challengeId, pageable);
+    } else {
+      diaries =
+          diaryRepository.findDiariesByChallengeIdAndIsPublic(challengeId, Boolean.TRUE, pageable);
+    }
 
-    Page<Diary> diaries =
-        diaryRepository.findDiariesByChallengeIdAndIsPublic(challengeId, Boolean.TRUE, pageable);
     Page<DiaryResponse> result =
         diaries.map(
             diary ->

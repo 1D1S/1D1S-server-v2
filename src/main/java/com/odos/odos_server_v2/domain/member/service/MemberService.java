@@ -13,6 +13,7 @@ import com.odos.odos_server_v2.domain.member.dto.CalendarStreakDto;
 import com.odos.odos_server_v2.domain.member.dto.MyPageDto;
 import com.odos.odos_server_v2.domain.member.dto.SideBarDto;
 import com.odos.odos_server_v2.domain.member.dto.StreakDto;
+import com.odos.odos_server_v2.domain.member.entity.Enum.MemberStatus;
 import com.odos.odos_server_v2.domain.member.entity.Member;
 import com.odos.odos_server_v2.domain.member.repository.MemberRepository;
 import com.odos.odos_server_v2.domain.shared.service.ImageService;
@@ -22,6 +23,10 @@ import java.time.LocalDate;
 import java.time.YearMonth;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -41,11 +46,20 @@ public class MemberService {
   private final DiaryService diaryService;
   private final ParticipantRepository participantRepository;
 
+  public void checkNicknameDuplicate(String nickname) {
+    if (memberRepository.existsByNickname(nickname)) {
+      throw new CustomException(ErrorCode.NICKNAME_ALREADY_EXISTS);
+    }
+  }
+
   @Transactional
   public void editNickname(Long memberId, String nickname) {
     String regex = "^[가-힣a-zA-Z]{1,8}$";
     if (!nickname.matches(regex)) {
       throw new CustomException(ErrorCode.INVALID_NICKNAME_FORMAT);
+    }
+    if (memberRepository.existsByNicknameAndIdNot(nickname, memberId)) {
+      throw new CustomException(ErrorCode.NICKNAME_ALREADY_EXISTS);
     }
     Member member =
         memberRepository
@@ -84,6 +98,11 @@ public class MemberService {
         memberRepository
             .findById(id)
             .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+
+    if (member.getStatus() == MemberStatus.WITHDRAWN) {
+      throw new CustomException(ErrorCode.MEMBER_DELETED);
+    }
+
     if (member.getIsPublic()) {
       return MyPageDto.builder()
           .nickname(member.getNickname())

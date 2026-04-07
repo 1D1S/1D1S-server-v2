@@ -44,9 +44,18 @@ public class Message {
   public static String GET_MYPAGE = "마이페이지 조회 성공했습니다.";
   public static String GET_SIDEBAR = "사이드바 조회 성공했습니다.";
   public static String UPDATE_NICKNAME = "닉네임 변경 성공했습니다.";
+  public static String NICKNAME_AVAILABLE = "사용 가능한 닉네임입니다.";
   public static String UPDATE_PROFILE_IMAGE = "프로필 이미지 변경 성공했습니다.";
   public static String GET_OTHERS_PROFILE = "다른 사람 프로필 조회 성공했습니다.";
+  public static String MEMBER_DELETE = "회원 탈퇴 요청 성공했습니다.";
 
   // image
   public static String CREATE_PRESIGNED_URL_SUCCESS = "presigned url 발급 성공했습니다.";
+
+  // comment
+  public static String COMMENT_CREATE_SUCCESS = "댓글 생성 성공했습니다.";
+  public static String REPLY_CREATE_SUCCESS = "대댓글 생성 성공했습니다.";
+  public static String COMMENT_DELETE_SUCCESS = "댓글 삭제 성공했습니다.";
+  public static String COMMENT_GET_SUCCESS = "댓글 조회 성공했습니다.";
+  public static String REPLY_GET_SUCCESS = "대댓글 조회 성공했습니다.";
 }

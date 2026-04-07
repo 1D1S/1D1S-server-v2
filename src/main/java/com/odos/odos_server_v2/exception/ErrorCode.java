@@ -27,6 +27,8 @@ public enum ErrorCode {
   INVALID_NICKNAME_FORMAT(
       HttpStatus.BAD_REQUEST, "USER-004", "닉네임은 한글 또는 영어로 8자 이내이며, 특수문자는 사용할 수 없습니다."),
   MEMBER_PROFILE_PRIVATE(HttpStatus.FORBIDDEN, "USER-005", "비공개 프로필입니다."),
+  MEMBER_DELETED(HttpStatus.NOT_FOUND, "USER-006", "삭제 처리된 회원입니다."),
+  NICKNAME_ALREADY_EXISTS(HttpStatus.CONFLICT, "USER-007", "이미 사용 중인 닉네임입니다."),
 
   // diary
   DIARY_NOT_CREATED(HttpStatus.NOT_FOUND, "DIARY-001", "다이어리를 생성하는것에 실패하였습니다."),
@@ -50,7 +52,12 @@ public enum ErrorCode {
       HttpStatus.UNPROCESSABLE_ENTITY, "CHALLENGE_010", "챌린지 시작 후에는 목표를 변경 할 수 없습니다."),
   CANNOT_ACCEPT_PARTICIPANT(HttpStatus.UNPROCESSABLE_ENTITY, "CHALLENGE_011", "최대 참여 인원에 도달했습니다."),
   CANNOT_APPLY_PARTICIPANT(
-      HttpStatus.UNPROCESSABLE_ENTITY, "CHALLENGE_012", "챌린지 시작 후에는 챌린지에 신청할 수 없습니다.");
+      HttpStatus.UNPROCESSABLE_ENTITY, "CHALLENGE_012", "챌린지 시작 후에는 챌린지에 신청할 수 없습니다."),
+
+  // comment
+  COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "COMMENT-001", "존재하지 않는 댓글입니다."),
+  COMMENT_NOT_ACCESS(HttpStatus.FORBIDDEN, "COMMENT-002", "댓글 작성자가 아니어서 접근 권한이 없습니다."),
+  CANNOT_REPLY_TO_REPLY(HttpStatus.BAD_REQUEST, "COMMENT-003", "대댓글에는 대댓글을 작성할 수 없습니다.");
 
   private final HttpStatus status;
   private final String code;

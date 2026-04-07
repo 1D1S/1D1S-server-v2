@@ -34,4 +34,6 @@ public interface ChallengeRepository extends JpaRepository<Challenge, Long> {
         """)
   Page<Challenge> findByFilters(
       @Param("keyword") String keyword, @Param("category") Category category, Pageable pageable);
+
+  List<Challenge> findByHostMemberId(Long memberId);
 }

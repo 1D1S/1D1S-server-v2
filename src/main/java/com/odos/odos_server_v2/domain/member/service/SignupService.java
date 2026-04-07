@@ -36,6 +36,9 @@ public class SignupService {
     if (!request.getNickname().matches(regex)) {
       throw new CustomException(ErrorCode.INVALID_NICKNAME_FORMAT);
     }
+    if (memberRepository.existsByNickname(request.getNickname())) {
+      throw new CustomException(ErrorCode.NICKNAME_ALREADY_EXISTS);
+    }
 
     // profile url 부분 코드 수정
 

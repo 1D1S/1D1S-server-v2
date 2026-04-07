@@ -46,6 +46,8 @@ public class SecurityConfig {
                     .permitAll()
                     .requestMatchers(HttpMethod.GET, "/challenges/**")
                     .permitAll()
+                    .requestMatchers(HttpMethod.GET, "/comments/**")
+                    .permitAll()
                     .requestMatchers(
                         "/",
                         "/auth/**",
@@ -55,6 +57,7 @@ public class SecurityConfig {
                         "/js/**",
                         "/challenges/random",
                         "/diaries/random",
+                        "/member/nickname/check",
                         "/swagger",
                         "/swagger-ui.html",
                         "/swagger-ui/**",

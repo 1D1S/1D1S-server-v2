@@ -5,6 +5,8 @@ import com.odos.odos_server_v2.domain.member.dto.MyPageDto;
 import com.odos.odos_server_v2.domain.member.dto.NicknameRequest;
 import com.odos.odos_server_v2.domain.member.dto.ProfileImageRequest;
 import com.odos.odos_server_v2.domain.member.dto.SideBarDto;
+import com.odos.odos_server_v2.domain.member.repository.MemberRepository;
+import com.odos.odos_server_v2.domain.member.service.MemberDeleteService;
 import com.odos.odos_server_v2.domain.member.service.MemberService;
 import com.odos.odos_server_v2.domain.shared.dto.OffsetPagination;
 import com.odos.odos_server_v2.response.ApiResponse;
@@ -27,6 +29,42 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/member")
 public class MemberController {
   private final MemberService memberService;
+  private final MemberDeleteService memberDeleteService;
+  private final MemberRepository memberRepository;
+
+  @Operation(summary = "닉네임 중복 확인", description = "닉네임이 사용 가능한지 확인한다. 인증 없이 호출 가능하다.")
+  @ApiResponses({
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "200",
+        description = "사용 가능한 닉네임",
+        content =
+            @Content(
+                mediaType = "application/json",
+                examples =
+                    @ExampleObject(
+                        value =
+                            """
+                            { "message": "사용 가능한 닉네임입니다." }
+                            """))),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "409",
+        description = "이미 사용 중인 닉네임",
+        content =
+            @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class),
+                examples =
+                    @ExampleObject(
+                        value =
+                            """
+                            { "code": "USER-007", "message": "이미 사용 중인 닉네임입니다." }
+                            """)))
+  })
+  @GetMapping("/nickname/check")
+  public ApiResponse<Void> checkNickname(@RequestParam String nickname) {
+    memberService.checkNicknameDuplicate(nickname);
+    return ApiResponse.success(Message.NICKNAME_AVAILABLE);
+  }
 
   @Operation(summary = "마이페이지 조회", description = "로그인한 회원의 마이페이지 정보를 조회한다.")
   @ApiResponses({
@@ -417,6 +455,67 @@ public class MemberController {
                             """))),
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
         responseCode = "404",
+        description = "회원을 찾을 수 없거나 삭제 처리된 회원",
+        content =
+            @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class),
+                examples = {
+                  @ExampleObject(
+                      name = "회원 없음",
+                      value =
+                          """
+                                            { "code": "USER-003", "message": "회원을 찾을 수 없습니다." }
+                                            """),
+                  @ExampleObject(
+                      name = "삭제 처리된 회원",
+                      value =
+                          """
+                                            { "code": "USER-006", "message": "삭제 처리된 회원입니다." }
+                                            """)
+                }))
+  })
+  @GetMapping("/profile/{memberId}")
+  public ApiResponse<MyPageDto> getOtherProfile(
+      @RequestParam(defaultValue = "0") int page,
+      @RequestParam(defaultValue = "10") int size,
+      @PathVariable Long memberId) {
+    Pageable pageable = PageRequest.of(page, size);
+    return ApiResponse.success(
+        Message.GET_OTHERS_PROFILE, memberService.getOtherMyPage(memberId, pageable));
+  }
+
+  @Operation(summary = "회원 탈퇴", description = "로그인한 회원의 탈퇴를 요청한다. 실제 계정 삭제는 탈퇴 요청 후 7일 뒤 처리된다.")
+  @ApiResponses({
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "200",
+        description = "회원 탈퇴 요청 성공",
+        content =
+            @Content(
+                mediaType = "application/json",
+                examples =
+                    @ExampleObject(
+                        value =
+                            """
+                            {
+                              "message": "회원 탈퇴가 완료되었습니다."
+                            }
+                            """))),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "401",
+        description = "인증되지 않은 접근",
+        content =
+            @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class),
+                examples =
+                    @ExampleObject(
+                        value =
+                            """
+                            { "code": "AUTH-001", "message": "인증되지 않은 접근입니다." }
+                            """))),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "404",
         description = "회원을 찾을 수 없음",
         content =
             @Content(
@@ -429,13 +528,9 @@ public class MemberController {
                             { "code": "USER-003", "message": "회원을 찾을 수 없습니다." }
                             """)))
   })
-  @GetMapping("/profile/{memberId}")
-  public ApiResponse<MyPageDto> getOtherProfile(
-      @PathVariable Long memberId,
-      @RequestParam(defaultValue = "0") int page,
-      @RequestParam(defaultValue = "10") int size) {
-    Pageable pageable = PageRequest.of(page, size);
-    return ApiResponse.success(
-        Message.GET_OTHERS_PROFILE, memberService.getOtherMyPage(memberId, pageable));
+  @DeleteMapping()
+  public ApiResponse<Void> deleteMember() {
+    memberDeleteService.requestWithdraw();
+    return ApiResponse.success(Message.MEMBER_DELETE);
   }
 }
