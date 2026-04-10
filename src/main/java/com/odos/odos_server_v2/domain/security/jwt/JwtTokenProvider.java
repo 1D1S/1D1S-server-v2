@@ -106,15 +106,31 @@ public class JwtTokenProvider {
     addCookie(response, refreshTokenCookieName, refreshToken, refreshTokenExpirationPeriod);
   }
 
+  private void clearCookieVariants(HttpServletResponse response, String name) {
+    addCookie(response, name, "", 0L, false);
+    if (cookieDomain != null && !cookieDomain.isBlank()) {
+      addCookie(response, name, "", 0L, true);
+    }
+  }
+
   public void clearTokenCookies(HttpServletResponse response) {
-    addCookie(response, accessTokenCookieName, "", 0L);
-    addCookie(response, refreshTokenCookieName, "", 0L);
-    addCookie(response, LEGACY_ACCESS_TOKEN_COOKIE_NAME, "", 0L);
-    addCookie(response, LEGACY_REFRESH_TOKEN_COOKIE_NAME, "", 0L);
+    clearCookieVariants(response, accessTokenCookieName);
+    clearCookieVariants(response, refreshTokenCookieName);
+    clearCookieVariants(response, LEGACY_ACCESS_TOKEN_COOKIE_NAME);
+    clearCookieVariants(response, LEGACY_REFRESH_TOKEN_COOKIE_NAME);
   }
 
   private void addCookie(
       HttpServletResponse response, String name, String value, Long maxAgeMillis) {
+    addCookie(response, name, value, maxAgeMillis, true);
+  }
+
+  private void addCookie(
+      HttpServletResponse response,
+      String name,
+      String value,
+      Long maxAgeMillis,
+      boolean includeConfiguredDomain) {
     long maxAgeSeconds = maxAgeMillis <= 0 ? 0 : maxAgeMillis / 1000;
 
     ResponseCookie.ResponseCookieBuilder cookieBuilder =
@@ -125,7 +141,7 @@ public class JwtTokenProvider {
             .path("/")
             .maxAge(maxAgeSeconds);
 
-    if (cookieDomain != null && !cookieDomain.isBlank()) {
+    if (includeConfiguredDomain && cookieDomain != null && !cookieDomain.isBlank()) {
       cookieBuilder.domain(cookieDomain);
     }
 
