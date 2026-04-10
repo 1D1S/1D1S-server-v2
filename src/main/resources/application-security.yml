@@ -39,3 +39,8 @@ jwt:
   secret-key: ${JWT_SECRET}
   access-token-exp-time: ${JWT_ACCESS_EXPIRE}
   refresh-token-exp-time: ${JWT_REFRESH_EXPIRE}
+
+  cookie:
+    access-token-name: ${JWT_ACCESS_COOKIE_NAME:accessToken}
+    refresh-token-name: ${JWT_REFRESH_COOKIE_NAME:refreshToken}
+    domain: ${JWT_COOKIE_DOMAIN:}
