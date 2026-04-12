@@ -1,5 +1,11 @@
 package com.odos.odos_server_v2.domain.member.controller;
 
+import lombok.RequiredArgsConstructor;
+
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.web.bind.annotation.*;
+
 import com.odos.odos_server_v2.domain.member.CurrentUserContext;
 import com.odos.odos_server_v2.domain.member.dto.MyPageDto;
 import com.odos.odos_server_v2.domain.member.dto.NicknameRequest;
@@ -18,10 +24,6 @@ import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "회원", description = "회원 API")
 @RestController
@@ -548,10 +550,10 @@ public class MemberController {
                     @ExampleObject(
                         value =
                             """
-                                            {
-                                              "message": "회원 탈퇴가 완료되었습니다."
-                                            }
-                                            """))),
+                            {
+                            "message": "회원 탈퇴가 완료되었습니다."
+                            }
+                            """))),
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
         responseCode = "401",
         description = "인증되지 않은 접근",
@@ -563,8 +565,8 @@ public class MemberController {
                     @ExampleObject(
                         value =
                             """
-                                            { "code": "AUTH-001", "message": "인증되지 않은 접근입니다." }
-                                            """))),
+                            { "code": "AUTH-001", "message": "인증되지 않은 접근입니다." }
+                            """))),
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
         responseCode = "404",
         description = "회원을 찾을 수 없음",
@@ -576,8 +578,8 @@ public class MemberController {
                     @ExampleObject(
                         value =
                             """
-                                            { "code": "USER-003", "message": "회원을 찾을 수 없습니다." }
-                                            """)))
+                            { "code": "USER-003", "message": "회원을 찾을 수 없습니다." }
+                            """)))
   })
   @DeleteMapping("/test")
   public ApiResponse<Void> deleteMemberTest() {
