@@ -1,14 +1,17 @@
 package com.odos.odos_server_v2.domain.member.service;
 
+import java.time.LocalDateTime;
+import java.util.List;
+
+import lombok.RequiredArgsConstructor;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.odos.odos_server_v2.domain.challenge.service.ChallengeService;
 import com.odos.odos_server_v2.domain.member.CurrentUserContext;
 import com.odos.odos_server_v2.domain.member.entity.Member;
 import com.odos.odos_server_v2.domain.member.repository.MemberRepository;
-import java.time.LocalDateTime;
-import java.util.List;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -50,5 +53,22 @@ public class MemberDeleteService {
     for (Member member : targets) {
       hardDelete(member);
     }
+  }
+
+  @Transactional
+  public void requestWithdrawTest() {
+    Long memberId = CurrentUserContext.getCurrentMemberId();
+    Member member =
+            memberRepository
+                    .findById(memberId)
+                    .orElseThrow(() -> new IllegalArgumentException("회원이 존재하지 않습니다."));
+
+    // 탈퇴 상태 변경
+    member.withdraw();
+
+    // 주최 중인 챌린지 host 위임
+    challengeService.withdrawMemberLeaveChallengeHost(member.getId());
+
+    hardDelete(member);
   }
 }
