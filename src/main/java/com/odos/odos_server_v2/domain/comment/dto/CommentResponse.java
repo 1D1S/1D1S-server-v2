@@ -17,16 +17,19 @@ public class CommentResponse {
   private String authorProfileUrl;
   private String createdAt;
   private long replyCount;
+  private boolean isDeleted;
 
   public static CommentResponse from(Comment comment, String authorProfileUrl, long replyCount) {
+
     return CommentResponse.builder()
         .commentId(comment.getId())
         .content(comment.getIsDeleted() ? null : comment.getContent())
-        .authorId(comment.getMember().getId())
-        .authorNickname(comment.getMember().getNickname())
-        .authorProfileUrl(authorProfileUrl)
+        .authorId(comment.getIsDeleted() ? null : comment.getMember().getId())
+        .authorNickname(comment.getIsDeleted() ? null : comment.getMember().getNickname())
+        .authorProfileUrl(comment.getIsDeleted() ? null : authorProfileUrl)
         .createdAt(comment.getCreatedAt().toString())
         .replyCount(replyCount)
+        .isDeleted(comment.getIsDeleted())
         .build();
   }
 }
