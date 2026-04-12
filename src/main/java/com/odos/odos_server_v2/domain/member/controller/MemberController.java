@@ -536,52 +536,54 @@ public class MemberController {
     return ApiResponse.success(Message.MEMBER_DELETE);
   }
 
-    @Operation(summary = "회원 탈퇴", description = "로그인한 회원의 탈퇴를 요청한다. 테스트용으로 요청 시 바로 챌린지 권한이 위임되고 유저가 삭제된다.")
-    @ApiResponses({
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(
-                    responseCode = "200",
-                    description = "회원 탈퇴 요청 성공",
-                    content =
-                    @Content(
-                            mediaType = "application/json",
-                            examples =
-                            @ExampleObject(
-                                    value =
-                                            """
+  @Operation(
+      summary = "회원 탈퇴",
+      description = "로그인한 회원의 탈퇴를 요청한다. 테스트용으로 요청 시 바로 챌린지 권한이 위임되고 유저가 삭제된다.")
+  @ApiResponses({
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "200",
+        description = "회원 탈퇴 요청 성공",
+        content =
+            @Content(
+                mediaType = "application/json",
+                examples =
+                    @ExampleObject(
+                        value =
+                            """
                                             {
                                               "message": "회원 탈퇴가 완료되었습니다."
                                             }
                                             """))),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(
-                    responseCode = "401",
-                    description = "인증되지 않은 접근",
-                    content =
-                    @Content(
-                            mediaType = "application/json",
-                            schema = @Schema(implementation = ErrorResponse.class),
-                            examples =
-                            @ExampleObject(
-                                    value =
-                                            """
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "401",
+        description = "인증되지 않은 접근",
+        content =
+            @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class),
+                examples =
+                    @ExampleObject(
+                        value =
+                            """
                                             { "code": "AUTH-001", "message": "인증되지 않은 접근입니다." }
                                             """))),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(
-                    responseCode = "404",
-                    description = "회원을 찾을 수 없음",
-                    content =
-                    @Content(
-                            mediaType = "application/json",
-                            schema = @Schema(implementation = ErrorResponse.class),
-                            examples =
-                            @ExampleObject(
-                                    value =
-                                            """
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "404",
+        description = "회원을 찾을 수 없음",
+        content =
+            @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class),
+                examples =
+                    @ExampleObject(
+                        value =
+                            """
                                             { "code": "USER-003", "message": "회원을 찾을 수 없습니다." }
                                             """)))
-    })
+  })
   @DeleteMapping("/test")
-    public ApiResponse<Void> deleteMemberTest() {
-      memberDeleteService.requestWithdrawTest();
-      return ApiResponse.success(Message.MEMBER_DELETE);
+  public ApiResponse<Void> deleteMemberTest() {
+    memberDeleteService.requestWithdrawTest();
+    return ApiResponse.success(Message.MEMBER_DELETE);
   }
 }

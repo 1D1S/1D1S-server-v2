@@ -59,9 +59,9 @@ public class MemberDeleteService {
   public void requestWithdrawTest() {
     Long memberId = CurrentUserContext.getCurrentMemberId();
     Member member =
-            memberRepository
-                    .findById(memberId)
-                    .orElseThrow(() -> new IllegalArgumentException("회원이 존재하지 않습니다."));
+        memberRepository
+            .findById(memberId)
+            .orElseThrow(() -> new IllegalArgumentException("회원이 존재하지 않습니다."));
 
     // 탈퇴 상태 변경
     member.withdraw();
