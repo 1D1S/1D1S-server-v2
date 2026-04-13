@@ -10,6 +10,7 @@ import com.odos.odos_server_v2.domain.challenge.repository.ChallengeGoalReposito
 import com.odos.odos_server_v2.domain.challenge.repository.ChallengeRepository;
 import com.odos.odos_server_v2.domain.challenge.repository.ParticipantRepository;
 import com.odos.odos_server_v2.domain.challenge.service.ChallengeService;
+import com.odos.odos_server_v2.domain.comment.repository.CommentRepository;
 import com.odos.odos_server_v2.domain.diary.dto.DiaryRequest;
 import com.odos.odos_server_v2.domain.diary.dto.DiaryResponse;
 import com.odos.odos_server_v2.domain.diary.dto.ReportRequest;
@@ -53,6 +54,7 @@ public class DiaryService {
   private final ImageService imageService;
   private final DiaryImageRepository diaryImageRepository;
   private final ChallengeGoalRepository challengeGoalRepository;
+  private final CommentRepository commentRepository;
 
   @Transactional
   public DiaryResponse createDiary(Long memberId, DiaryRequest request) {
@@ -137,7 +139,8 @@ public class DiaryService {
         member,
         newDiary,
         challengeSummary,
-        imageService.getFileUrl(newDiary.getMember().getProfileUrl()));
+        imageService.getFileUrl(newDiary.getMember().getProfileUrl()),
+        0);
   }
 
   @Transactional
@@ -216,7 +219,8 @@ public class DiaryService {
         member,
         diary,
         challengeSummary,
-        imageService.getFileUrl(diary.getMember().getProfileUrl()));
+        imageService.getFileUrl(diary.getMember().getProfileUrl()),
+        commentRepository.countByDiaryId(diary.getId()));
   }
 
   @Transactional
@@ -244,7 +248,11 @@ public class DiaryService {
         challengeService.toChallengeSummary(diary.getChallenge(), memberId);
 
     return DiaryResponse.from(
-        viewer, diary, response, imageService.getFileUrl(diary.getMember().getProfileUrl()));
+        viewer,
+        diary,
+        response,
+        imageService.getFileUrl(diary.getMember().getProfileUrl()),
+        commentRepository.countByDiaryId(diary.getId()));
   }
 
   @Transactional
@@ -260,7 +268,8 @@ public class DiaryService {
               member,
               diary,
               challengeService.toChallengeSummary(diary.getChallenge(), memberId),
-              imageService.getFileUrl(diary.getMember().getProfileUrl())));
+              imageService.getFileUrl(diary.getMember().getProfileUrl()),
+              commentRepository.countByDiaryId(diary.getId())));
     }
     return diaryResponses;
   }
@@ -290,7 +299,8 @@ public class DiaryService {
               member,
               diary,
               challengeService.toChallengeSummary(diary.getChallenge(), memberId),
-              imageService.getFileUrl(diary.getMember().getProfileUrl())));
+              imageService.getFileUrl(diary.getMember().getProfileUrl()),
+              commentRepository.countByDiaryId(diary.getId())));
     }
 
     String nextCursor = null;
@@ -375,7 +385,8 @@ public class DiaryService {
                       currentMember,
                       diary,
                       challengeService.toChallengeSummary(diary.getChallenge(), currentMemberId),
-                      imageService.getFileUrl(diary.getMember().getProfileUrl())))
+                      imageService.getFileUrl(diary.getMember().getProfileUrl()),
+                      commentRepository.countByDiaryId(diary.getId())))
           .toList();
     } catch (CustomException e) {
       return Collections.emptyList();
@@ -421,7 +432,8 @@ public class DiaryService {
                     member,
                     diary,
                     challengeService.toChallengeSummary(diary.getChallenge(), memberId),
-                    imageService.getFileUrl(diary.getMember().getProfileUrl())));
+                    imageService.getFileUrl(diary.getMember().getProfileUrl()),
+                    commentRepository.countByDiaryId(diary.getId())));
 
     return OffsetPagination.from(diaryResponsePage);
   }
@@ -486,7 +498,8 @@ public class DiaryService {
                     member,
                     diary,
                     summary,
-                    imageService.getFileUrl(diary.getMember().getProfileUrl())));
+                    imageService.getFileUrl(diary.getMember().getProfileUrl()),
+                    commentRepository.countByDiaryId(diary.getId())));
     return OffsetPagination.from(result);
   }
 
@@ -507,7 +520,8 @@ public class DiaryService {
                 member,
                 diary,
                 challengeService.toChallengeSummary(diary.getChallenge(), memberId),
-                imageService.getFileUrl(diary.getMember().getProfileUrl())));
+                imageService.getFileUrl(diary.getMember().getProfileUrl()),
+                commentRepository.countByDiaryId(diary.getId())));
       }
       return diaryResponses;
     } catch (Exception e) {
@@ -534,7 +548,8 @@ public class DiaryService {
                     member,
                     diary,
                     challengeService.toChallengeSummary(diary.getChallenge(), memberId),
-                    imageService.getFileUrl(diary.getMember().getProfileUrl())));
+                    imageService.getFileUrl(diary.getMember().getProfileUrl()),
+                    commentRepository.countByDiaryId(diary.getId())));
 
     return OffsetPagination.from(diaryResponsePage);
   }
