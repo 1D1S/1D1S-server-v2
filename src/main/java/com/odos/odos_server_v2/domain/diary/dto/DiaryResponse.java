@@ -24,13 +24,15 @@ public class DiaryResponse {
   private List<String> imgUrl;
   private Boolean isPublic;
   private LikeDto likeInfo;
+  private long commentCount;
   private DiaryInfoDto diaryInfo;
 
   public static DiaryResponse from(
       Member member,
       Diary diary,
       ChallengeSummaryResponse challenge,
-      String authorProfileImageUrl) {
+      String authorProfileImageUrl,
+      long commentCount) {
 
     List<DiaryGoal> goals = diary.getDiaryGoals();
     List<DiaryGoalDto> diaryGoals =
@@ -91,6 +93,7 @@ public class DiaryResponse {
         .diaryInfo(info)
         .likeInfo(like)
         .imgUrl(imgUrl)
+        .commentCount(commentCount)
         .build();
   }
 }

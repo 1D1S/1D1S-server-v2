@@ -103,7 +103,8 @@ public class DiaryController {
                                                           "likedByMe": false,
                                                           "likeCnt": 0
                                                         },
-                                                 	    "diaryInfoDto": {
+                                                        "commentCount": 33,
+                                                 	    "diaryInfo": {
                                                             "createdAt": "2026-02-25",
                                                             "challengedDate": "2025-01-01",
                                                             "feeling": "HAPPY",
@@ -243,6 +244,7 @@ public class DiaryController {
                                                           "likedByMe": false,
                                                           "likeCnt": 0
                                                         },
+                                                        "commentCount": 33,
                                                  	    "diaryInfo": {
                                                             "createdAt": "2026-02-25",
                                                             "challengedDate": "2025-01-01",
@@ -349,6 +351,7 @@ public class DiaryController {
                                                           "likedByMe": false,
                                                           "likeCnt": 0
                                                         },
+                                                        "commentCount": 33,
                                                  	    "diaryInfo": {
                                                             "createdAt": "2026-02-25",
                                                             "challengedDate": "2025-01-01",
@@ -461,6 +464,7 @@ public class DiaryController {
                                                               "likedByMe": false,
                                                               "likeCnt": 2
                                                             },
+                                                            "commentCount": 33,
                                                             "diaryInfo": {
                                                               "createdAt": "2026-03-17T23:25:39",
                                                               "challengedDate": "2026-03-17",
@@ -510,6 +514,7 @@ public class DiaryController {
                                                               "likedByMe": false,
                                                               "likeCnt": 1
                                                             },
+                                                            "commentCount": 33,
                                                             "diaryInfo": {
                                                               "createdAt": "2026-03-18T21:34:30",
                                                               "challengedDate": "2026-03-17",
@@ -698,6 +703,7 @@ public class DiaryController {
                                                            "likedByMe": false,
                                                            "likeCnt": 0
                                                        },
+                                                       "commentCount": 33,
                                                        "diaryInfo": {
                                                            "createdAt": "2025-08-23",
                                                            "challengedDate": "2025-01-01",
@@ -1036,6 +1042,7 @@ public class DiaryController {
                                                            "likedByMe": false,
                                                            "likeCnt": 0
                                                        },
+                                                       "commentCount": 33,
                                                        "diaryInfo": {
                                                            "createdAt": "2025-08-23",
                                                            "challengedDate": "2025-01-01",
