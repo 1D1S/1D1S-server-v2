@@ -13,7 +13,6 @@ import com.odos.odos_server_v2.domain.shared.service.ImageService;
 import com.odos.odos_server_v2.exception.CustomException;
 import com.odos.odos_server_v2.exception.ErrorCode;
 import jakarta.transaction.Transactional;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -59,6 +58,9 @@ public class CommentService {
             .findById(parentCommentId)
             .orElseThrow(() -> new CustomException(ErrorCode.COMMENT_NOT_FOUND));
 
+    if (parent.getIsDeleted()) {
+      throw new CustomException(ErrorCode.COMMENT_NOT_FOUND);
+    }
     if (parent.getParent() != null) {
       throw new CustomException(ErrorCode.CANNOT_REPLY_TO_REPLY);
     }
@@ -87,18 +89,12 @@ public class CommentService {
     }
 
     comment.softDelete();
-
-    if (comment.getParent() == null) {
-      List<Comment> children = commentRepository.findByParentId(commentId);
-      children.forEach(Comment::softDelete);
-    }
   }
 
   @Transactional
   public OffsetPagination<CommentResponse> getComments(Long diaryId, int page, int size) {
     Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
-    Page<Comment> comments =
-        commentRepository.findByDiaryIdAndParentIsNullAndIsDeletedFalse(diaryId, pageable);
+    Page<Comment> comments = commentRepository.findByDiaryIdAndParentIsNull(diaryId, pageable);
 
     Page<CommentResponse> responsePage =
         comments.map(
@@ -106,7 +102,7 @@ public class CommentService {
                 CommentResponse.from(
                     comment,
                     imageService.getFileUrl(comment.getMember().getProfileUrl()),
-                    commentRepository.countByParentIdAndIsDeletedFalse(comment.getId())));
+                    commentRepository.countByParentId(comment.getId())));
 
     return OffsetPagination.from(responsePage);
   }
@@ -118,7 +114,7 @@ public class CommentService {
         .orElseThrow(() -> new CustomException(ErrorCode.COMMENT_NOT_FOUND));
 
     Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.ASC, "createdAt"));
-    Page<Comment> replies = commentRepository.findByParentIdAndIsDeletedFalse(commentId, pageable);
+    Page<Comment> replies = commentRepository.findByParentId(commentId, pageable);
 
     Page<CommentResponse> responsePage =
         replies.map(
