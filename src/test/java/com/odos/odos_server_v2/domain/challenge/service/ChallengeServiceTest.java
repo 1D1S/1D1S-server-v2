@@ -6,6 +6,7 @@ import com.odos.odos_server_v2.domain.challenge.entity.Challenge;
 import com.odos.odos_server_v2.domain.challenge.entity.ChallengeGoal;
 import com.odos.odos_server_v2.domain.challenge.entity.Enum.GoalType;
 import com.odos.odos_server_v2.domain.challenge.entity.Enum.ParticipantStatus;
+import com.odos.odos_server_v2.domain.challenge.entity.Enum.ParticipationType;
 import com.odos.odos_server_v2.domain.challenge.entity.Participant;
 import com.odos.odos_server_v2.domain.challenge.repository.ChallengeGoalRepository;
 import com.odos.odos_server_v2.domain.challenge.repository.ChallengeRepository;
@@ -223,7 +224,8 @@ class ChallengeServiceTest {
         .startDate(LocalDate.of(2026, 1, 1))
         .endDate(LocalDate.of(2026, 12, 31))
         .maxParticipantsCnt(10)
-        .type(GoalType.FLEXIBLE)
+        .goalType(GoalType.FLEXIBLE)
+        .participationType(ParticipationType.GROUP)
         .description("설명")
         .hostMember(host)
         .participants(new ArrayList<>())
