@@ -1,6 +1,6 @@
 package com.odos.odos_server_v2.domain.challenge.dto;
 
-import com.odos.odos_server_v2.domain.challenge.entity.Enum.ChallengeType;
+import com.odos.odos_server_v2.domain.challenge.entity.Enum.GoalType;
 import com.odos.odos_server_v2.domain.shared.Enum.Category;
 import com.odos.odos_server_v2.domain.shared.dto.LikeDto;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -37,7 +37,7 @@ public class ChallengeSummaryResponse {
   private Long maxParticipantCnt;
 
   @Schema(description = "챌린지 유형 (FIXED: 고정형, FLEXIBLE: 유연형)", example = "FIXED")
-  private ChallengeType challengeType;
+  private GoalType challengeType;
 
   @Schema(description = "현재 참여 인원", example = "5")
   private Long participantCnt;

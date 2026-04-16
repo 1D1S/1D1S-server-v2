@@ -1,6 +1,6 @@
 package com.odos.odos_server_v2.domain.challenge.dto;
 
-import com.odos.odos_server_v2.domain.challenge.entity.Enum.ChallengeType;
+import com.odos.odos_server_v2.domain.challenge.entity.Enum.GoalType;
 import com.odos.odos_server_v2.domain.shared.Enum.Category;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalDate;
@@ -40,7 +40,7 @@ public class ChallengeRequest {
   private int maxParticipantCnt;
 
   @Schema(description = "챌린지 유형 (FIXED: 고정형, FLEXIBLE: 유연형)", example = "FIXED")
-  private ChallengeType challengeType;
+  private GoalType challengeType;
 
   @Schema(description = "챌린지 목표 목록", example = "[\"알고리즘 1문제 풀기\", \"책 10페이지 읽기\"]")
   private List<String> goals;

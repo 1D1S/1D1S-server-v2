@@ -4,7 +4,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import com.odos.odos_server_v2.domain.challenge.entity.Challenge;
 import com.odos.odos_server_v2.domain.challenge.entity.ChallengeGoal;
-import com.odos.odos_server_v2.domain.challenge.entity.Enum.ChallengeType;
+import com.odos.odos_server_v2.domain.challenge.entity.Enum.GoalType;
 import com.odos.odos_server_v2.domain.challenge.entity.Enum.ParticipantStatus;
 import com.odos.odos_server_v2.domain.challenge.entity.Participant;
 import com.odos.odos_server_v2.domain.challenge.repository.ChallengeGoalRepository;
@@ -223,7 +223,7 @@ class ChallengeServiceTest {
         .startDate(LocalDate.of(2026, 1, 1))
         .endDate(LocalDate.of(2026, 12, 31))
         .maxParticipantsCnt(10)
-        .type(ChallengeType.FLEXIBLE)
+        .type(GoalType.FLEXIBLE)
         .description("설명")
         .hostMember(host)
         .participants(new ArrayList<>())
