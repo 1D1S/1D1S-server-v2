@@ -1,6 +1,7 @@
 package com.odos.odos_server_v2.domain.challenge.dto;
 
 import com.odos.odos_server_v2.domain.challenge.entity.Enum.GoalType;
+import com.odos.odos_server_v2.domain.challenge.entity.Enum.ParticipationType;
 import com.odos.odos_server_v2.domain.shared.Enum.Category;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalDate;
@@ -36,11 +37,14 @@ public class ChallengeRequest {
   @Schema(description = "중도 참여 허용 여부", example = "true")
   private Boolean allowMidJoin;
 
+  @Schema(description = "챌린지 형태 (INDIVIDUAL: 개인, GROUP: 단체)", example = "GROUP")
+  private ParticipationType participationType;
+
   @Schema(description = "최대 참여 인원", example = "10")
   private int maxParticipantCnt;
 
-  @Schema(description = "챌린지 유형 (FIXED: 고정형, FLEXIBLE: 유연형)", example = "FIXED")
-  private GoalType challengeType;
+  @Schema(description = "챌린지 목표 유형 (FIXED: 고정형, FLEXIBLE: 유연형)", example = "FIXED")
+  private GoalType goalType;
 
   @Schema(description = "챌린지 목표 목록", example = "[\"알고리즘 1문제 풀기\", \"책 10페이지 읽기\"]")
   private List<String> goals;

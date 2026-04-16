@@ -6,6 +6,7 @@ import com.odos.odos_server_v2.domain.challenge.entity.ChallengeGoal;
 import com.odos.odos_server_v2.domain.challenge.entity.ChallengeLike;
 import com.odos.odos_server_v2.domain.challenge.entity.Enum.GoalType;
 import com.odos.odos_server_v2.domain.challenge.entity.Enum.ParticipantStatus;
+import com.odos.odos_server_v2.domain.challenge.entity.Enum.ParticipationType;
 import com.odos.odos_server_v2.domain.challenge.entity.Participant;
 import com.odos.odos_server_v2.domain.challenge.repository.ChallengeGoalRepository;
 import com.odos.odos_server_v2.domain.challenge.repository.ChallengeLikeRepository;
@@ -60,6 +61,15 @@ public class ChallengeService {
         memberRepository
             .findById(memberId)
             .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+    if (challengeRequest.getParticipationType().equals(ParticipationType.GROUP)
+        && challengeRequest.getMaxParticipantCnt() < 2) {
+      throw new CustomException(ErrorCode.INVALID_CHALLENGE_REQUEST);
+    }
+    if (challengeRequest.getParticipationType().equals(ParticipationType.INDIVIDUAL)
+        && challengeRequest.getMaxParticipantCnt() != 1) {
+      throw new CustomException(ErrorCode.INVALID_CHALLENGE_REQUEST);
+    }
+
     Challenge challenge =
         Challenge.builder()
             .title(challengeRequest.getTitle())
@@ -68,10 +78,11 @@ public class ChallengeService {
             .startDate(challengeRequest.getStartDate())
             .endDate(challengeRequest.getEndDate())
             .maxParticipantsCnt(challengeRequest.getMaxParticipantCnt())
-            .goalType(challengeRequest.getChallengeType())
+            .goalType(challengeRequest.getGoalType())
             .description(challengeRequest.getDescription())
             .hostMember(member)
             .allowMidJoin(challengeRequest.getAllowMidJoin())
+            .participationType(challengeRequest.getParticipationType())
             .build();
 
     challengeRepository.save(challenge);
@@ -540,6 +551,7 @@ public class ChallengeService {
         challenge.getCategory(),
         challenge.getStartDate(),
         challenge.getEndDate(),
+        challenge.getParticipationType(),
         challenge.getMaxParticipantsCnt(),
         challenge.getGoalType(),
         getParticipantCnt(challengeId),
