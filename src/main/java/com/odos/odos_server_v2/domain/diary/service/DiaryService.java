@@ -3,7 +3,7 @@ package com.odos.odos_server_v2.domain.diary.service;
 import com.odos.odos_server_v2.domain.challenge.dto.ChallengeSummaryResponse;
 import com.odos.odos_server_v2.domain.challenge.entity.Challenge;
 import com.odos.odos_server_v2.domain.challenge.entity.ChallengeGoal;
-import com.odos.odos_server_v2.domain.challenge.entity.Enum.ChallengeType;
+import com.odos.odos_server_v2.domain.challenge.entity.Enum.GoalType;
 import com.odos.odos_server_v2.domain.challenge.entity.Enum.ParticipantStatus;
 import com.odos.odos_server_v2.domain.challenge.entity.Participant;
 import com.odos.odos_server_v2.domain.challenge.repository.ChallengeGoalRepository;
@@ -93,7 +93,7 @@ public class DiaryService {
 
     // 챌린지 타입별 목표를 기반으로 다이어리 목표달성 생성 및 저장
     List<ChallengeGoal> challengeGoals;
-    if (challenge.getType().equals(ChallengeType.FIXED)) {
+    if (challenge.getGoalType().equals(GoalType.FIXED)) {
       challengeGoals =
           challengeGoalRepository.getFixedGoals(
               challenge.getHostMember().getId(), challenge.getId());
@@ -171,7 +171,7 @@ public class DiaryService {
             .orElseThrow(() -> new CustomException(ErrorCode.PARTICIPANT_NOT_FOUND));
 
     List<ChallengeGoal> challengeGoals;
-    if (challenge.getType().equals(ChallengeType.FIXED)) {
+    if (challenge.getGoalType().equals(GoalType.FIXED)) {
       challengeGoals =
           challengeGoalRepository.getFixedGoals(
               challenge.getHostMember().getId(), challenge.getId());

@@ -9,8 +9,9 @@ import static org.mockito.Mockito.when;
 
 import com.odos.odos_server_v2.domain.challenge.entity.Challenge;
 import com.odos.odos_server_v2.domain.challenge.entity.ChallengeGoal;
-import com.odos.odos_server_v2.domain.challenge.entity.Enum.ChallengeType;
+import com.odos.odos_server_v2.domain.challenge.entity.Enum.GoalType;
 import com.odos.odos_server_v2.domain.challenge.entity.Enum.ParticipantStatus;
+import com.odos.odos_server_v2.domain.challenge.entity.Enum.ParticipationType;
 import com.odos.odos_server_v2.domain.challenge.entity.Participant;
 import com.odos.odos_server_v2.domain.challenge.repository.ChallengeGoalRepository;
 import com.odos.odos_server_v2.domain.challenge.repository.ChallengeRepository;
@@ -152,7 +153,8 @@ class DiaryServiceTest {
         .startDate(LocalDate.of(2026, 3, 1))
         .endDate(LocalDate.of(2026, 3, 31))
         .maxParticipantsCnt(10)
-        .type(ChallengeType.FIXED)
+        .goalType(GoalType.FIXED)
+        .participationType(ParticipationType.GROUP)
         .description("host 목표 기준으로 진행")
         .hostMember(host)
         .participants(new ArrayList<>())
