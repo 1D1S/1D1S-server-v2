@@ -576,7 +576,8 @@ public class ChallengeService {
         challenge.getMaxParticipantsCnt(),
         challenge.getGoalType(),
         getParticipantCnt(challengeId),
-        likeInfo);
+        likeInfo,
+        challenge.getDeletedAt() != null);
   }
 
   private ChallengeDetailDto toChallengeDetail(Challenge challenge, Long memberId) {
