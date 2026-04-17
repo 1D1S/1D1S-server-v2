@@ -40,7 +40,7 @@ public class ChallengeSummaryResponse {
   @Schema(description = "최대 참여 인원", example = "10")
   private Long maxParticipantCnt;
 
-  @Schema(description = "챌린지 유형 (FIXED: 고정형, FLEXIBLE: 유연형)", example = "FIXED")
+  @Schema(description = "챌린지 유형 (FIXED: 고정목표, FLEXIBLE: 자유목표)", example = "FIXED")
   private GoalType goalType;
 
   @Schema(description = "현재 참여 인원", example = "5")
@@ -48,4 +48,7 @@ public class ChallengeSummaryResponse {
 
   @Schema(description = "좋아요 정보")
   private LikeDto likeInfo;
+
+  @Schema(description = "삭제 여부")
+  private boolean isDeleted;
 }

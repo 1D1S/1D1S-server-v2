@@ -1,6 +1,7 @@
 package com.odos.odos_server_v2.domain.challenge.repository;
 
 import com.odos.odos_server_v2.domain.challenge.entity.Challenge;
+import com.odos.odos_server_v2.domain.challenge.entity.Enum.ParticipationType;
 import com.odos.odos_server_v2.domain.shared.Enum.Category;
 import java.util.List;
 import org.springframework.data.domain.Page;
@@ -36,4 +37,7 @@ public interface ChallengeRepository extends JpaRepository<Challenge, Long> {
       @Param("keyword") String keyword, @Param("category") Category category, Pageable pageable);
 
   List<Challenge> findByHostMemberId(Long memberId);
+
+  List<Challenge> findByHostMemberIdAndParticipationTypeAndDeletedAtIsNotNull(
+      Long memberId, ParticipationType participationType);
 }
