@@ -56,6 +56,8 @@ public class Challenge {
 
   @Column @CreatedDate private LocalDateTime createdAt;
 
+  @Column private LocalDateTime deletedAt;
+
   @ManyToOne
   @JoinColumn(name = "host_member_id")
   private Member hostMember;
@@ -95,5 +97,13 @@ public class Challenge {
 
   public void setHostMember(Member member) {
     this.hostMember = member;
+  }
+
+  public void softDelete() {
+    this.deletedAt = LocalDateTime.now();
+  }
+
+  public void restore() {
+    this.deletedAt = null;
   }
 }

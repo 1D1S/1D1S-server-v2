@@ -28,6 +28,7 @@ import com.odos.odos_server_v2.domain.shared.service.ImageService;
 import com.odos.odos_server_v2.exception.CustomException;
 import com.odos.odos_server_v2.exception.ErrorCode;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Collections;
 import java.util.List;
@@ -313,9 +314,26 @@ public class ChallengeService {
   }
 
   public void withdrawMemberLeaveChallengeHost(Long memberId) {
-    List<Challenge> challenges = challengeRepository.findByHostMemberId(memberId);
+    return;
+  }
+
+  public void withdrawMemberLeaveChallenge(Long memberId) {
+    List<Participant> participants = participantRepository.findByMemberId(memberId);
+    for (Participant p : participants) {
+      leaveChallenge(memberId, p.getChallenge().getId());
+    }
+  }
+
+  @Transactional
+  public void rejoinMemberRestoreIndividualChallenge(Long memberId) {
+    List<Challenge> challenges =
+        challengeRepository.findByHostMemberIdAndParticipationTypeAndDeletedAtIsNotNull(
+            memberId, ParticipationType.INDIVIDUAL);
     for (Challenge c : challenges) {
-      leaveChallengeHost(memberId, c.getId());
+      if (c.getDeletedAt().isAfter(LocalDateTime.now().minusDays(7))) {
+        c.restore();
+        // TODO: 일지 복구 처리
+      }
     }
   }
 
@@ -325,19 +343,24 @@ public class ChallengeService {
         challengeRepository
             .findById(challengeId)
             .orElseThrow(() -> new CustomException(ErrorCode.CHALLENGE_NOT_FOUND));
-    // 호스트라면 탈퇴할 수 없음, 추후 수정 필요
-    if (challenge.getHostMember().getId().equals(memberId)) {
-      leaveChallengeHost(memberId, challengeId);
+
+    if (challenge.getParticipationType().equals(ParticipationType.INDIVIDUAL)) {
+      // 개인 챌린지
+      challenge.softDelete();
+      // TODO: 일지 삭제 처리
     } else {
-      Participant participant =
-          participantRepository
-              .findByMemberIdAndChallengeId(memberId, challengeId)
-              .orElseThrow(() -> new CustomException(ErrorCode.PARTICIPANT_NOT_FOUND));
-      if (participant == null) {
-        throw new CustomException(ErrorCode.PARTICIPANT_NOT_FOUND);
+      // 단체 챌린지
+      // 호스트라면 호스트를 넘김
+      if (challenge.getHostMember().getId().equals(memberId)) {
+        leaveChallengeHost(memberId, challengeId);
+      } else {
+        Participant participant =
+            participantRepository
+                .findByMemberIdAndChallengeId(memberId, challengeId)
+                .orElseThrow(() -> new CustomException(ErrorCode.PARTICIPANT_NOT_FOUND));
+        participant.setStatus(ParticipantStatus.LEAVE);
+        // TODO: 일지 삭제 처리
       }
-      // 일지 소프트 딜리트 필요
-      participant.setStatus(ParticipantStatus.LEAVE);
     }
   }
 
@@ -346,9 +369,6 @@ public class ChallengeService {
         challengeRepository
             .findById(challengeId)
             .orElseThrow(() -> new CustomException(ErrorCode.CHALLENGE_NOT_FOUND));
-    if (!challenge.getHostMember().getId().equals(memberId)) {
-      throw new CustomException(ErrorCode.NO_AUTHORITY);
-    }
     List<Participant> participants =
         participantRepository.findByChallengeIdAndStatusIn(
             challengeId, List.of(ParticipantStatus.HOST, ParticipantStatus.PARTICIPANT));
@@ -364,8 +384,9 @@ public class ChallengeService {
         participants.stream().filter(p -> p.getStatus() != ParticipantStatus.HOST).toList();
 
     if (candidates.isEmpty()) {
-      // 남은 참가자 없으면 챌린지 자체를 닫거나 삭제
-      throw new IllegalStateException("위임할 참가자가 없습니다");
+      challenge.softDelete();
+      currentHost.setStatus(ParticipantStatus.LEAVE);
+      return;
     }
 
     Participant nextHost = null;
