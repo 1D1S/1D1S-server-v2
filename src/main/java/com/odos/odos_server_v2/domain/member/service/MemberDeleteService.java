@@ -1,5 +1,7 @@
 package com.odos.odos_server_v2.domain.member.service;
 
+import java.time.LocalDateTime;
+import java.util.List;
 
 import lombok.RequiredArgsConstructor;
 
@@ -49,5 +51,16 @@ public class MemberDeleteService {
 
     // 주최 중인 챌린지 host 위임
     challengeService.withdrawMemberLeaveChallengeHost(member.getId());
+  }
+
+  @Transactional
+  public void processDeletion() {
+    LocalDateTime threshold = LocalDateTime.now().minusDays(7);
+
+    List<Member> targets = memberRepository.findDeletableMembers(threshold);
+
+    for (Member member : targets) {
+      member.softDelete();
+    }
   }
 }

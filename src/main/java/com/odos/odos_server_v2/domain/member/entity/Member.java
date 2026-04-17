@@ -152,4 +152,16 @@ public class Member {
     this.status = MemberStatus.WITHDRAWN;
     this.deletedAt = LocalDateTime.now();
   }
+
+  public void softDelete() {
+    this.status = MemberStatus.DELETED;
+
+    String dummySuffix = this.id + "_" + System.currentTimeMillis();
+
+    this.email = "deleted_" + dummySuffix + "@deleted.local";
+    this.socialId = "deleted_" + dummySuffix;
+    this.nickname = "탈퇴한 사용자";
+
+    this.refreshToken = null;
+  }
 }
