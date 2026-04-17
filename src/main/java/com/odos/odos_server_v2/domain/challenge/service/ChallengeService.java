@@ -213,6 +213,9 @@ public class ChallengeService {
         challengeRepository
             .findById(challengeId)
             .orElseThrow(() -> new CustomException(ErrorCode.CHALLENGE_NOT_FOUND));
+    if (challenge.getDeletedAt() != null) {
+      throw new CustomException(ErrorCode.CANNOT_APPLY_PARTICIPANT);
+    }
     Member member =
         memberRepository
             .findById(memberId)
@@ -221,7 +224,7 @@ public class ChallengeService {
     if (participantRepository.existsByChallengeIdAndMemberId(challengeId, memberId)) {
       throw new CustomException(ErrorCode.ALREADY_APPLIED);
     }
-    if (challenge.getStartDate().isBefore(LocalDate.now())) {
+    if (!challenge.isAllowMidJoin() && challenge.getStartDate().isBefore(LocalDate.now())) {
       throw new CustomException(ErrorCode.CANNOT_APPLY_PARTICIPANT);
     }
     Participant participant =
