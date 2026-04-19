@@ -42,6 +42,7 @@ public interface DiaryRepository extends JpaRepository<Diary, Long> {
         select d
         from Diary d
         where d.isPublic = true and d.member.id = :memberId
+        order by d.createdAt desc
         """)
   List<Diary> findOthersPublicDiaries(@Param("memberId") Long memberId);
 
@@ -50,12 +51,13 @@ public interface DiaryRepository extends JpaRepository<Diary, Long> {
             select d
             from Diary d
             where d.isPublic = true and d.member.id = :memberId
+            order by d.createdAt desc
             """)
   Page<Diary> findOthersPublicDiariesByOffset(@Param("memberId") Long memberId, Pageable pageable);
 
-  Page<Diary> findDiariesByChallengeIdAndIsPublic(
+  Page<Diary> findDiariesByChallengeIdAndIsPublicOrderByCreatedAtDesc(
       Long challengeId, Boolean isPublic, Pageable pageable);
 
   // 같은 챌린지의 참여자이면 비공개일지까지 조회되도록
-  Page<Diary> findAllByChallengeId(Long challengeId, Pageable pageable);
+  Page<Diary> findAllByChallengeIdOrderByCreatedAtDesc(Long challengeId, Pageable pageable);
 }

@@ -485,10 +485,11 @@ public class DiaryService {
             challengeId, memberId, ParticipantStatus.PARTICIPANT)
         || (participantRepository.existsByChallengeIdAndMemberIdAndStatus(
             challengeId, memberId, ParticipantStatus.HOST)))) {
-      diaries = diaryRepository.findAllByChallengeId(challengeId, pageable);
+      diaries = diaryRepository.findAllByChallengeIdOrderByCreatedAtDesc(challengeId, pageable);
     } else {
       diaries =
-          diaryRepository.findDiariesByChallengeIdAndIsPublic(challengeId, Boolean.TRUE, pageable);
+          diaryRepository.findDiariesByChallengeIdAndIsPublicOrderByCreatedAtDesc(
+              challengeId, Boolean.TRUE, pageable);
     }
 
     Page<DiaryResponse> result =
