@@ -1243,7 +1243,7 @@ public class DiaryController {
                         value =
                             """
                                             {
-                                              "message": "다이어리 중 작성자 본인 조회 성공했습니다.",
+                                              "message": "특정 목표 달성 날짜의 일지 리스트 조회 완료했습니다.",
                                               "data": {
                                                 "items": [
                                                   {
@@ -1297,14 +1297,14 @@ public class DiaryController {
                                             """))),
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
         responseCode = "400",
-        description = "완료 날짜 기준 일지 조회 실패(요청 값 검증 실패 등)",
+        description = "멤버를 찾을 수 없습니다.",
         content =
             @Content(
                 mediaType = "application/json",
                 schema = @Schema(implementation = ErrorResponse.class),
                 examples =
                     @ExampleObject(
-                        name = "잘못된 날짜 형식",
+                        name = "잘못된 멤버",
                         value =
                             """
                                             {
@@ -1326,5 +1326,107 @@ public class DiaryController {
     OffsetPagination<DiaryResponse> result =
         diaryService.getDiariesByCompletedDate(completedDate, pageable);
     return ApiResponse.success(Message.DIARIES_BY_COMPLETED_DATE, result);
+  }
+
+  @Operation(
+      summary = "생성 날짜 기준 일지 조회",
+      description = "선택한 생성된 날짜와 동일한 createdAt를 가진 일지를 페이지네이션으로 조회한다.")
+  @ApiResponses({
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "200",
+        description = "생성 날짜 기준 일지 조회 성공",
+        content =
+            @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = OffsetPagination.class),
+                examples =
+                    @ExampleObject(
+                        name = "생성 날짜 기준 조회 성공 예시",
+                        value =
+                            """
+                                                            {
+                                                              "message": "특정 생성된 날짜의 일지 리스트 조회 완료했습니다.",
+                                                              "data": {
+                                                                "items": [
+                                                                  {
+                                                                    "id": 12,
+                                                                    "challenge": {
+                                                                      "challengeId": 3,
+                                                                      "title": "30일 독서 챌린지",
+                                                                      "category": "STUDY",
+                                                                      "startDate": "2026-04-01",
+                                                                      "endDate": "2026-04-30",
+                                                                      "maxParticipantCnt": 20,
+                                                                      "challengeType": "FIXED",
+                                                                      "participantCnt": 8,
+                                                                      "likeInfo": {
+                                                                        "likedByMe": false,
+                                                                        "likeCnt": 2
+                                                                      }
+                                                                    },
+                                                                    "author": {
+                                                                      "id": 1,
+                                                                      "nickname": "odos",
+                                                                      "profileImage": "https://example.com/profile.png"
+                                                                    },
+                                                                    "title": "4월 19일 일지",
+                                                                    "content": "오늘은 책 40페이지 읽기 완료",
+                                                                    "imgUrl": [],
+                                                                    "isPublic": true,
+                                                                    "likeInfo": {
+                                                                      "likedByMe": false,
+                                                                      "likeCnt": 0
+                                                                    },
+                                                                    "commentCount": 0,
+                                                                    "diaryInfo": {
+                                                                      "createdAt": "2026-04-19T10:30:00",
+                                                                      "challengedDate": "2026-04-19",
+                                                                      "feeling": "HAPPY",
+                                                                      "diaryGoal": [],
+                                                                      "achievementRate": 100
+                                                                    }
+                                                                  }
+                                                                ],
+                                                                "pageInfo": {
+                                                                  "page": 0,
+                                                                  "size": 10,
+                                                                  "totalElements": 1,
+                                                                  "totalPages": 1,
+                                                                  "hasNextPage": false
+                                                                }
+                                                              }
+                                                            }
+                                                            """))),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "400",
+        description = "멤버를 찾을 수 없습니다.",
+        content =
+            @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class),
+                examples =
+                    @ExampleObject(
+                        name = "잘못된 멤버",
+                        value =
+                            """
+                                                            {
+                                                              "code": "USER-003",
+                                                              "message": "회원을 찾을 수 없습니다."
+                                                            }
+                                                            """)))
+  })
+  @GetMapping("/created-date")
+  public ApiResponse<OffsetPagination<DiaryResponse>> getDiariesByCreatedDate(
+      @Parameter(description = "조회할 완료 날짜 (yyyy-MM-dd 형식)", example = "2026-04-19", required = true)
+          @RequestParam("createdDate")
+          LocalDate createdDate,
+      @Parameter(description = "페이지 번호", example = "0") @RequestParam(defaultValue = "0") int page,
+      @Parameter(description = "페이지 크기", example = "10") @RequestParam(defaultValue = "10")
+          int size) {
+    Pageable pageable =
+        PageRequest.of(page, size, Sort.by(Sort.Order.desc("createdAt"), Sort.Order.desc("id")));
+    OffsetPagination<DiaryResponse> result =
+        diaryService.getDiariesByCreatedDate(createdDate, pageable);
+    return ApiResponse.success(Message.DIARIES_BY_CREATED_DATE, result);
   }
 }

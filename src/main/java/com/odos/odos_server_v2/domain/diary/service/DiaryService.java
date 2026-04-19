@@ -578,4 +578,28 @@ public class DiaryService {
 
     return OffsetPagination.from(diaryResponsePage);
   }
+
+  @Transactional
+  public OffsetPagination<DiaryResponse> getDiariesByCreatedDate(
+      LocalDate createdAt, Pageable pageable) {
+    Long memberId = CurrentUserContext.getCurrentMemberId();
+    Member member =
+        memberRepository
+            .findById(memberId)
+            .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+
+    Page<Diary> diaries = diaryRepository.findDiariesWithCreatedDate(createdAt, pageable);
+
+    Page<DiaryResponse> diaryResponsePage =
+        diaries.map(
+            diary ->
+                DiaryResponse.from(
+                    member,
+                    diary,
+                    challengeService.toChallengeSummary(diary.getChallenge(), memberId),
+                    imageService.getFileUrl(diary.getMember().getProfileUrl()),
+                    commentRepository.countByDiaryId(diary.getId())));
+
+    return OffsetPagination.from(diaryResponsePage);
+  }
 }
