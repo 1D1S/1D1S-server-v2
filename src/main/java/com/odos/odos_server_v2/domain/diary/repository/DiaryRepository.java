@@ -60,4 +60,17 @@ public interface DiaryRepository extends JpaRepository<Diary, Long> {
 
   // 같은 챌린지의 참여자이면 비공개일지까지 조회되도록
   Page<Diary> findAllByChallengeId(Long challengeId, Pageable pageable);
+
+  // 특정 날짜의 일지 (완료날짜 기준)
+  @Query("select d from Diary d where d.completedDate=:completedDate")
+  Page<Diary> findDiariesWithCompletedDate(
+      @Param("completedDate") LocalDate startDate, Pageable pageable);
+
+  @Query(
+      "select d from Diary d where d.completedDate between :startDate and :endDate and d.member.id=:writer and d.challenge.id=:id")
+  List<Diary> findDiariesWithDateRange(
+      @Param("startDate") LocalDate startDate,
+      @Param("endDate") LocalDate endDate,
+      @Param("id") Long id,
+      @Param("writer") Long writer);
 }
