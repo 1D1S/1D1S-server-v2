@@ -24,6 +24,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -570,7 +571,8 @@ public class DiaryController {
       @PathVariable(name = "challengeId") Long challengeId,
       @RequestParam(defaultValue = "0") int page,
       @RequestParam(defaultValue = "10") int size) {
-    Pageable pageable = PageRequest.of(page, size);
+    Pageable pageable =
+        PageRequest.of(page, size, Sort.by(Sort.Order.desc("createdAt"), Sort.Order.desc("id")));
     OffsetPagination<DiaryResponse> diaries =
         diaryService.getChallengeDiaries(challengeId, pageable);
     return ApiResponse.success(Message.CHALLENGE_DIARY_GET, diaries);
@@ -1075,7 +1077,8 @@ public class DiaryController {
   @GetMapping("/my")
   public ApiResponse<OffsetPagination<DiaryResponse>> getMyDiaries(
       @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size) {
-    Pageable pageable = PageRequest.of(page, size);
+    Pageable pageable =
+        PageRequest.of(page, size, Sort.by(Sort.Order.desc("createdAt"), Sort.Order.desc("id")));
     OffsetPagination<DiaryResponse> result = diaryService.getMyDiaries(pageable);
     return ApiResponse.success(Message.DIARY_GET_MY_ALL_SUCCESS, result);
   }

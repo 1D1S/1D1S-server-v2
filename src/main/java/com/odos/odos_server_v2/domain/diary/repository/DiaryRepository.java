@@ -42,6 +42,7 @@ public interface DiaryRepository extends JpaRepository<Diary, Long> {
         select d
         from Diary d
         where d.isPublic = true and d.member.id = :memberId
+        order by d.createdAt desc, d.id desc
         """)
   List<Diary> findOthersPublicDiaries(@Param("memberId") Long memberId);
 
@@ -50,6 +51,7 @@ public interface DiaryRepository extends JpaRepository<Diary, Long> {
             select d
             from Diary d
             where d.isPublic = true and d.member.id = :memberId
+            order by d.createdAt desc, d.id desc
             """)
   Page<Diary> findOthersPublicDiariesByOffset(@Param("memberId") Long memberId, Pageable pageable);
 
