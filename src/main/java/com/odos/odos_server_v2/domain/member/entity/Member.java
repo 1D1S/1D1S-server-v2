@@ -164,4 +164,9 @@ public class Member {
 
     this.refreshToken = null;
   }
+
+  public void restore() {
+    this.status = MemberStatus.ACTIVE;
+    this.deletedAt = null;
+  }
 }
