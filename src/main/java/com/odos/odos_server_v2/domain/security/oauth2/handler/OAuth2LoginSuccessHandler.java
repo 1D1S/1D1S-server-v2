@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.odos.odos_server_v2.domain.member.entity.Enum.SignupRoute;
 import com.odos.odos_server_v2.domain.member.entity.Member;
 import com.odos.odos_server_v2.domain.member.repository.MemberRepository;
+import com.odos.odos_server_v2.domain.member.service.MemberDeleteService;
 import com.odos.odos_server_v2.domain.security.jwt.JwtTokenProvider;
 import com.odos.odos_server_v2.domain.security.jwt.MemberPrincipal;
 import com.odos.odos_server_v2.domain.security.oauth2.OAuth2LoginResponse;
@@ -28,6 +29,7 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
   private final JwtTokenProvider jwtTokenProvider;
   private final ObjectMapper objectMapper;
   private final MemberRepository memberRepository;
+  private final MemberDeleteService memberDeleteService;
 
   @Override
   public void onAuthenticationSuccess(
@@ -73,5 +75,8 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
     ApiResponse<OAuth2LoginResponse> apiResponse = ApiResponse.success(LOGIN_SUCCESS, dto);
     response.getWriter().write(objectMapper.writeValueAsString(apiResponse));
     // log.debug("OAuth2 login success - {} (profileComplete={})", email, isProfileComplete);
+
+    // 탈퇴 처리 이후 7일 이전 로그인 시
+    memberDeleteService.restoreMember();
   }
 }
