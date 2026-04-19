@@ -28,6 +28,7 @@ import com.odos.odos_server_v2.exception.CustomException;
 import com.odos.odos_server_v2.exception.ErrorCode;
 import jakarta.transaction.Transactional;
 import java.io.IOException;
+import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -540,6 +541,30 @@ public class DiaryService {
             .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
 
     Page<Diary> diaries = diaryRepository.findOthersPublicDiariesByOffset(otherMemberId, pageable);
+
+    Page<DiaryResponse> diaryResponsePage =
+        diaries.map(
+            diary ->
+                DiaryResponse.from(
+                    member,
+                    diary,
+                    challengeService.toChallengeSummary(diary.getChallenge(), memberId),
+                    imageService.getFileUrl(diary.getMember().getProfileUrl()),
+                    commentRepository.countByDiaryId(diary.getId())));
+
+    return OffsetPagination.from(diaryResponsePage);
+  }
+
+  @Transactional
+  public OffsetPagination<DiaryResponse> getDiariesByCompletedDate(
+      LocalDate completedDate, Pageable pageable) {
+    Long memberId = CurrentUserContext.getCurrentMemberId();
+    Member member =
+        memberRepository
+            .findById(memberId)
+            .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+
+    Page<Diary> diaries = diaryRepository.findDiariesWithCompletedDate(completedDate, pageable);
 
     Page<DiaryResponse> diaryResponsePage =
         diaries.map(
