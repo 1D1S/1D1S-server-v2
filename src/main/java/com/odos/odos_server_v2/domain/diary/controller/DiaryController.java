@@ -1417,7 +1417,10 @@ public class DiaryController {
   })
   @GetMapping("/created-date")
   public ApiResponse<OffsetPagination<DiaryResponse>> getDiariesByCreatedDate(
-      @Parameter(description = "조회할 완료 날짜 (yyyy-MM-dd 형식)", example = "2026-04-19", required = true)
+      @Parameter(
+              description = "조회할 생성된 날짜 (yyyy-MM-dd 형식)",
+              example = "2026-03-19",
+              required = true)
           @RequestParam("createdDate")
           LocalDate createdDate,
       @Parameter(description = "페이지 번호", example = "0") @RequestParam(defaultValue = "0") int page,
