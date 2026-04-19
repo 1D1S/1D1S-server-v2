@@ -25,6 +25,7 @@ public class Message {
   public static String DIARIES_BY_COMPLETED_DATE = "특정 목표 달성 날짜의 일지 리스트 조회 완료했습니다.";
   public static String DIARIES_BY_CREATED_DATE = "특정 생성된 날짜의 일지 리스트 조회 완료했습니다.";
   public static String DIARIES_BY_COMPLETED_DATE_WITH_RANGE = "특정 목표 달성 날짜 기간별 일지 리스트 조회 완료했습니다.";
+  public static String DIARIES_BY_CREATED_DATE_WITH_RANGE = "특정 일지 생성 날짜 기간별 일지 리스트 조회 완료했습니다.";
 
   // challenge
   public static String CREATE_CHALLENGE = "챌린지 생성 성공했습니다.";

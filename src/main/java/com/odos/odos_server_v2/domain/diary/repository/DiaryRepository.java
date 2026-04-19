@@ -76,6 +76,10 @@ public interface DiaryRepository extends JpaRepository<Diary, Long> {
       @Param("endDate") LocalDate endDate,
       Pageable pageable);
 
+  @Query("select d from Diary d where d.createdAt between :startDate and :endDate")
+  Page<Diary> findDiariesByDateRangeWithCreatedDate(
+      @Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate, Pageable page);
+
   @Query(
       "select d from Diary d where d.completedDate between :startDate and :endDate and d.member.id=:writer and d.challenge.id=:id")
   List<Diary> findDiariesWithDateRange(
