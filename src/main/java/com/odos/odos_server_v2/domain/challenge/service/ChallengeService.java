@@ -212,6 +212,9 @@ public class ChallengeService {
     if (challenge.getDeletedAt() != null) {
       throw new CustomException(ErrorCode.CANNOT_APPLY_PARTICIPANT);
     }
+    if (challenge.getParticipationType().equals(ParticipationType.INDIVIDUAL)) {
+      throw new CustomException(ErrorCode.CANNOT_APPLY_PARTICIPANT);
+    }
     Member member =
         memberRepository
             .findById(memberId)
