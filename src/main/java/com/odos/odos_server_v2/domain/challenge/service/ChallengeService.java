@@ -66,10 +66,6 @@ public class ChallengeService {
         && challengeRequest.getMaxParticipantCnt() < 2) {
       throw new CustomException(ErrorCode.INVALID_CHALLENGE_REQUEST);
     }
-    if (challengeRequest.getParticipationType().equals(ParticipationType.INDIVIDUAL)
-        && challengeRequest.getMaxParticipantCnt() != 1) {
-      throw new CustomException(ErrorCode.INVALID_CHALLENGE_REQUEST);
-    }
 
     Challenge challenge =
         Challenge.builder()
@@ -214,6 +210,9 @@ public class ChallengeService {
             .findById(challengeId)
             .orElseThrow(() -> new CustomException(ErrorCode.CHALLENGE_NOT_FOUND));
     if (challenge.getDeletedAt() != null) {
+      throw new CustomException(ErrorCode.CANNOT_APPLY_PARTICIPANT);
+    }
+    if (challenge.getParticipationType().equals(ParticipationType.INDIVIDUAL)) {
       throw new CustomException(ErrorCode.CANNOT_APPLY_PARTICIPANT);
     }
     Member member =
