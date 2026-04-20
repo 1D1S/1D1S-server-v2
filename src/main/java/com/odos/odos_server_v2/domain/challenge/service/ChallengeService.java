@@ -66,10 +66,6 @@ public class ChallengeService {
         && challengeRequest.getMaxParticipantCnt() < 2) {
       throw new CustomException(ErrorCode.INVALID_CHALLENGE_REQUEST);
     }
-    if (challengeRequest.getParticipationType().equals(ParticipationType.INDIVIDUAL)
-        && challengeRequest.getMaxParticipantCnt() != 1) {
-      throw new CustomException(ErrorCode.INVALID_CHALLENGE_REQUEST);
-    }
 
     Challenge challenge =
         Challenge.builder()
