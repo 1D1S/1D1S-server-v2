@@ -152,7 +152,7 @@ public class DiaryService {
             .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
     Diary diary =
         diaryRepository
-            .findById(diaryId)
+            .findByIdAndIsDeletedFalse(diaryId)
             .orElseThrow(() -> new CustomException(ErrorCode.DIARY_NOT_FOUND));
 
     if (!diary.getMember().getId().equals(memberId)) {
@@ -233,7 +233,7 @@ public class DiaryService {
             .orElseThrow(() -> new CustomException(ErrorCode.UNAUTHORIZED));
     Diary diary =
         diaryRepository
-            .findById(diaryId)
+            .findByIdAndIsDeletedFalse(diaryId)
             .orElseThrow(() -> new CustomException(ErrorCode.DIARY_NOT_FOUND));
 
     Long writer = diary.getMember().getId();
@@ -260,7 +260,7 @@ public class DiaryService {
   public List<DiaryResponse> getAllPublicDiaries() {
     Long memberId = CurrentUserContext.getCurrentMemberIdOrNull();
     Member member = (memberId != null) ? memberRepository.findById(memberId).orElse(null) : null;
-    List<Diary> diaries = diaryRepository.findDiariesByIsPublic(Boolean.TRUE);
+    List<Diary> diaries = diaryRepository.findDiariesByIsPublicAndIsDeletedFalse(Boolean.TRUE);
     List<DiaryResponse> diaryResponses = new ArrayList<>();
 
     for (Diary diary : diaries) {
@@ -315,10 +315,12 @@ public class DiaryService {
   }
 
   public Boolean deleteDiary(Long diaryId) {
-    diaryRepository
-        .findById(diaryId)
-        .orElseThrow(() -> new CustomException(ErrorCode.DIARY_NOT_FOUND));
-    diaryRepository.deleteById(diaryId);
+    Diary diary =
+        diaryRepository
+            .findByIdAndIsDeletedFalse(diaryId)
+            .orElseThrow(() -> new CustomException(ErrorCode.DIARY_NOT_FOUND));
+    // diaryRepository.deleteById(diaryId);
+    diary.softDelete();
     return true;
   }
 
@@ -326,7 +328,7 @@ public class DiaryService {
   public Integer addDiaryLike(Long memberId, Long diaryId) {
     Diary diary =
         diaryRepository
-            .findById(diaryId)
+            .findByIdAndIsDeletedFalse(diaryId)
             .orElseThrow(() -> new CustomException(ErrorCode.DIARY_NOT_FOUND));
     Member pressedMember =
         memberRepository
@@ -347,7 +349,7 @@ public class DiaryService {
 
   public Integer cancelDiaryLike(Long memberId, Long diaryId) {
     diaryRepository
-        .findById(diaryId)
+        .findByIdAndIsDeletedFalse(diaryId)
         .orElseThrow(() -> new CustomException(ErrorCode.DIARY_NOT_FOUND));
     memberRepository
         .findById(memberId)
@@ -372,7 +374,7 @@ public class DiaryService {
               ? memberRepository.findById(currentMemberId).orElse(null)
               : null;
 
-      List<Diary> diaries = diaryRepository.findDiariesByIsPublic(Boolean.TRUE);
+      List<Diary> diaries = diaryRepository.findDiariesByIsPublicAndIsDeletedFalse(Boolean.TRUE);
       if (diaries.isEmpty()) {
         return Collections.emptyList();
       }
@@ -402,7 +404,7 @@ public class DiaryService {
             .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
     Diary diary =
         diaryRepository
-            .findById(request.getDiaryId())
+            .findByIdAndIsDeletedFalse(request.getDiaryId())
             .orElseThrow(() -> new CustomException(ErrorCode.DIARY_NOT_FOUND));
     DiaryReport diaryReport =
         DiaryReport.builder()
@@ -424,7 +426,9 @@ public class DiaryService {
         memberRepository
             .findById(memberId)
             .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
-    Page<Diary> diaries = diaryRepository.findDiariesByMember_Id(memberId, pageable);
+    Page<Diary> diaries =
+        diaryRepository.findDiariesByMember_IdAndIsDeletedFalse(
+            memberId, pageable); // TODO : 마이페이지에서도 softDelete된거 안보이게? 적용하긴 하였으나
 
     Page<DiaryResponse> diaryResponsePage =
         diaries.map(
@@ -458,7 +462,7 @@ public class DiaryService {
     Long memberId = CurrentUserContext.getCurrentMemberId();
     Diary diary =
         diaryRepository
-            .findById(diaryId)
+            .findByIdAndIsDeletedFalse(diaryId)
             .orElseThrow(() -> new CustomException(ErrorCode.DIARY_NOT_FOUND));
     List<String> fileList = imageService.uploadFiles(files);
     List<DiaryImage> diaryImages = new ArrayList<>();
@@ -486,10 +490,11 @@ public class DiaryService {
             challengeId, memberId, ParticipantStatus.PARTICIPANT)
         || (participantRepository.existsByChallengeIdAndMemberIdAndStatus(
             challengeId, memberId, ParticipantStatus.HOST)))) {
-      diaries = diaryRepository.findAllByChallengeId(challengeId, pageable);
+      diaries = diaryRepository.findAllByChallengeIdAndIsDeletedFalse(challengeId, pageable);
     } else {
       diaries =
-          diaryRepository.findDiariesByChallengeIdAndIsPublic(challengeId, Boolean.TRUE, pageable);
+          diaryRepository.findDiariesByChallengeIdAndIsPublicAndIsDeletedFalse(
+              challengeId, Boolean.TRUE, pageable);
     }
 
     Page<DiaryResponse> result =
