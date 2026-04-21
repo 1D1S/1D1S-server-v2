@@ -334,7 +334,7 @@ public class ChallengeService {
     for (Challenge c : challenges) {
       if (c.getDeletedAt().isAfter(LocalDateTime.now().minusDays(7))) {
         c.restore();
-        // TODO: 일지 복구 처리
+        restoreMemberDiariesInChallenge(c.getId(), memberId);
       }
     }
   }
@@ -349,7 +349,7 @@ public class ChallengeService {
     if (challenge.getParticipationType().equals(ParticipationType.INDIVIDUAL)) {
       // 개인 챌린지
       challenge.softDelete();
-      // TODO: 일지 삭제 처리
+      diaryRepository.softDeleteByChallengeIdAndMemberId(challengeId, memberId);
     } else {
       // 단체 챌린지
       // 호스트라면 호스트를 넘김
@@ -361,7 +361,7 @@ public class ChallengeService {
                 .findByMemberIdAndChallengeId(memberId, challengeId)
                 .orElseThrow(() -> new CustomException(ErrorCode.PARTICIPANT_NOT_FOUND));
         participant.setStatus(ParticipantStatus.LEAVE);
-        // TODO: 일지 삭제 처리
+        diaryRepository.softDeleteByChallengeIdAndMemberId(challengeId, memberId);
       }
     }
   }
@@ -388,6 +388,7 @@ public class ChallengeService {
     if (candidates.isEmpty()) {
       challenge.softDelete();
       currentHost.setStatus(ParticipantStatus.LEAVE);
+      softDeleteMemberDiariesInChallenge(challengeId, memberId);
       return;
     }
 
@@ -418,6 +419,7 @@ public class ChallengeService {
     participantRepository.save(nextHost);
     participantRepository.save(currentHost);
     challengeRepository.save(challenge);
+    softDeleteMemberDiariesInChallenge(challengeId, memberId);
   }
 
   private long countDiaryGoals(Long participantId) {
@@ -696,5 +698,13 @@ public class ChallengeService {
     List<Diary> diaries =
         diaryRepository.findDiariesByDateRange(twoDaysAgo, today, challengeId, currentMemberId);
     return DiaryStreakResponse.checkStreak(diaries);
+  }
+
+  private void softDeleteMemberDiariesInChallenge(Long challengeId, Long memberId) {
+    diaryRepository.softDeleteByChallengeIdAndMemberId(challengeId, memberId);
+  }
+
+  private void restoreMemberDiariesInChallenge(Long challengeId, Long memberId) {
+    diaryRepository.restoreByChallengeIdAndMemberId(challengeId, memberId);
   }
 }
