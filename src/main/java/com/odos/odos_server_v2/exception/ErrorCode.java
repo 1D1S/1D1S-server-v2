@@ -51,8 +51,9 @@ public enum ErrorCode {
   CANNOT_EDIT_CHALLENGE_GOALS(
       HttpStatus.UNPROCESSABLE_ENTITY, "CHALLENGE_010", "챌린지 시작 후에는 목표를 변경 할 수 없습니다."),
   CANNOT_ACCEPT_PARTICIPANT(HttpStatus.UNPROCESSABLE_ENTITY, "CHALLENGE_011", "최대 참여 인원에 도달했습니다."),
-  CANNOT_APPLY_PARTICIPANT(
-      HttpStatus.UNPROCESSABLE_ENTITY, "CHALLENGE_012", "챌린지 시작 후에는 챌린지에 신청할 수 없습니다."),
+  CANNOT_APPLY_PARTICIPANT(HttpStatus.UNPROCESSABLE_ENTITY, "CHALLENGE_012", "챌린지에 신청할 수 없습니다."),
+  INVALID_CHALLENGE_REQUEST(
+      HttpStatus.UNPROCESSABLE_ENTITY, "CHALLENGE_013", "챌린지 형태와 최대 참여 인원이 맞지 않습니다."),
 
   // comment
   COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "COMMENT-001", "존재하지 않는 댓글입니다."),

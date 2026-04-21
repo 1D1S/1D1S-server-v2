@@ -1,6 +1,7 @@
 package com.odos.odos_server_v2.domain.challenge.entity;
 
-import com.odos.odos_server_v2.domain.challenge.entity.Enum.ChallengeType;
+import com.odos.odos_server_v2.domain.challenge.entity.Enum.GoalType;
+import com.odos.odos_server_v2.domain.challenge.entity.Enum.ParticipationType;
 import com.odos.odos_server_v2.domain.diary.entity.Diary;
 import com.odos.odos_server_v2.domain.member.entity.Member;
 import com.odos.odos_server_v2.domain.shared.Enum.Category;
@@ -43,13 +44,19 @@ public class Challenge {
 
   @Column
   @Enumerated(EnumType.STRING)
-  private ChallengeType type;
+  private GoalType goalType;
+
+  @Column
+  @Enumerated(EnumType.STRING)
+  private ParticipationType participationType;
 
   @Column private String description;
 
   @Column private String thumbnailImage;
 
   @Column @CreatedDate private LocalDateTime createdAt;
+
+  @Column private LocalDateTime deletedAt;
 
   @ManyToOne
   @JoinColumn(name = "host_member_id")
@@ -90,5 +97,13 @@ public class Challenge {
 
   public void setHostMember(Member member) {
     this.hostMember = member;
+  }
+
+  public void softDelete() {
+    this.deletedAt = LocalDateTime.now();
+  }
+
+  public void restore() {
+    this.deletedAt = null;
   }
 }

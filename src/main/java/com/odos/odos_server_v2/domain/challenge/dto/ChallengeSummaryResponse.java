@@ -1,6 +1,7 @@
 package com.odos.odos_server_v2.domain.challenge.dto;
 
-import com.odos.odos_server_v2.domain.challenge.entity.Enum.ChallengeType;
+import com.odos.odos_server_v2.domain.challenge.entity.Enum.GoalType;
+import com.odos.odos_server_v2.domain.challenge.entity.Enum.ParticipationType;
 import com.odos.odos_server_v2.domain.shared.Enum.Category;
 import com.odos.odos_server_v2.domain.shared.dto.LikeDto;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -33,15 +34,21 @@ public class ChallengeSummaryResponse {
   @Schema(description = "챌린지 종료일", example = "2025-09-30")
   private LocalDate endDate;
 
+  @Schema(description = "챌린지 형태 (INDIVIDUAL: 개인, GROUP: 단체)", example = "GROUP")
+  private ParticipationType participationType;
+
   @Schema(description = "최대 참여 인원", example = "10")
   private Long maxParticipantCnt;
 
-  @Schema(description = "챌린지 유형 (FIXED: 고정형, FLEXIBLE: 유연형)", example = "FIXED")
-  private ChallengeType challengeType;
+  @Schema(description = "챌린지 유형 (FIXED: 고정목표, FLEXIBLE: 자유목표)", example = "FIXED")
+  private GoalType goalType;
 
   @Schema(description = "현재 참여 인원", example = "5")
   private Long participantCnt;
 
   @Schema(description = "좋아요 정보")
   private LikeDto likeInfo;
+
+  @Schema(description = "삭제 여부")
+  private boolean isDeleted;
 }

@@ -4,8 +4,9 @@ import com.odos.odos_server_v2.domain.challenge.dto.*;
 import com.odos.odos_server_v2.domain.challenge.entity.Challenge;
 import com.odos.odos_server_v2.domain.challenge.entity.ChallengeGoal;
 import com.odos.odos_server_v2.domain.challenge.entity.ChallengeLike;
-import com.odos.odos_server_v2.domain.challenge.entity.Enum.ChallengeType;
+import com.odos.odos_server_v2.domain.challenge.entity.Enum.GoalType;
 import com.odos.odos_server_v2.domain.challenge.entity.Enum.ParticipantStatus;
+import com.odos.odos_server_v2.domain.challenge.entity.Enum.ParticipationType;
 import com.odos.odos_server_v2.domain.challenge.entity.Participant;
 import com.odos.odos_server_v2.domain.challenge.repository.ChallengeGoalRepository;
 import com.odos.odos_server_v2.domain.challenge.repository.ChallengeLikeRepository;
@@ -27,6 +28,7 @@ import com.odos.odos_server_v2.domain.shared.service.ImageService;
 import com.odos.odos_server_v2.exception.CustomException;
 import com.odos.odos_server_v2.exception.ErrorCode;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Collections;
 import java.util.List;
@@ -60,6 +62,11 @@ public class ChallengeService {
         memberRepository
             .findById(memberId)
             .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+    if (challengeRequest.getParticipationType().equals(ParticipationType.GROUP)
+        && challengeRequest.getMaxParticipantCnt() < 2) {
+      throw new CustomException(ErrorCode.INVALID_CHALLENGE_REQUEST);
+    }
+
     Challenge challenge =
         Challenge.builder()
             .title(challengeRequest.getTitle())
@@ -68,11 +75,11 @@ public class ChallengeService {
             .startDate(challengeRequest.getStartDate())
             .endDate(challengeRequest.getEndDate())
             .maxParticipantsCnt(challengeRequest.getMaxParticipantCnt())
-            .type(challengeRequest.getChallengeType())
+            .goalType(challengeRequest.getGoalType())
             .description(challengeRequest.getDescription())
             .hostMember(member)
-            // .createdAt(LocalDateTime.now())
             .allowMidJoin(challengeRequest.getAllowMidJoin())
+            .participationType(challengeRequest.getParticipationType())
             .build();
 
     challengeRepository.save(challenge);
@@ -123,7 +130,7 @@ public class ChallengeService {
       }
 
       List<ParticipantStatus> participantStatuses;
-      if (challenge.getType().equals(ChallengeType.FIXED)) {
+      if (challenge.getGoalType().equals(GoalType.FIXED)) {
         participantStatuses = List.of(ParticipantStatus.HOST, ParticipantStatus.PARTICIPANT);
       } else {
         participantStatuses = List.of(ParticipantStatus.HOST);
@@ -202,6 +209,12 @@ public class ChallengeService {
         challengeRepository
             .findById(challengeId)
             .orElseThrow(() -> new CustomException(ErrorCode.CHALLENGE_NOT_FOUND));
+    if (challenge.getDeletedAt() != null) {
+      throw new CustomException(ErrorCode.CANNOT_APPLY_PARTICIPANT);
+    }
+    if (challenge.getParticipationType().equals(ParticipationType.INDIVIDUAL)) {
+      throw new CustomException(ErrorCode.CANNOT_APPLY_PARTICIPANT);
+    }
     Member member =
         memberRepository
             .findById(memberId)
@@ -210,7 +223,7 @@ public class ChallengeService {
     if (participantRepository.existsByChallengeIdAndMemberId(challengeId, memberId)) {
       throw new CustomException(ErrorCode.ALREADY_APPLIED);
     }
-    if (challenge.getStartDate().isBefore(LocalDate.now())) {
+    if (!challenge.isAllowMidJoin() && challenge.getStartDate().isBefore(LocalDate.now())) {
       throw new CustomException(ErrorCode.CANNOT_APPLY_PARTICIPANT);
     }
     Participant participant =
@@ -221,7 +234,7 @@ public class ChallengeService {
             .build();
     participantRepository.save(participant);
 
-    if (challenge.getType().equals(ChallengeType.FLEXIBLE)) {
+    if (challenge.getGoalType().equals(GoalType.FLEXIBLE)) {
       for (String g : goals) {
         ChallengeGoal goal = ChallengeGoal.builder().content(g).participant(participant).build();
         challengeGoalRepository.save(goal);
@@ -277,7 +290,7 @@ public class ChallengeService {
         challengeRepository
             .findById(challengeId)
             .orElseThrow(() -> new CustomException(ErrorCode.CHALLENGE_NOT_FOUND));
-    if (challenge.getType().equals(ChallengeType.FIXED)) {
+    if (challenge.getGoalType().equals(GoalType.FIXED)) {
       throw new CustomException(ErrorCode.NO_AUTHORITY);
     }
     if (!challenge.getStartDate().isAfter(LocalDate.now())) {
@@ -303,9 +316,26 @@ public class ChallengeService {
   }
 
   public void withdrawMemberLeaveChallengeHost(Long memberId) {
-    List<Challenge> challenges = challengeRepository.findByHostMemberId(memberId);
+    return;
+  }
+
+  public void withdrawMemberLeaveChallenge(Long memberId) {
+    List<Participant> participants = participantRepository.findByMemberId(memberId);
+    for (Participant p : participants) {
+      leaveChallenge(memberId, p.getChallenge().getId());
+    }
+  }
+
+  @Transactional
+  public void rejoinMemberRestoreIndividualChallenge(Long memberId) {
+    List<Challenge> challenges =
+        challengeRepository.findByHostMemberIdAndParticipationTypeAndDeletedAtIsNotNull(
+            memberId, ParticipationType.INDIVIDUAL);
     for (Challenge c : challenges) {
-      leaveChallengeHost(memberId, c.getId());
+      if (c.getDeletedAt().isAfter(LocalDateTime.now().minusDays(7))) {
+        c.restore();
+        // TODO: 일지 복구 처리
+      }
     }
   }
 
@@ -315,19 +345,24 @@ public class ChallengeService {
         challengeRepository
             .findById(challengeId)
             .orElseThrow(() -> new CustomException(ErrorCode.CHALLENGE_NOT_FOUND));
-    // 호스트라면 탈퇴할 수 없음, 추후 수정 필요
-    if (challenge.getHostMember().getId().equals(memberId)) {
-      leaveChallengeHost(memberId, challengeId);
+
+    if (challenge.getParticipationType().equals(ParticipationType.INDIVIDUAL)) {
+      // 개인 챌린지
+      challenge.softDelete();
+      // TODO: 일지 삭제 처리
     } else {
-      Participant participant =
-          participantRepository
-              .findByMemberIdAndChallengeId(memberId, challengeId)
-              .orElseThrow(() -> new CustomException(ErrorCode.PARTICIPANT_NOT_FOUND));
-      if (participant == null) {
-        throw new CustomException(ErrorCode.PARTICIPANT_NOT_FOUND);
+      // 단체 챌린지
+      // 호스트라면 호스트를 넘김
+      if (challenge.getHostMember().getId().equals(memberId)) {
+        leaveChallengeHost(memberId, challengeId);
+      } else {
+        Participant participant =
+            participantRepository
+                .findByMemberIdAndChallengeId(memberId, challengeId)
+                .orElseThrow(() -> new CustomException(ErrorCode.PARTICIPANT_NOT_FOUND));
+        participant.setStatus(ParticipantStatus.LEAVE);
+        // TODO: 일지 삭제 처리
       }
-      // 일지 소프트 딜리트 필요
-      participant.setStatus(ParticipantStatus.LEAVE);
     }
   }
 
@@ -336,9 +371,6 @@ public class ChallengeService {
         challengeRepository
             .findById(challengeId)
             .orElseThrow(() -> new CustomException(ErrorCode.CHALLENGE_NOT_FOUND));
-    if (!challenge.getHostMember().getId().equals(memberId)) {
-      throw new CustomException(ErrorCode.NO_AUTHORITY);
-    }
     List<Participant> participants =
         participantRepository.findByChallengeIdAndStatusIn(
             challengeId, List.of(ParticipantStatus.HOST, ParticipantStatus.PARTICIPANT));
@@ -354,8 +386,9 @@ public class ChallengeService {
         participants.stream().filter(p -> p.getStatus() != ParticipantStatus.HOST).toList();
 
     if (candidates.isEmpty()) {
-      // 남은 참가자 없으면 챌린지 자체를 닫거나 삭제
-      throw new IllegalStateException("위임할 참가자가 없습니다");
+      challenge.softDelete();
+      currentHost.setStatus(ParticipantStatus.LEAVE);
+      return;
     }
 
     Participant nextHost = null;
@@ -487,7 +520,7 @@ public class ChallengeService {
     Long memberId = member.getId();
     // 챌린지 목표
     List<ChallengeGoal> challengeGoals;
-    if (challenge.getType() == ChallengeType.FIXED) {
+    if (challenge.getGoalType() == GoalType.FIXED) {
       challengeGoals =
           participantRepository
               .findByMemberIdAndChallengeId(challenge.getHostMember().getId(), challengeId)
@@ -541,10 +574,12 @@ public class ChallengeService {
         challenge.getCategory(),
         challenge.getStartDate(),
         challenge.getEndDate(),
+        challenge.getParticipationType(),
         challenge.getMaxParticipantsCnt(),
-        challenge.getType(),
+        challenge.getGoalType(),
         getParticipantCnt(challengeId),
-        likeInfo);
+        likeInfo,
+        challenge.getDeletedAt() != null);
   }
 
   private ChallengeDetailDto toChallengeDetail(Challenge challenge, Long memberId) {
@@ -616,7 +651,7 @@ public class ChallengeService {
   }
 
   private double getGoalCompletionRate(Challenge challenge) {
-    if (challenge.getType() == ChallengeType.FLEXIBLE) return -1;
+    if (challenge.getGoalType() == GoalType.FLEXIBLE) return -1;
     LocalDate startDate = challenge.getStartDate();
     LocalDate endDate = challenge.getEndDate();
     LocalDate today = LocalDate.now();

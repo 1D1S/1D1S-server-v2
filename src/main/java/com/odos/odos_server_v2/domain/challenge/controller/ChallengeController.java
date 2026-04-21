@@ -57,10 +57,12 @@ public class ChallengeController {
                                 "category": "DEV",
                                 "startDate": "2025-09-01",
                                 "endDate": "2025-09-30",
+                                "participationType": "GROUP",
                                 "maxParticipantCnt": 10,
                                 "challengeType": "FIXED",
                                 "participantCnt": 1,
-                                "likeInfo": { "likedByMe": false, "likeCnt": 0 }
+                                "likeInfo": { "likedByMe": false, "likeCnt": 0 },
+                                "deleted": false
                               }
                             }
                             """))),
@@ -137,10 +139,12 @@ public class ChallengeController {
                                                 "category": "DEV",
                                                 "startDate": "2025-09-01",
                                                 "endDate": "2025-09-30",
+                                                "participationType": "GROUP",
                                                 "maxParticipantCnt": 10,
                                                 "challengeType": "FIXED",
                                                 "participantCnt": 1,
-                                                "likeInfo": { "likedByMe": false, "likeCnt": 0 }
+                                                "likeInfo": { "likedByMe": false, "likeCnt": 0 },
+                                                "deleted": false
                                               }
                                             }
                                             """))),
@@ -204,10 +208,12 @@ public class ChallengeController {
                                   "category": "DEV",
                                   "startDate": "2025-09-01",
                                   "endDate": "2025-09-30",
+                                  "participationType": "GROUP",
                                   "maxParticipantCnt": 10,
                                   "challengeType": "FIXED",
                                   "participantCnt": 5,
-                                  "likeInfo": { "likedByMe": true, "likeCnt": 12 }
+                                  "likeInfo": { "likedByMe": true, "likeCnt": 12 },
+                                  "deleted": false
                                 },
                                 "challengeDetail": {
                                   "description": "매일 1시간씩 코딩 공부를 진행합니다.",
@@ -553,10 +559,12 @@ public class ChallengeController {
                                   "category": "DEV",
                                   "startDate": "2025-09-01",
                                   "endDate": "2025-09-30",
+                                  "participationType": "GROUP",
                                   "maxParticipantCnt": 10,
                                   "challengeType": "FIXED",
                                   "participantCnt": 5,
-                                  "likeInfo": { "likedByMe": false, "likeCnt": 3 }
+                                  "likeInfo": { "likedByMe": false, "likeCnt": 3 },
+                                  "deleted": false
                                 }
                               ]
                             }
@@ -595,10 +603,12 @@ public class ChallengeController {
                                   "category": "DEV",
                                   "startDate": "2025-09-01",
                                   "endDate": "2025-09-30",
+                                  "participationType": "GROUP",
                                   "maxParticipantCnt": 10,
                                   "challengeType": "FIXED",
                                   "participantCnt": 5,
-                                  "likeInfo": { "likedByMe": false, "likeCnt": 3 }
+                                  "likeInfo": { "likedByMe": false, "likeCnt": 3 },
+                                  "deleted": false
                                 }
                               ]
                             }
@@ -637,7 +647,7 @@ public class ChallengeController {
         Message.GET_MY_CHALLENGE, challengeService.getMemberChallenge(memberId, memberId));
   }
 
-  @Operation(summary = "챌린지 탈퇴", description = "참여 중인 챌린지에서 탈퇴한다. 호스트는 탈퇴할 수 없다.")
+  @Operation(summary = "챌린지 탈퇴", description = "참여 중인 챌린지에서 탈퇴한다.")
   @ApiResponses({
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
         responseCode = "200",
@@ -732,10 +742,12 @@ public class ChallengeController {
                                     "category": "DEV",
                                     "startDate": "2025-09-01",
                                     "endDate": "2025-09-30",
+                                    "participationType": "GROUP",
                                     "maxParticipantCnt": 10,
                                     "challengeType": "FIXED",
                                     "participantCnt": 5,
-                                    "likeInfo": { "likedByMe": false, "likeCnt": 3 }
+                                    "likeInfo": { "likedByMe": false, "likeCnt": 3 },
+                                    "deleted": false
                                   }
                                 ],
                                 "pageInfo": {
@@ -802,10 +814,12 @@ public class ChallengeController {
                                     "category": "DEV",
                                     "startDate": "2025-09-01",
                                     "endDate": "2025-09-30",
+                                    "participationType": "GROUP",
                                     "maxParticipantCnt": 10,
                                     "challengeType": "FIXED",
                                     "participantCnt": 5,
-                                    "likeInfo": { "likedByMe": false, "likeCnt": 3 }
+                                    "likeInfo": { "likedByMe": false, "likeCnt": 3 },
+                                    "deleted": false
                                   }
                                 ],
                                 "pageInfo": {
@@ -995,10 +1009,12 @@ public class ChallengeController {
                                   "category": "DEV",
                                   "startDate": "2025-09-01",
                                   "endDate": "2025-09-30",
+                                  "participationType": "GROUP",
                                   "maxParticipantCnt": 10,
                                   "challengeType": "FIXED",
                                   "participantCnt": 5,
-                                  "likeInfo": { "likedByMe": false, "likeCnt": 3 }
+                                  "likeInfo": { "likedByMe": false, "likeCnt": 3 },
+                                  "deleted": false
                                 }
                               ]
                             }
@@ -1054,16 +1070,15 @@ public class ChallengeController {
                     @ExampleObject(
                         value =
                             """
-                                            {
-                                              "message": "특정 챌린지의 3일 이내의 일지 작성 날짜 조회 성공했습니다.",
-                                              "data": [
-                                                diaryCreatedDate: {
-                                                  "2026-03-06",
-                                                  "2026-03-09"
-                                                }
-                                              ]
-                                            }
-                                            """))),
+                            {
+                              "message": "특정 챌린지의 3일 이내의 일지 작성 날짜 조회 성공했습니다.",
+                              "data": {
+                                "diaryCreatedDate": [
+                                  "2026-03-06",
+                                  "2026-03-09"
+                                ]
+                              }
+                            }"""))),
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
         responseCode = "404",
         description = "챌린지를 찾을 수 없습니다.",
