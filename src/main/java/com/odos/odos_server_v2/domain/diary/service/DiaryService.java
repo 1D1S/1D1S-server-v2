@@ -314,6 +314,7 @@ public class DiaryService {
     return new Pagination<>(items, pageInfo);
   }
 
+  @Transactional
   public Boolean deleteDiary(Long diaryId) {
     Diary diary =
         diaryRepository
@@ -321,6 +322,7 @@ public class DiaryService {
             .orElseThrow(() -> new CustomException(ErrorCode.DIARY_NOT_FOUND));
     // diaryRepository.deleteById(diaryId);
     diary.softDelete();
+    diaryRepository.save(diary);
     return true;
   }
 
