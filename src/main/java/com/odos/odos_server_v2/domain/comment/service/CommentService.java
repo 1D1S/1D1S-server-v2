@@ -37,7 +37,7 @@ public class CommentService {
             .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
     Diary diary =
         diaryRepository
-            .findById(diaryId)
+            .findByIdAndIsDeletedFalse(diaryId)
             .orElseThrow(() -> new CustomException(ErrorCode.DIARY_NOT_FOUND));
 
     Comment comment =

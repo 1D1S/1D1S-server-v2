@@ -101,4 +101,12 @@ public class Diary extends BaseTimeEntity {
   public void updateIsAllGoalsCompleted(Boolean isChecked) {
     this.isAllGoalsCompleted = isChecked;
   }
+
+  public void softDelete() {
+    this.isDeleted = true;
+  }
+
+  public void restore() {
+    this.isDeleted = false;
+  }
 }
