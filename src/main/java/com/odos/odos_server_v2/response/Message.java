@@ -62,4 +62,17 @@ public class Message {
   public static String COMMENT_DELETE_SUCCESS = "댓글 삭제 성공했습니다.";
   public static String COMMENT_GET_SUCCESS = "댓글 조회 성공했습니다.";
   public static String REPLY_GET_SUCCESS = "대댓글 조회 성공했습니다.";
+
+  // friend
+  public static String FRIEND_REQUEST_SEND = "친구 신청을 보냈습니다.";
+  public static String FRIEND_REQUEST_CANCEL = "친구 신청을 취소했습니다.";
+  public static String FRIEND_REQUEST_ACCEPT = "친구 신청을 수락했습니다.";
+  public static String FRIEND_REQUEST_REJECT = "친구 신청을 거절했습니다.";
+  public static String FRIEND_DELETE = "친구를 삭제했습니다.";
+  public static String MEMBER_BLOCK = "회원을 차단했습니다.";
+  public static String MEMBER_UNBLOCK = "차단을 해제했습니다.";
+  public static String GET_FRIEND_LIST = "친구 목록 조회 성공했습니다.";
+  public static String GET_FRIEND_REQUESTS = "친구 신청 목록 조회 성공했습니다.";
+  public static String GET_BLOCK_LIST = "차단 목록 조회 성공했습니다.";
+  public static String GET_MEMBER_RELATION = "회원 관계 상태 조회 성공했습니다.";
 }
