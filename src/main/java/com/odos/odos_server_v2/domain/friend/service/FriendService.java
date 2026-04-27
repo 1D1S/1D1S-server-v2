@@ -1,6 +1,15 @@
 package com.odos.odos_server_v2.domain.friend.service;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
+import lombok.RequiredArgsConstructor;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.odos.odos_server_v2.domain.friend.dto.*;
+import com.odos.odos_server_v2.domain.friend.entity.BlockList;
 import com.odos.odos_server_v2.domain.friend.entity.Enum.FriendRequestStatus;
 import com.odos.odos_server_v2.domain.friend.entity.Friend;
 import com.odos.odos_server_v2.domain.friend.entity.FriendRequest;
@@ -12,11 +21,6 @@ import com.odos.odos_server_v2.domain.member.entity.Member;
 import com.odos.odos_server_v2.domain.member.repository.MemberRepository;
 import com.odos.odos_server_v2.exception.CustomException;
 import com.odos.odos_server_v2.exception.ErrorCode;
-import java.util.List;
-import java.util.stream.Collectors;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -272,8 +276,8 @@ public class FriendService {
     }
 
     // 차단 목록에 추가
-    com.odos.odos_server_v2.domain.friend.entity.BlockList blockList =
-        com.odos.odos_server_v2.domain.friend.entity.BlockList.builder()
+    BlockList blockList =
+        BlockList.builder()
             .member(currentMember)
             .blockedMember(blockedMember)
             .build();
@@ -306,7 +310,7 @@ public class FriendService {
             .findById(blockedMemberId)
             .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
 
-    com.odos.odos_server_v2.domain.friend.entity.BlockList blockList =
+    BlockList blockList =
         blockListRepository
             .findByMemberAndBlockedMember(currentMember, blockedMember)
             .orElseThrow(() -> new CustomException(ErrorCode.FRIEND_NOT_BLOCKED));
@@ -318,7 +322,7 @@ public class FriendService {
   @Transactional(readOnly = true)
   public List<FriendResponseDto> getBlockList() {
     Member currentMember = getCurrentMember();
-    List<com.odos.odos_server_v2.domain.friend.entity.BlockList> blockList =
+    List<BlockList> blockList =
         blockListRepository.findByMember(currentMember);
 
     return blockList.stream()
