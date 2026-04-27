@@ -33,4 +33,10 @@ public class MyPageDto {
 
   @Schema(description = "내가 작성한 일지 목록")
   OffsetPagination<DiaryResponse> diaryList;
+
+  @Schema(description = "관계 상태: FRIEND, REQUEST_SENT, REQUEST_RECEIVED, NONE, BLOCKED")
+  String relationStatus;
+
+  @Schema(description = "일지/스토리 접근 가능 여부")
+  Boolean isAccessible;
 }

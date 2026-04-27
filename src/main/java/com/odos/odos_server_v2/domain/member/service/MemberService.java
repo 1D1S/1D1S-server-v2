@@ -9,6 +9,8 @@ import com.odos.odos_server_v2.domain.challenge.repository.ParticipantRepository
 import com.odos.odos_server_v2.domain.challenge.service.ChallengeService;
 import com.odos.odos_server_v2.domain.diary.entity.Diary;
 import com.odos.odos_server_v2.domain.diary.service.DiaryService;
+import com.odos.odos_server_v2.domain.friend.dto.MemberRelationResponseDto;
+import com.odos.odos_server_v2.domain.friend.service.FriendService;
 import com.odos.odos_server_v2.domain.member.dto.CalendarStreakDto;
 import com.odos.odos_server_v2.domain.member.dto.MyPageDto;
 import com.odos.odos_server_v2.domain.member.dto.SideBarDto;
@@ -45,6 +47,7 @@ public class MemberService {
   private final ChallengeService challengeService;
   private final DiaryService diaryService;
   private final ParticipantRepository participantRepository;
+  private final FriendService friendService;
 
   public void checkNicknameDuplicate(String nickname) {
     if (memberRepository.existsByNickname(nickname)) {
@@ -103,7 +106,12 @@ public class MemberService {
       throw new CustomException(ErrorCode.MEMBER_DELETED);
     }
 
+    // 관계 상태 조회
+    MemberRelationResponseDto relation = friendService.getMemberRelation(id);
+    String relationStatus = relation.getRelationStatus();
+
     if (member.getIsPublic()) {
+      // 공개 계정: 전체 조회
       return MyPageDto.builder()
           .nickname(member.getNickname())
           .profileUrl(imageService.getFileUrl(member.getProfileUrl()))
@@ -112,10 +120,38 @@ public class MemberService {
           .streak(getStreakByMemberId(id))
           .challengeList(challengeService.getMemberChallenge(id, id))
           .diaryList(diaryService.getOtherPublicDiariesByOffset(id, pageable))
+          .relationStatus(relationStatus)
+          .isAccessible(true)
           .build();
     } else {
-      // 비공개
-      throw new CustomException(ErrorCode.MEMBER_PROFILE_PRIVATE);
+      // 비공개 계정
+      if ("FRIEND".equals(relationStatus)) {
+        // 친구: 전체 조회
+        return MyPageDto.builder()
+            .nickname(member.getNickname())
+            .profileUrl(imageService.getFileUrl(member.getProfileUrl()))
+            .email(member.getEmail())
+            .provider(member.getSignupRoute().name())
+            .streak(getStreakByMemberId(id))
+            .challengeList(challengeService.getMemberChallenge(id, id))
+            .diaryList(diaryService.getOtherPublicDiariesByOffset(id, pageable))
+            .relationStatus(relationStatus)
+            .isAccessible(true)
+            .build();
+      } else {
+        // 비친구 또는 친구 신청 중: 기본 정보만, 일지/스토리 접근 불가
+        return MyPageDto.builder()
+            .nickname(member.getNickname())
+            .profileUrl(imageService.getFileUrl(member.getProfileUrl()))
+            .email(member.getEmail())
+            .provider(member.getSignupRoute().name())
+            .streak(null)
+            .challengeList(null)
+            .diaryList(null)
+            .relationStatus(relationStatus)
+            .isAccessible(false)
+            .build();
+      }
     }
   }
 
