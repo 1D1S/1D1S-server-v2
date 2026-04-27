@@ -1,5 +1,11 @@
 package com.odos.odos_server_v2.domain.friend.controller;
 
+import java.util.List;
+
+import lombok.RequiredArgsConstructor;
+
+import org.springframework.web.bind.annotation.*;
+
 import com.odos.odos_server_v2.domain.friend.dto.*;
 import com.odos.odos_server_v2.domain.friend.service.FriendService;
 import com.odos.odos_server_v2.response.ApiResponse;
@@ -9,9 +15,6 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import java.util.List;
-import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "친구", description = "친구 API")
 @RestController
@@ -31,6 +34,16 @@ public class FriendController {
                 mediaType = "application/json",
                 examples = {@ExampleObject(value = "{ \"message\": \"친구 신청을 보냈습니다.\" }")})),
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "400",
+        description = "자기 자신에게 친구 신청",
+        content =
+            @Content(
+                mediaType = "application/json",
+                examples = {
+                  @ExampleObject(
+                      value = "{ \"code\": \"FRIEND-001\", \"message\": \"자기 자신에게 친구 신청을 할 수 없습니다.\" }")
+                })),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
         responseCode = "404",
         description = "회원을 찾을 수 없음",
         content =
@@ -39,6 +52,28 @@ public class FriendController {
                 examples = {
                   @ExampleObject(
                       value = "{ \"code\": \"USER-003\", \"message\": \"회원을 찾을 수 없습니다.\" }")
+                })),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "409",
+        description = "이미 친구 관계이거나 친구 신청 중",
+        content =
+            @Content(
+                mediaType = "application/json",
+                examples = {
+                  @ExampleObject(
+                      value = "{ \"code\": \"FRIEND-002\", \"message\": \"이미 친구 관계입니다.\" }"),
+                  @ExampleObject(
+                      value = "{ \"code\": \"FRIEND-003\", \"message\": \"이미 친구 신청을 보낸 상태입니다.\" }")
+                })),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "403",
+        description = "차단당한 회원",
+        content =
+            @Content(
+                mediaType = "application/json",
+                examples = {
+                  @ExampleObject(
+                      value = "{ \"code\": \"FRIEND-008\", \"message\": \"차단당한 회원이므로 친구 신청을 할 수 없습니다.\" }")
                 }))
   })
   @PostMapping("/request")
@@ -55,7 +90,37 @@ public class FriendController {
         content =
             @Content(
                 mediaType = "application/json",
-                examples = {@ExampleObject(value = "{ \"message\": \"친구 신청을 취소했습니다.\" }")}))
+                examples = {@ExampleObject(value = "{ \"message\": \"친구 신청을 취소했습니다.\" }")})),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "404",
+        description = "친구 신청을 찾을 수 없음",
+        content =
+            @Content(
+                mediaType = "application/json",
+                examples = {
+                  @ExampleObject(
+                      value = "{ \"code\": \"FRIEND-004\", \"message\": \"친구 신청을 찾을 수 없습니다.\" }")
+                })),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "403",
+        description = "본인이 보낸 신청이 아님",
+        content =
+            @Content(
+                mediaType = "application/json",
+                examples = {
+                  @ExampleObject(
+                      value = "{ \"code\": \"FRIEND-005\", \"message\": \"친구 신청에 접근할 권한이 없습니다.\" }")
+                })),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "400",
+        description = "대기 중인 신청이 아님",
+        content =
+            @Content(
+                mediaType = "application/json",
+                examples = {
+                  @ExampleObject(
+                      value = "{ \"code\": \"FRIEND-006\", \"message\": \"대기 중인 친구 신청이 아닙니다.\" }")
+                }))
   })
   @DeleteMapping("/request/{requestId}")
   public ApiResponse<Message> cancelFriendRequest(@PathVariable Long requestId) {
@@ -71,7 +136,37 @@ public class FriendController {
         content =
             @Content(
                 mediaType = "application/json",
-                examples = {@ExampleObject(value = "{ \"message\": \"친구 신청을 수락했습니다.\" }")}))
+                examples = {@ExampleObject(value = "{ \"message\": \"친구 신청을 수락했습니다.\" }")})),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "404",
+        description = "친구 신청을 찾을 수 없음",
+        content =
+            @Content(
+                mediaType = "application/json",
+                examples = {
+                  @ExampleObject(
+                      value = "{ \"code\": \"FRIEND-004\", \"message\": \"친구 신청을 찾을 수 없습니다.\" }")
+                })),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "403",
+        description = "내가 받은 신청이 아님",
+        content =
+            @Content(
+                mediaType = "application/json",
+                examples = {
+                  @ExampleObject(
+                      value = "{ \"code\": \"FRIEND-005\", \"message\": \"친구 신청에 접근할 권한이 없습니다.\" }")
+                })),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "400",
+        description = "대기 중인 신청이 아님",
+        content =
+            @Content(
+                mediaType = "application/json",
+                examples = {
+                  @ExampleObject(
+                      value = "{ \"code\": \"FRIEND-006\", \"message\": \"대기 중인 친구 신청이 아닙니다.\" }")
+                }))
   })
   @PostMapping("/request/{requestId}/accept")
   public ApiResponse<Message> acceptFriendRequest(@PathVariable Long requestId) {
@@ -87,7 +182,37 @@ public class FriendController {
         content =
             @Content(
                 mediaType = "application/json",
-                examples = {@ExampleObject(value = "{ \"message\": \"친구 신청을 거절했습니다.\" }")}))
+                examples = {@ExampleObject(value = "{ \"message\": \"친구 신청을 거절했습니다.\" }")})),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "404",
+        description = "친구 신청을 찾을 수 없음",
+        content =
+            @Content(
+                mediaType = "application/json",
+                examples = {
+                  @ExampleObject(
+                      value = "{ \"code\": \"FRIEND-004\", \"message\": \"친구 신청을 찾을 수 없습니다.\" }")
+                })),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "403",
+        description = "내가 받은 신청이 아님",
+        content =
+            @Content(
+                mediaType = "application/json",
+                examples = {
+                  @ExampleObject(
+                      value = "{ \"code\": \"FRIEND-005\", \"message\": \"친구 신청에 접근할 권한이 없습니다.\" }")
+                })),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "400",
+        description = "대기 중인 신청이 아님",
+        content =
+            @Content(
+                mediaType = "application/json",
+                examples = {
+                  @ExampleObject(
+                      value = "{ \"code\": \"FRIEND-006\", \"message\": \"대기 중인 친구 신청이 아닙니다.\" }")
+                }))
   })
   @PostMapping("/request/{requestId}/reject")
   public ApiResponse<Message> rejectFriendRequest(@PathVariable Long requestId) {
@@ -161,7 +286,19 @@ public class FriendController {
         content =
             @Content(
                 mediaType = "application/json",
-                examples = {@ExampleObject(value = "{ \"message\": \"친구를 삭제했습니다.\" }")}))
+                examples = {@ExampleObject(value = "{ \"message\": \"친구를 삭제했습니다.\" }")})),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "404",
+        description = "회원을 찾을 수 없음 / 친구 관계가 없음",
+        content =
+            @Content(
+                mediaType = "application/json",
+                examples = {
+                  @ExampleObject(
+                      value = "{ \"code\": \"USER-003\", \"message\": \"회원을 찾을 수 없습니다.\" }"),
+                  @ExampleObject(
+                      value = "{ \"code\": \"FRIEND-007\", \"message\": \"친구 관계가 없습니다.\" }")
+                }))
   })
   @DeleteMapping("/{friendMemberId}")
   public ApiResponse<Message> deleteFriend(@PathVariable Long friendMemberId) {
@@ -177,7 +314,37 @@ public class FriendController {
         content =
             @Content(
                 mediaType = "application/json",
-                examples = {@ExampleObject(value = "{ \"message\": \"회원을 차단했습니다.\" }")}))
+                examples = {@ExampleObject(value = "{ \"message\": \"회원을 차단했습니다.\" }")})),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "400",
+        description = "자기 자신 차단",
+        content =
+            @Content(
+                mediaType = "application/json",
+                examples = {
+                  @ExampleObject(
+                      value = "{ \"code\": \"FRIEND-001\", \"message\": \"자기 자신에게 친구 신청을 할 수 없습니다.\" }")
+                })),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "404",
+        description = "회원을 찾을 수 없음",
+        content =
+            @Content(
+                mediaType = "application/json",
+                examples = {
+                  @ExampleObject(
+                      value = "{ \"code\": \"USER-003\", \"message\": \"회원을 찾을 수 없습니다.\" }")
+                })),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "409",
+        description = "이미 차단한 회원",
+        content =
+            @Content(
+                mediaType = "application/json",
+                examples = {
+                  @ExampleObject(
+                      value = "{ \"code\": \"FRIEND-009\", \"message\": \"이미 차단한 회원입니다.\" }")
+                }))
   })
   @PostMapping("/block")
   public ApiResponse<Message> blockMember(@RequestBody BlockRequestDto request) {
@@ -193,7 +360,19 @@ public class FriendController {
         content =
             @Content(
                 mediaType = "application/json",
-                examples = {@ExampleObject(value = "{ \"message\": \"차단을 해제했습니다.\" }")}))
+                examples = {@ExampleObject(value = "{ \"message\": \"차단을 해제했습니다.\" }")})),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "404",
+        description = "회원을 찾을 수 없음 / 차단한 회원이 아님",
+        content =
+            @Content(
+                mediaType = "application/json",
+                examples = {
+                  @ExampleObject(
+                      value = "{ \"code\": \"USER-003\", \"message\": \"회원을 찾을 수 없습니다.\" }"),
+                  @ExampleObject(
+                      value = "{ \"code\": \"FRIEND-010\", \"message\": \"차단한 회원이 아닙니다.\" }")
+                }))
   })
   @DeleteMapping("/block/{blockedMemberId}")
   public ApiResponse<Message> unblockMember(@PathVariable Long blockedMemberId) {
@@ -230,6 +409,16 @@ public class FriendController {
                 examples = {
                   @ExampleObject(
                       value = "{ \"data\": { \"memberId\": 2, \"relationStatus\": \"FRIEND\" } }")
+                })),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "404",
+        description = "회원을 찾을 수 없음",
+        content =
+            @Content(
+                mediaType = "application/json",
+                examples = {
+                  @ExampleObject(
+                      value = "{ \"code\": \"USER-003\", \"message\": \"회원을 찾을 수 없습니다.\" }")
                 }))
   })
   @GetMapping("/relation/{memberId}")
