@@ -1,12 +1,14 @@
 package com.odos.odos_server_v2.domain.member.dto;
 
+import java.util.List;
+
+import lombok.Builder;
+import lombok.Getter;
+
 import com.odos.odos_server_v2.domain.challenge.dto.ChallengeSummaryResponse;
 import com.odos.odos_server_v2.domain.diary.dto.DiaryResponse;
 import com.odos.odos_server_v2.domain.shared.dto.OffsetPagination;
 import io.swagger.v3.oas.annotations.media.Schema;
-import java.util.List;
-import lombok.Builder;
-import lombok.Getter;
 
 @Schema(description = "마이페이지 응답")
 @Builder
@@ -33,4 +35,10 @@ public class MyPageDto {
 
   @Schema(description = "내가 작성한 일지 목록")
   OffsetPagination<DiaryResponse> diaryList;
+
+  @Schema(description = "관계 상태: FRIEND, REQUEST_SENT, REQUEST_RECEIVED, NONE, BLOCKED")
+  String relationStatus;
+
+  @Schema(description = "일지/스토리 접근 가능 여부")
+  Boolean isAccessible;
 }
