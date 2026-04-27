@@ -1,13 +1,5 @@
 package com.odos.odos_server_v2.domain.friend.service;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
-import lombok.RequiredArgsConstructor;
-
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import com.odos.odos_server_v2.domain.friend.dto.*;
 import com.odos.odos_server_v2.domain.friend.entity.BlockList;
 import com.odos.odos_server_v2.domain.friend.entity.Enum.FriendRequestStatus;
@@ -21,6 +13,11 @@ import com.odos.odos_server_v2.domain.member.entity.Member;
 import com.odos.odos_server_v2.domain.member.repository.MemberRepository;
 import com.odos.odos_server_v2.exception.CustomException;
 import com.odos.odos_server_v2.exception.ErrorCode;
+import java.util.List;
+import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -277,10 +274,7 @@ public class FriendService {
 
     // 차단 목록에 추가
     BlockList blockList =
-        BlockList.builder()
-            .member(currentMember)
-            .blockedMember(blockedMember)
-            .build();
+        BlockList.builder().member(currentMember).blockedMember(blockedMember).build();
 
     blockListRepository.save(blockList);
 
@@ -322,8 +316,7 @@ public class FriendService {
   @Transactional(readOnly = true)
   public List<FriendResponseDto> getBlockList() {
     Member currentMember = getCurrentMember();
-    List<BlockList> blockList =
-        blockListRepository.findByMember(currentMember);
+    List<BlockList> blockList = blockListRepository.findByMember(currentMember);
 
     return blockList.stream()
         .map(

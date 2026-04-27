@@ -1,11 +1,5 @@
 package com.odos.odos_server_v2.domain.friend.controller;
 
-import java.util.List;
-
-import lombok.RequiredArgsConstructor;
-
-import org.springframework.web.bind.annotation.*;
-
 import com.odos.odos_server_v2.domain.friend.dto.*;
 import com.odos.odos_server_v2.domain.friend.service.FriendService;
 import com.odos.odos_server_v2.response.ApiResponse;
@@ -15,6 +9,9 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import java.util.List;
+import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "친구", description = "친구 API")
 @RestController
@@ -41,7 +38,8 @@ public class FriendController {
                 mediaType = "application/json",
                 examples = {
                   @ExampleObject(
-                      value = "{ \"code\": \"FRIEND-001\", \"message\": \"자기 자신에게 친구 신청을 할 수 없습니다.\" }")
+                      value =
+                          "{ \"code\": \"FRIEND-001\", \"message\": \"자기 자신에게 친구 신청을 할 수 없습니다.\" }")
                 })),
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
         responseCode = "404",
@@ -73,7 +71,8 @@ public class FriendController {
                 mediaType = "application/json",
                 examples = {
                   @ExampleObject(
-                      value = "{ \"code\": \"FRIEND-008\", \"message\": \"차단당한 회원이므로 친구 신청을 할 수 없습니다.\" }")
+                      value =
+                          "{ \"code\": \"FRIEND-008\", \"message\": \"차단당한 회원이므로 친구 신청을 할 수 없습니다.\" }")
                 }))
   })
   @PostMapping("/request")
@@ -323,7 +322,8 @@ public class FriendController {
                 mediaType = "application/json",
                 examples = {
                   @ExampleObject(
-                      value = "{ \"code\": \"FRIEND-001\", \"message\": \"자기 자신에게 친구 신청을 할 수 없습니다.\" }")
+                      value =
+                          "{ \"code\": \"FRIEND-001\", \"message\": \"자기 자신에게 친구 신청을 할 수 없습니다.\" }")
                 })),
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
         responseCode = "404",
