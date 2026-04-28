@@ -1,9 +1,9 @@
 package com.odos.odos_server_v2.domain.diary.repository;
 
-import com.odos.odos_server_v2.domain.diary.entity.Diary;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -12,11 +12,15 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import com.odos.odos_server_v2.domain.diary.entity.Diary;
+
 @Repository
 public interface DiaryRepository extends JpaRepository<Diary, Long> {
   Optional<Diary> findByIdAndIsDeletedFalse(Long id); // 기존 공개다이어리만 조회에서 softDelete 적용 위해 이거 추가
 
   List<Diary> findDiariesByIsPublicAndIsDeletedFalse(Boolean isPublic);
+
+  List<Diary> findDiariesByMember_Id(Long memberId);
 
   Page<Diary> findDiariesByMember_IdAndIsDeletedFalse(Long memberId, Pageable pageable);
 

@@ -1,5 +1,19 @@
 package com.odos.odos_server_v2.domain.diary.service;
 
+import java.io.IOException;
+import java.time.LocalDate;
+import java.util.*;
+import java.util.stream.Collectors;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+
 import com.odos.odos_server_v2.domain.challenge.dto.ChallengeSummaryResponse;
 import com.odos.odos_server_v2.domain.challenge.entity.Challenge;
 import com.odos.odos_server_v2.domain.challenge.entity.ChallengeGoal;
@@ -27,17 +41,6 @@ import com.odos.odos_server_v2.domain.shared.service.ImageService;
 import com.odos.odos_server_v2.exception.CustomException;
 import com.odos.odos_server_v2.exception.ErrorCode;
 import jakarta.transaction.Transactional;
-import java.io.IOException;
-import java.time.LocalDate;
-import java.util.*;
-import java.util.stream.Collectors;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
 @Service
 @RequiredArgsConstructor
@@ -658,5 +661,32 @@ public class DiaryService {
                     commentRepository.countByDiaryId(diary.getId())));
 
     return OffsetPagination.from(diaryResponsePage);
+  }
+
+  @Transactional
+  public void softDeleteWithdrawnMemberDiaries(Long memberId) {
+    if (memberId == null) {
+      throw new CustomException(ErrorCode.MEMBER_NOT_FOUND);
+    }
+
+    memberRepository
+        .findById(memberId)
+        .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+
+    List<Diary> diariesByMemberId = diaryRepository.findDiariesByMember_Id(memberId);
+    if (diariesByMemberId == null || diariesByMemberId.isEmpty()) {
+      return;
+    }
+
+    for (Diary diary : diariesByMemberId) {
+      try {
+        if (diary == null || Boolean.TRUE.equals(diary.getIsDeleted())) {
+          continue;
+        }
+        diary.softDelete();
+      } catch (Exception e) {
+        log.warn("Failed to soft delete diary. memberId={}, diaryId={}", memberId, diary.getId(), e);
+      }
+    }
   }
 }

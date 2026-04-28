@@ -1,15 +1,19 @@
 package com.odos.odos_server_v2.domain.member.service;
 
+import java.time.LocalDateTime;
+import java.util.List;
+
+import lombok.RequiredArgsConstructor;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.odos.odos_server_v2.domain.challenge.service.ChallengeService;
+import com.odos.odos_server_v2.domain.diary.service.DiaryService;
 import com.odos.odos_server_v2.domain.member.CurrentUserContext;
 import com.odos.odos_server_v2.domain.member.entity.Enum.MemberStatus;
 import com.odos.odos_server_v2.domain.member.entity.Member;
 import com.odos.odos_server_v2.domain.member.repository.MemberRepository;
-import java.time.LocalDateTime;
-import java.util.List;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -17,6 +21,7 @@ public class MemberDeleteService {
 
   private final MemberRepository memberRepository;
   private final ChallengeService challengeService;
+  private final DiaryService diaryService;
 
   /** 1. 회원 탈퇴 요청 (Soft Delete) */
   @Transactional
@@ -34,6 +39,7 @@ public class MemberDeleteService {
     challengeService.withdrawMemberLeaveChallenge(member.getId());
 
     // 일지 처리
+    diaryService.softDeleteWithdrawnMemberDiaries(memberId);
   }
 
   @Transactional
