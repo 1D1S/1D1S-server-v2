@@ -18,6 +18,8 @@ public interface DiaryRepository extends JpaRepository<Diary, Long> {
 
   List<Diary> findDiariesByIsPublicAndIsDeletedFalse(Boolean isPublic);
 
+  List<Diary> findDiariesByMember_Id(Long memberId);
+
   Page<Diary> findDiariesByMember_IdAndIsDeletedFalse(Long memberId, Pageable pageable);
 
   long countByChallengeIdAndIsAllGoalsCompletedTrue(Long challengeId);

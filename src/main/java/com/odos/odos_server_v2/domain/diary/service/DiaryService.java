@@ -659,4 +659,32 @@ public class DiaryService {
 
     return OffsetPagination.from(diaryResponsePage);
   }
+
+  @Transactional
+  public void softDeleteWithdrawnMemberDiaries(Long memberId) {
+    if (memberId == null) {
+      throw new CustomException(ErrorCode.MEMBER_NOT_FOUND);
+    }
+
+    memberRepository
+        .findById(memberId)
+        .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+
+    List<Diary> diariesByMemberId = diaryRepository.findDiariesByMember_Id(memberId);
+    if (diariesByMemberId == null || diariesByMemberId.isEmpty()) {
+      return;
+    }
+
+    for (Diary diary : diariesByMemberId) {
+      try {
+        if (diary == null || Boolean.TRUE.equals(diary.getIsDeleted())) {
+          continue;
+        }
+        diary.softDelete();
+      } catch (Exception e) {
+        log.warn(
+            "Failed to soft delete diary. memberId={}, diaryId={}", memberId, diary.getId(), e);
+      }
+    }
+  }
 }
