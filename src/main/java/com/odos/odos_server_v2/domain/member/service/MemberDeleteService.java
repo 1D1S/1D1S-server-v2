@@ -43,21 +43,6 @@ public class MemberDeleteService {
   }
 
   @Transactional
-  public void requestWithdrawTest() {
-    Long memberId = CurrentUserContext.getCurrentMemberId();
-    Member member =
-        memberRepository
-            .findById(memberId)
-            .orElseThrow(() -> new IllegalArgumentException("회원이 존재하지 않습니다."));
-
-    // 탈퇴 상태 변경
-    member.withdraw();
-
-    // 주최 중인 챌린지 host 위임
-    challengeService.withdrawMemberLeaveChallengeHost(member.getId());
-  }
-
-  @Transactional
   public void processDeletion() {
     LocalDateTime threshold = LocalDateTime.now().minusDays(7);
 
