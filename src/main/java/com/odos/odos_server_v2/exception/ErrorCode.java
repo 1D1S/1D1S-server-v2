@@ -59,6 +59,7 @@ public enum ErrorCode {
   COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "COMMENT-001", "존재하지 않는 댓글입니다."),
   COMMENT_NOT_ACCESS(HttpStatus.FORBIDDEN, "COMMENT-002", "댓글 작성자가 아니어서 접근 권한이 없습니다."),
   CANNOT_REPLY_TO_REPLY(HttpStatus.BAD_REQUEST, "COMMENT-003", "대댓글에는 대댓글을 작성할 수 없습니다."),
+  COMMENT_ALREADY_REPORTED(HttpStatus.CONFLICT, "COMMENT-004", "이미 신고한 댓글입니다."),
 
   // friend
   FRIEND_SELF_REQUEST(HttpStatus.BAD_REQUEST, "FRIEND-001", "자기 자신에게 친구 신청을 할 수 없습니다."),

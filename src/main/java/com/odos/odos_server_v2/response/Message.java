@@ -62,6 +62,7 @@ public class Message {
   public static String COMMENT_DELETE_SUCCESS = "댓글 삭제 성공했습니다.";
   public static String COMMENT_GET_SUCCESS = "댓글 조회 성공했습니다.";
   public static String REPLY_GET_SUCCESS = "대댓글 조회 성공했습니다.";
+  public static String COMMENT_REPORT_CREATED = "댓글 신고 생성 성공했습니다.";
 
   // friend
   public static String FRIEND_REQUEST_SEND = "친구 신청을 보냈습니다.";
