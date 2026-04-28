@@ -1,5 +1,6 @@
 package com.odos.odos_server_v2.domain.challenge.dto;
 
+import com.odos.odos_server_v2.domain.challenge.entity.Enum.ChallengeType;
 import com.odos.odos_server_v2.domain.challenge.entity.Enum.GoalType;
 import com.odos.odos_server_v2.domain.challenge.entity.Enum.ParticipationType;
 import com.odos.odos_server_v2.domain.shared.Enum.Category;
@@ -48,4 +49,10 @@ public class ChallengeRequest {
 
   @Schema(description = "챌린지 목표 목록", example = "[\"알고리즘 1문제 풀기\", \"책 10페이지 읽기\"]")
   private List<String> goals;
+
+  @Schema(description = "챌린지 종류 (PUBLIC: 공개, PRIVATE: 비공개, OFFICIAL: 공식)", example = "PUBLIC")
+  private ChallengeType challengeType;
+
+  @Schema(description = "비공개 챌린지 비밀번호 (challengeType이 PRIVATE일 때 필수)", example = "1234")
+  private String password;
 }

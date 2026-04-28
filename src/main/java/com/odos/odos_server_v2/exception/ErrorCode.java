@@ -54,6 +54,9 @@ public enum ErrorCode {
   CANNOT_APPLY_PARTICIPANT(HttpStatus.UNPROCESSABLE_ENTITY, "CHALLENGE_012", "챌린지에 신청할 수 없습니다."),
   INVALID_CHALLENGE_REQUEST(
       HttpStatus.UNPROCESSABLE_ENTITY, "CHALLENGE_013", "챌린지 형태와 최대 참여 인원이 맞지 않습니다."),
+  INVALID_CHALLENGE_PASSWORD(HttpStatus.FORBIDDEN, "CHALLENGE_014", "챌린지 비밀번호가 올바르지 않습니다."),
+  CHALLENGE_NOT_PRIVATE(HttpStatus.BAD_REQUEST, "CHALLENGE_015", "비공개 챌린지가 아닙니다."),
+  PRIVATE_CHALLENGE(HttpStatus.FORBIDDEN, "CHALLENGE_016", "비공개 챌린지 입니다."),
 
   // comment
   COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "COMMENT-001", "존재하지 않는 댓글입니다."),
