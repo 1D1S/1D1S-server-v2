@@ -8,4 +8,3 @@ public enum NotificationTargetType {
   CHALLENGE_LIST,
   MAIN
 }
-    // TODO : 이거 타입 이름과 기획 다시 비교

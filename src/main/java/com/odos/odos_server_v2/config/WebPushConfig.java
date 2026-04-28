@@ -10,7 +10,7 @@ import org.springframework.context.annotation.Configuration;
 public class WebPushConfig {
 
   @Bean
-  public PushService pushService(WebPushProperties webPushProperties) {
+  public PushService pushService(WebPushProperties webPushProperties) throws Exception {
     return new PushService(
         webPushProperties.getPublicKey(),
         webPushProperties.getPrivateKey(),

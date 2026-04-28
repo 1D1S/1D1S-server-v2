@@ -130,6 +130,7 @@ package com.odos.odos_server_v2.domain.notification.entity;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.odos.odos_server_v2.config.WebPushProperties;
+import com.odos.odos_server_v2.domain.notification.entity.Enum.NotificationChannelType;
 import com.odos.odos_server_v2.domain.notification.repository.NotificationSender;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
@@ -225,7 +226,6 @@ public class WebPushSender implements NotificationSender {
         "targetType",
         notification.getTargetType() != null ? notification.getTargetType().name() : null);
     payload.put("targetId", notification.getTargetId());
-    payload.put("landingPath", notification.resolveLandingPath());
 
     try {
       return objectMapper.writeValueAsString(payload);
@@ -241,6 +241,11 @@ public class WebPushSender implements NotificationSender {
 
     Base64.getUrlDecoder().decode(endpoint.getP256dh());
     Base64.getUrlDecoder().decode(endpoint.getAuthSecret());
+  }
+
+  @Override
+  public NotificationChannelType channel() {
+    return NotificationChannelType.WEB_PUSH;
   }
 
   private boolean hasText(String value) {

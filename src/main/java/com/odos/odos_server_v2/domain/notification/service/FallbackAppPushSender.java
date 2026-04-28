@@ -23,4 +23,9 @@ public class FallbackAppPushSender implements NotificationSender {
         notification.getId(),
         endpoint.getId());
   }
+
+  @Override
+  public boolean supports(NotificationEndpoint endpoint) {
+    return false;
+  }
 }

@@ -1,8 +1,5 @@
 package com.odos.odos_server_v2.domain.notification.entity;
 
-import static com.odos.odos_server_v2.domain.notification.entity.Enum.NotificationCategory.*;
-import static java.awt.Event.HOME;
-
 import com.odos.odos_server_v2.domain.member.entity.Member;
 import com.odos.odos_server_v2.domain.notification.entity.Enum.NotificationCategory;
 import com.odos.odos_server_v2.domain.notification.entity.Enum.NotificationTargetType;
@@ -16,7 +13,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @Entity
 @Getter
 @Builder
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@NoArgsConstructor
 @AllArgsConstructor
 @EntityListeners(AuditingEntityListener.class)
 @Table(
@@ -77,9 +74,6 @@ public class Notification extends BaseTimeEntity {
   @Column(name = "expires_at", nullable = false)
   private LocalDateTime expiresAt;
 
-  @Column(length = 255)
-  private String landingPath;
-
   public void markAsRead() {
     this.isRead = true;
     this.readAt = LocalDateTime.now();
@@ -123,21 +117,6 @@ public class Notification extends BaseTimeEntity {
       case FRIEND_DIARY_CREATED, MY_DIARY_COMMENTED, MY_COMMENT_REPLIED, DIARY_LIKE_MILESTONE ->
           "일지 알림";
       case CHALLENGE_APPROVED, CHALLENGE_REJECTED -> "챌린지 알림";
-    };
-  }
-
-  public String resolveLandingPath() {
-    if (targetType == null) {
-      return "/home";
-    }
-
-    return switch (targetType) {
-      case MEMBER_PROFILE -> targetId != null ? "/members/" + targetId : "/home";
-      case DIARY -> targetId != null ? "/diaries/" + targetId : "/home";
-      case COMMENT -> targetId != null ? "/comments/" + targetId : "/home";
-      case CHALLENGE -> targetId != null ? "/challenges/" + targetId : "/home";
-      case CHALLENGE_LIST -> "/challenges";
-      case HOME -> "/home";
     };
   }
 }

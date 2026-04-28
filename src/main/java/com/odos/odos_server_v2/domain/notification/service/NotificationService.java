@@ -1,6 +1,6 @@
 package com.odos.odos_server_v2.domain.notification.service;
 
-import com.odos.odos_server_v2.config.notification.WebPushProperties;
+import com.odos.odos_server_v2.config.WebPushProperties;
 import com.odos.odos_server_v2.domain.diary.entity.Diary;
 import com.odos.odos_server_v2.domain.diary.repository.DiaryRepository;
 import com.odos.odos_server_v2.domain.member.entity.Member;
