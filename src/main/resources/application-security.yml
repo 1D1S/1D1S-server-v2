@@ -44,3 +44,10 @@ jwt:
     access-token-name: ${JWT_ACCESS_COOKIE_NAME:accessToken}
     refresh-token-name: ${JWT_REFRESH_COOKIE_NAME:refreshToken}
     domain: ${JWT_COOKIE_DOMAIN:}
+
+notification:
+  web-push:
+    enabled: ${WEB_PUSH_ENABLED:true}
+    subject: ${WEB_PUSH_SUBJECT:mailto:dev@example.com}
+    public-key: ${WEB_PUSH_PUBLIC_KEY:}
+    private-key: ${WEB_PUSH_PRIVATE_KEY:}
