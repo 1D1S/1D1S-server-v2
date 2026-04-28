@@ -19,6 +19,7 @@ import com.odos.odos_server_v2.domain.diary.repository.*;
 import com.odos.odos_server_v2.domain.member.CurrentUserContext;
 import com.odos.odos_server_v2.domain.member.entity.Member;
 import com.odos.odos_server_v2.domain.member.repository.MemberRepository;
+import com.odos.odos_server_v2.domain.notification.service.NotificationService;
 import com.odos.odos_server_v2.domain.shared.dto.OffsetPagination;
 import com.odos.odos_server_v2.domain.shared.dto.PageInfo;
 import com.odos.odos_server_v2.domain.shared.dto.Pagination;
@@ -56,6 +57,7 @@ public class DiaryService {
   private final DiaryImageRepository diaryImageRepository;
   private final ChallengeGoalRepository challengeGoalRepository;
   private final CommentRepository commentRepository;
+  private final NotificationService notificationService;
 
   @Transactional
   public DiaryResponse createDiary(Long memberId, DiaryRequest request) {
@@ -343,7 +345,9 @@ public class DiaryService {
       diaryLike.setDiary(diary);
       diaryLikeRepository.save(diaryLike);
       List<DiaryLike> likes = diaryLikeRepository.getDiaryLikeCountByDiaryId(diaryId);
-      return likes.size();
+      int likeCount = likes.size();
+      notificationService.notifyDiaryLikeMilestone(diaryId, likeCount);
+      return likeCount;
     } else {
       throw new CustomException(ErrorCode.DIARYLIKE_ALREADY_EXISTS);
     }
