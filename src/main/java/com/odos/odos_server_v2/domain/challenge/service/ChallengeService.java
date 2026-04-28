@@ -4,6 +4,7 @@ import com.odos.odos_server_v2.domain.challenge.dto.*;
 import com.odos.odos_server_v2.domain.challenge.entity.Challenge;
 import com.odos.odos_server_v2.domain.challenge.entity.ChallengeGoal;
 import com.odos.odos_server_v2.domain.challenge.entity.ChallengeLike;
+import com.odos.odos_server_v2.domain.challenge.entity.Enum.ChallengeType;
 import com.odos.odos_server_v2.domain.challenge.entity.Enum.GoalType;
 import com.odos.odos_server_v2.domain.challenge.entity.Enum.ParticipantStatus;
 import com.odos.odos_server_v2.domain.challenge.entity.Enum.ParticipationType;
@@ -38,6 +39,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -54,6 +56,7 @@ public class ChallengeService {
   private final ChallengeRepository challengeRepository;
   private final MemberRepository memberRepository;
   private final CursorService cursorService;
+  private final PasswordEncoder passwordEncoder;
 
   @Transactional
   public ChallengeSummaryResponse createChallenge(
@@ -66,6 +69,21 @@ public class ChallengeService {
         && challengeRequest.getMaxParticipantCnt() < 2) {
       throw new CustomException(ErrorCode.INVALID_CHALLENGE_REQUEST);
     }
+
+    ChallengeType challengeType =
+        challengeRequest.getChallengeType() != null
+            ? challengeRequest.getChallengeType()
+            : ChallengeType.PUBLIC;
+
+    if (challengeType == ChallengeType.PRIVATE
+        && (challengeRequest.getPassword() == null || challengeRequest.getPassword().isBlank())) {
+      throw new CustomException(ErrorCode.PRIVATE_CHALLENGE);
+    }
+
+    String encodedPassword =
+        challengeType == ChallengeType.PRIVATE
+            ? passwordEncoder.encode(challengeRequest.getPassword())
+            : null;
 
     Challenge challenge =
         Challenge.builder()
@@ -80,6 +98,8 @@ public class ChallengeService {
             .hostMember(member)
             .allowMidJoin(challengeRequest.getAllowMidJoin())
             .participationType(challengeRequest.getParticipationType())
+            .challengeType(challengeType)
+            .password(encodedPassword)
             .build();
 
     challengeRepository.save(challenge);
@@ -187,6 +207,14 @@ public class ChallengeService {
         memberRepository
             .findById(memberId)
             .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+
+    if (challenge.getChallengeType() == ChallengeType.PRIVATE) {
+      ParticipantStatus status = getMemberStatus(challengeId, memberId);
+      if (status != ParticipantStatus.HOST && status != ParticipantStatus.PARTICIPANT) {
+        throw new CustomException(ErrorCode.PRIVATE_CHALLENGE);
+      }
+    }
+
     return toChallengeResponse(challenge, member);
   }
 
@@ -195,7 +223,8 @@ public class ChallengeService {
 
     Pageable pageable = PageRequest.of(page, size);
 
-    Page<Challenge> challengePage = challengeRepository.findByFilters(keyword, category, pageable);
+    Page<Challenge> challengePage =
+        challengeRepository.findByFilters(keyword, category, ChallengeType.PRIVATE, pageable);
 
     Page<ChallengeSummaryResponse> responsePage =
         challengePage.map(challenge -> toChallengeSummary(challenge, memberId));
@@ -251,6 +280,68 @@ public class ChallengeService {
       }
     }
     return toParticipant(participant);
+  }
+
+  @Transactional
+  public ChallengeResponse verifyPasswordAndJoin(
+      Long challengeId, Long memberId, String password, List<String> goals) {
+    Challenge challenge =
+        challengeRepository
+            .findById(challengeId)
+            .orElseThrow(() -> new CustomException(ErrorCode.CHALLENGE_NOT_FOUND));
+
+    if (challenge.getChallengeType() != ChallengeType.PRIVATE) {
+      throw new CustomException(ErrorCode.CHALLENGE_NOT_PRIVATE);
+    }
+    if (!passwordEncoder.matches(password, challenge.getPassword())) {
+      throw new CustomException(ErrorCode.INVALID_CHALLENGE_PASSWORD);
+    }
+    if (challenge.getDeletedAt() != null) {
+      throw new CustomException(ErrorCode.CANNOT_APPLY_PARTICIPANT);
+    }
+    if (challenge.getParticipationType().equals(ParticipationType.INDIVIDUAL)) {
+      throw new CustomException(ErrorCode.CANNOT_APPLY_PARTICIPANT);
+    }
+
+    Member member =
+        memberRepository
+            .findById(memberId)
+            .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+
+    if (participantRepository.existsByChallengeIdAndMemberId(challengeId, memberId)) {
+      throw new CustomException(ErrorCode.ALREADY_APPLIED);
+    }
+    if (!challenge.isAllowMidJoin() && challenge.getStartDate().isBefore(LocalDate.now())) {
+      throw new CustomException(ErrorCode.CANNOT_APPLY_PARTICIPANT);
+    }
+    if (getParticipantCnt(challengeId) >= challenge.getMaxParticipantsCnt()) {
+      throw new CustomException(ErrorCode.CANNOT_ACCEPT_PARTICIPANT);
+    }
+
+    Participant participant =
+        Participant.builder()
+            .member(member)
+            .challenge(challenge)
+            .status(ParticipantStatus.PARTICIPANT)
+            .build();
+    participantRepository.save(participant);
+
+    if (challenge.getGoalType().equals(GoalType.FLEXIBLE)) {
+      for (String g : goals) {
+        challengeGoalRepository.save(
+            ChallengeGoal.builder().content(g).participant(participant).build());
+      }
+    } else {
+      Participant hostParticipant =
+          participantRepository
+              .findByMemberIdAndChallengeId(challenge.getHostMember().getId(), challengeId)
+              .orElseThrow(() -> new CustomException(ErrorCode.PARTICIPANT_NOT_FOUND));
+      for (ChallengeGoal cg : hostParticipant.getChallengeGoals()) {
+        challengeGoalRepository.save(
+            ChallengeGoal.builder().participant(participant).content(cg.getContent()).build());
+      }
+    }
+    return toChallengeResponse(challenge, member);
   }
 
   @Transactional
@@ -310,7 +401,10 @@ public class ChallengeService {
   }
 
   public List<ChallengeSummaryResponse> getRandomChallenges(Long memberId, int size) {
-    List<Challenge> all = challengeRepository.findAll();
+    List<Challenge> all =
+        challengeRepository.findAll().stream()
+            .filter(c -> c.getChallengeType() != ChallengeType.PRIVATE)
+            .collect(java.util.stream.Collectors.toList());
     Collections.shuffle(all);
     return all.stream().limit(size).map(ch -> toChallengeSummary(ch, memberId)).toList();
   }
@@ -438,7 +532,8 @@ public class ChallengeService {
         (cursor == null || cursor.isBlank()) ? null : cursorService.decodeCursorToId(cursor);
 
     Pageable pageable = PageRequest.of(0, limit + 1, Sort.by(Sort.Direction.DESC, "id"));
-    List<Challenge> rows = challengeRepository.searchPage(cursorId, kw, pageable);
+    List<Challenge> rows =
+        challengeRepository.searchPage(cursorId, kw, ChallengeType.PRIVATE, pageable);
 
     boolean hasNext = rows.size() > limit;
     if (hasNext) {
@@ -579,6 +674,7 @@ public class ChallengeService {
         challenge.getParticipationType(),
         challenge.getMaxParticipantsCnt(),
         challenge.getGoalType(),
+        challenge.getChallengeType(),
         getParticipantCnt(challengeId),
         likeInfo,
         challenge.getDeletedAt() != null);
