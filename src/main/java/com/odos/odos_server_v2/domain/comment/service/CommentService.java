@@ -1,8 +1,11 @@
 package com.odos.odos_server_v2.domain.comment.service;
 
+import com.odos.odos_server_v2.domain.comment.dto.CommentReportRequest;
 import com.odos.odos_server_v2.domain.comment.dto.CommentRequest;
 import com.odos.odos_server_v2.domain.comment.dto.CommentResponse;
 import com.odos.odos_server_v2.domain.comment.entity.Comment;
+import com.odos.odos_server_v2.domain.comment.entity.CommentReport;
+import com.odos.odos_server_v2.domain.comment.repository.CommentReportRepository;
 import com.odos.odos_server_v2.domain.comment.repository.CommentRepository;
 import com.odos.odos_server_v2.domain.diary.entity.Diary;
 import com.odos.odos_server_v2.domain.diary.repository.DiaryRepository;
@@ -25,6 +28,7 @@ import org.springframework.stereotype.Service;
 public class CommentService {
 
   private final CommentRepository commentRepository;
+  private final CommentReportRepository commentReportRepository;
   private final DiaryRepository diaryRepository;
   private final MemberRepository memberRepository;
   private final ImageService imageService;
@@ -105,6 +109,37 @@ public class CommentService {
                     commentRepository.countByParentId(comment.getId())));
 
     return OffsetPagination.from(responsePage);
+  }
+
+  @Transactional
+  public void reportComment(Long memberId, Long commentId, CommentReportRequest request) {
+    Member member =
+        memberRepository
+            .findById(memberId)
+            .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+    Comment comment =
+        commentRepository
+            .findById(commentId)
+            .orElseThrow(() -> new CustomException(ErrorCode.COMMENT_NOT_FOUND));
+
+    if (comment.getIsDeleted()) {
+      throw new CustomException(ErrorCode.COMMENT_NOT_FOUND);
+    }
+
+    boolean alreadyReported =
+        commentReportRepository.existsByMemberIdAndCommentId(memberId, commentId);
+    if (alreadyReported) {
+      throw new CustomException(ErrorCode.COMMENT_ALREADY_REPORTED);
+    }
+
+    CommentReport report =
+        CommentReport.builder()
+            .member(member)
+            .comment(comment)
+            .type(request.getReportType())
+            .content(request.getContent())
+            .build();
+    commentReportRepository.save(report);
   }
 
   @Transactional
