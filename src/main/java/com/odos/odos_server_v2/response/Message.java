@@ -62,4 +62,17 @@ public class Message {
   public static String COMMENT_DELETE_SUCCESS = "댓글 삭제 성공했습니다.";
   public static String COMMENT_GET_SUCCESS = "댓글 조회 성공했습니다.";
   public static String REPLY_GET_SUCCESS = "대댓글 조회 성공했습니다.";
+
+  // notification
+  public static String NOTIFICATION_LIST_SUCCESS = "알림 목록 조회 성공했습니다.";
+  public static String NOTIFICATION_UNREAD_COUNT_SUCCESS = "미읽음 알림 수 조회 성공했습니다.";
+  public static String NOTIFICATION_READ_SUCCESS = "알림 읽음 처리 성공했습니다.";
+  public static String NOTIFICATION_READ_ALL_SUCCESS = "전체 알림 읽음 처리 성공했습니다.";
+  public static String NOTIFICATION_PREFERENCE_GET_SUCCESS = "알림 설정 조회 성공했습니다.";
+  public static String NOTIFICATION_PREFERENCE_UPDATE_SUCCESS = "알림 설정 변경 성공했습니다.";
+
+  public static String NOTIFICATION_ENDPOINT_LIST_SUCCESS = "알림 수신 단말 목록 조회 성공했습니다.";
+  public static String NOTIFICATION_ENDPOINT_UPSERT_SUCCESS = "알림 수신 단말 등록 성공했습니다.";
+  public static String NOTIFICATION_ENDPOINT_DELETE_SUCCESS = "알림 수신 단말 삭제 성공했습니다.";
+  public static String NOTIFICATION_WEB_PUSH_PUBLIC_KEY_SUCCESS = "웹푸시 공개키 조회 성공했습니다.";
 }

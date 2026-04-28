@@ -58,7 +58,15 @@ public enum ErrorCode {
   // comment
   COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "COMMENT-001", "존재하지 않는 댓글입니다."),
   COMMENT_NOT_ACCESS(HttpStatus.FORBIDDEN, "COMMENT-002", "댓글 작성자가 아니어서 접근 권한이 없습니다."),
-  CANNOT_REPLY_TO_REPLY(HttpStatus.BAD_REQUEST, "COMMENT-003", "대댓글에는 대댓글을 작성할 수 없습니다.");
+  CANNOT_REPLY_TO_REPLY(HttpStatus.BAD_REQUEST, "COMMENT-003", "대댓글에는 대댓글을 작성할 수 없습니다."),
+
+  // notification
+  NOTIFICATION_NOT_FOUND(HttpStatus.NOT_FOUND, "NOTIFICATION-001", "존재하지 않는 알림입니다."),
+  NOTIFICATION_NOT_ACCESS(HttpStatus.FORBIDDEN, "NOTIFICATION-002", "알림 접근 권한이 없습니다."),
+  NOTIFICATION_ENDPOINT_INVALID_REQUEST(
+      HttpStatus.BAD_REQUEST, "NOTIFICATION-003", "알림 수신 단말 요청값이 올바르지 않습니다."),
+  NOTIFICATION_ENDPOINT_NOT_FOUND(
+      HttpStatus.NOT_FOUND, "NOTIFICATION-004", "알림 수신 단말 정보를 찾을 수 없습니다.");
 
   private final HttpStatus status;
   private final String code;
