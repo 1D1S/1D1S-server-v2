@@ -114,7 +114,7 @@ public class ChallengeService {
     participantRepository.save(participant);
 
     notificationService.notifyChallengeApproved(
-        participant.getMember().getId(), challenge.getId(), challenge.getTitle());
+        memberId, participant.getMember().getId(), challenge.getId(), challenge.getTitle());
 
     for (String g : challengeRequest.getGoals()) {
       ChallengeGoal challengeGoal =
@@ -366,7 +366,7 @@ public class ChallengeService {
     participant.setStatus(ParticipantStatus.PARTICIPANT);
     participantRepository.save(participant);
     notificationService.notifyChallengeApproved(
-        participant.getMember().getId(), challenge.getId(), challenge.getTitle());
+        memberId, participant.getMember().getId(), challenge.getId(), challenge.getTitle());
   }
 
   @Transactional
@@ -380,6 +380,7 @@ public class ChallengeService {
       participantRepository.save(participant);
 
       notificationService.notifyChallengeRejected(
+          memberId,
           participant.getMember().getId(),
           participant.getChallenge().getId(),
           participant.getChallenge().getTitle());

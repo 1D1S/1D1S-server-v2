@@ -239,12 +239,13 @@ public class NotificationService {
   }
 
   @Transactional
-  public void notifyChallengeApproved(Long receiverId, Long challengeId, String challengeName) {
+  public void notifyChallengeApproved(
+      Long actorId, Long receiverId, Long challengeId, String challengeName) {
     Member receiver = getMember(receiverId);
-
+    Member actor = getMember(actorId);
     createNotification(
         receiver,
-        null,
+        actor,
         NotificationCategory.CHALLENGE,
         NotificationType.CHALLENGE_APPROVED,
         String.format("%s 챌린지원이 되었습니다! 열심히 참여해봐요!", challengeName),
@@ -254,12 +255,13 @@ public class NotificationService {
   }
 
   @Transactional
-  public void notifyChallengeRejected(Long receiverId, Long challengeId, String challengeName) {
+  public void notifyChallengeRejected(
+      Long actorId, Long receiverId, Long challengeId, String challengeName) {
     Member receiver = getMember(receiverId);
-
+    Member actor = getMember(actorId);
     createNotification(
         receiver,
-        null,
+        actor,
         NotificationCategory.CHALLENGE,
         NotificationType.CHALLENGE_REJECTED,
         String.format("%s 챌린지 참여가 거절되었습니다.", challengeName),
