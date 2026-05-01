@@ -11,6 +11,7 @@ import com.odos.odos_server_v2.domain.friend.repository.FriendRequestRepository;
 import com.odos.odos_server_v2.domain.member.CurrentUserContext;
 import com.odos.odos_server_v2.domain.member.entity.Member;
 import com.odos.odos_server_v2.domain.member.repository.MemberRepository;
+import com.odos.odos_server_v2.domain.notification.service.NotificationService;
 import com.odos.odos_server_v2.exception.CustomException;
 import com.odos.odos_server_v2.exception.ErrorCode;
 import java.util.List;
@@ -27,6 +28,7 @@ public class FriendService {
   private final FriendRepository friendRepository;
   private final BlockListRepository blockListRepository;
   private final MemberRepository memberRepository;
+  private final NotificationService notificationService;
 
   /** 친구 신청 */
   @Transactional
@@ -78,8 +80,8 @@ public class FriendService {
             .build();
 
     friendRequestRepository.save(friendRequest);
-
-    // TODO: 알림 발송 로직 추가
+    notificationService.notifyFriendRequest(
+        fromMember.getId(), toMember.getId(), fromMember.getNickname());
   }
 
   /** 친구 신청 취소 */
@@ -138,7 +140,8 @@ public class FriendService {
     Friend friend2 = Friend.builder().member(toMember).friendMember(fromMember).build();
     friendRepository.save(friend2);
 
-    // TODO: 알림 발송 로직 추가
+    notificationService.notifyFriendAccept(
+        toMember.getId(), fromMember.getId(), toMember.getNickname());
   }
 
   /** 친구 신청 거절 */
