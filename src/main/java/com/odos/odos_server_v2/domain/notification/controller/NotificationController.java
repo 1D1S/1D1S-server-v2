@@ -24,6 +24,22 @@ public class NotificationController {
 
   private final NotificationService notificationService;
 
+  @GetMapping("/endpoints")
+  public ApiResponse<List<NotificationEndpointResponse>> getEndpoints() {
+    Long memberId = CurrentUserContext.getCurrentMemberId();
+    return ApiResponse.success(
+        Message.NOTIFICATION_ENDPOINT_LIST_SUCCESS, notificationService.getEndpoints(memberId));
+  }
+
+  @PostMapping("/endpoints")
+  public ApiResponse<NotificationEndpointResponse> upsertEndpoint(
+      @RequestBody NotificationEndpointUpsertRequest request) {
+    Long memberId = CurrentUserContext.getCurrentMemberId();
+    return ApiResponse.success(
+        Message.NOTIFICATION_ENDPOINT_UPSERT_SUCCESS,
+        notificationService.upsertEndpoint(memberId, request));
+  }
+
   @GetMapping
   public ApiResponse<OffsetPagination<NotificationResponse>> getMyNotifications(
       @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "20") int size) {
@@ -59,22 +75,6 @@ public class NotificationController {
     return ApiResponse.success(
         Message.NOTIFICATION_WEB_PUSH_PUBLIC_KEY_SUCCESS,
         notificationService.getWebPushPublicKey());
-  }
-
-  @GetMapping("/endpoints")
-  public ApiResponse<List<NotificationEndpointResponse>> getEndpoints() {
-    Long memberId = CurrentUserContext.getCurrentMemberId();
-    return ApiResponse.success(
-        Message.NOTIFICATION_ENDPOINT_LIST_SUCCESS, notificationService.getEndpoints(memberId));
-  }
-
-  @PostMapping("/endpoints")
-  public ApiResponse<NotificationEndpointResponse> upsertEndpoint(
-      @RequestBody NotificationEndpointUpsertRequest request) {
-    Long memberId = CurrentUserContext.getCurrentMemberId();
-    return ApiResponse.success(
-        Message.NOTIFICATION_ENDPOINT_UPSERT_SUCCESS,
-        notificationService.upsertEndpoint(memberId, request));
   }
 
   @DeleteMapping("/endpoints")

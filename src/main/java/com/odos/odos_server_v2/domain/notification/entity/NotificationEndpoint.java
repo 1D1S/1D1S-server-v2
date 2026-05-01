@@ -28,7 +28,7 @@ public class NotificationEndpoint extends BaseTimeEntity {
   @JoinColumn(name = "member_id", nullable = false)
   private Member member;
 
-  @Column(name = "endpoint_url", length = 1024)
+  @Column(name = "endpoint_url", length = 500)
   private String endpointUrl;
 
   @Column(name = "p256dh", length = 512)
