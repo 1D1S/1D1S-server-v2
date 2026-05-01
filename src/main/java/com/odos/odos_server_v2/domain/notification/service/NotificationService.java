@@ -46,6 +46,7 @@ public class NotificationService {
 
   private static final int MAX_NOTIFICATIONS_PER_USER = 100;
   private static final int RETENTION_DAYS = 30;
+  private static final int COMMENT_GROUPING_WINDOW_MINUTES = 5;
 
   private final NotificationRepository notificationRepository;
   private final NotificationEventRepository notificationEventRepository;
@@ -210,15 +211,35 @@ public class NotificationService {
     Member actor = getMember(actorId);
     Member receiver = getMember(receiverId);
 
-    createNotification(
-        receiver,
-        actor,
-        NotificationCategory.DIARY,
-        NotificationType.MY_DIARY_COMMENTED,
-        String.format("%s님이 댓글을 달았습니다: %s", actorNickname, commentContent),
-        NotificationTargetType.DIARY_COMMENT,
-        diaryId,
-        null);
+    LocalDateTime from = LocalDateTime.now().minusMinutes(COMMENT_GROUPING_WINDOW_MINUTES);
+
+    notificationRepository
+        .findFirstByReceiverAndTypeAndTargetIdAndCreatedAtGreaterThanEqualOrderByCreatedAtDesc(
+            receiver, NotificationType.MY_DIARY_COMMENTED, diaryId, from)
+        .ifPresentOrElse(
+            latest -> {
+              int currentCount =
+                  latest.getResolvedGroupedCount() == null ? 1 : latest.getResolvedGroupedCount();
+              int groupedCount = currentCount + 1;
+              String firstActorNickname =
+                  latest.getResolvedActor() != null
+                      ? latest.getResolvedActor().getNickname()
+                      : actorNickname;
+              String groupedMessage =
+                  String.format("%s님 외 %d명이 댓글을 달았습니다.", firstActorNickname, groupedCount - 1);
+              latest.updateGroupedMessage(groupedMessage, groupedCount);
+              notificationDispatchService.dispatch(latest);
+            },
+            () ->
+                createNotification(
+                    receiver,
+                    actor,
+                    NotificationCategory.DIARY,
+                    NotificationType.MY_DIARY_COMMENTED,
+                    String.format("%s님이 댓글을 달았습니다: %s", actorNickname, commentContent),
+                    NotificationTargetType.DIARY_COMMENT,
+                    diaryId,
+                    1));
   }
 
   @Transactional

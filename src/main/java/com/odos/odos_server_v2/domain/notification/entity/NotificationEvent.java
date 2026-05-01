@@ -46,4 +46,9 @@ public class NotificationEvent extends BaseTimeEntity {
 
   @Column(name = "grouped_count")
   private Integer groupedCount;
+
+  public void updateGroupedMessage(String message, Integer groupedCount) {
+    this.message = message;
+    this.groupedCount = groupedCount;
+  }
 }

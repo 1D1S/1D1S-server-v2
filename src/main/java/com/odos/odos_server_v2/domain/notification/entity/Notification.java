@@ -111,6 +111,14 @@ public class Notification extends BaseTimeEntity {
     return this.expiresAt.isBefore(now);
   }
 
+  public void updateGroupedMessage(String message, Integer groupedCount) {
+    this.message = message;
+    this.groupedCount = groupedCount;
+    if (this.event != null) {
+      this.event.updateGroupedMessage(message, groupedCount);
+    }
+  }
+
   public String resolvePushTitle() {
     return switch (type) {
       case FRIEND_REQUEST, FRIEND_ACCEPT -> "친구 알림";
