@@ -2,7 +2,7 @@ CREATE TABLE notification_endpoint (
                                        id BIGINT NOT NULL AUTO_INCREMENT,
                                        created_at DATETIME(6) NOT NULL,
                                        member_id BIGINT NOT NULL,
-                                       endpoint_url VARCHAR(1024) NULL,
+                                       endpoint_url VARCHAR(500) NULL,
                                        p256dh VARCHAR(512) NULL,
                                        auth_secret VARCHAR(512) NULL,
                                        is_active BIT(1) NOT NULL,
