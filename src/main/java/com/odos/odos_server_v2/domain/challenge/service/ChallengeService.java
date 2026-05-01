@@ -19,6 +19,7 @@ import com.odos.odos_server_v2.domain.diary.repository.DiaryGoalRepository;
 import com.odos.odos_server_v2.domain.diary.repository.DiaryRepository;
 import com.odos.odos_server_v2.domain.member.entity.Member;
 import com.odos.odos_server_v2.domain.member.repository.MemberRepository;
+import com.odos.odos_server_v2.domain.notification.service.NotificationService;
 import com.odos.odos_server_v2.domain.shared.Enum.Category;
 import com.odos.odos_server_v2.domain.shared.dto.LikeDto;
 import com.odos.odos_server_v2.domain.shared.dto.OffsetPagination;
@@ -56,6 +57,7 @@ public class ChallengeService {
   private final ChallengeRepository challengeRepository;
   private final MemberRepository memberRepository;
   private final CursorService cursorService;
+  private final NotificationService notificationService;
   private final PasswordEncoder passwordEncoder;
 
   @Transactional
@@ -110,6 +112,10 @@ public class ChallengeService {
             .status(ParticipantStatus.HOST)
             .build();
     participantRepository.save(participant);
+
+    notificationService.notifyChallengeApproved(
+        memberId, participant.getMember().getId(), challenge.getId(), challenge.getTitle());
+
     for (String g : challengeRequest.getGoals()) {
       ChallengeGoal challengeGoal =
           ChallengeGoal.builder().content(g).participant(participant).build();
@@ -359,6 +365,8 @@ public class ChallengeService {
     }
     participant.setStatus(ParticipantStatus.PARTICIPANT);
     participantRepository.save(participant);
+    notificationService.notifyChallengeApproved(
+        memberId, participant.getMember().getId(), challenge.getId(), challenge.getTitle());
   }
 
   @Transactional
@@ -370,6 +378,13 @@ public class ChallengeService {
     if (participant.getChallenge().getHostMember().getId().equals(memberId)) {
       participant.setStatus(ParticipantStatus.REJECTED);
       participantRepository.save(participant);
+
+      notificationService.notifyChallengeRejected(
+          memberId,
+          participant.getMember().getId(),
+          participant.getChallenge().getId(),
+          participant.getChallenge().getTitle());
+
     } else {
       throw new CustomException(ErrorCode.NO_AUTHORITY);
     }

@@ -11,6 +11,7 @@ import com.odos.odos_server_v2.domain.diary.entity.Diary;
 import com.odos.odos_server_v2.domain.diary.repository.DiaryRepository;
 import com.odos.odos_server_v2.domain.member.entity.Member;
 import com.odos.odos_server_v2.domain.member.repository.MemberRepository;
+import com.odos.odos_server_v2.domain.notification.service.NotificationService;
 import com.odos.odos_server_v2.domain.shared.dto.OffsetPagination;
 import com.odos.odos_server_v2.domain.shared.service.ImageService;
 import com.odos.odos_server_v2.exception.CustomException;
@@ -32,6 +33,7 @@ public class CommentService {
   private final DiaryRepository diaryRepository;
   private final MemberRepository memberRepository;
   private final ImageService imageService;
+  private final NotificationService notificationService;
 
   @Transactional
   public CommentResponse createComment(Long memberId, Long diaryId, CommentRequest request) {
@@ -47,6 +49,15 @@ public class CommentService {
     Comment comment =
         Comment.builder().content(request.getContent()).member(member).diary(diary).build();
     Comment saved = commentRepository.save(comment);
+
+    if (!diary.getMember().getId().equals(memberId)) {
+      notificationService.notifyMyDiaryCommented(
+          memberId,
+          diary.getMember().getId(),
+          diary.getId(),
+          member.getNickname(),
+          request.getContent());
+    }
 
     return CommentResponse.from(saved, imageService.getFileUrl(member.getProfileUrl()), 0L);
   }
@@ -77,6 +88,15 @@ public class CommentService {
             .parent(parent)
             .build();
     Comment saved = commentRepository.save(reply);
+
+    if (!parent.getMember().getId().equals(memberId)) {
+      notificationService.notifyMyCommentReplied(
+          memberId,
+          parent.getMember().getId(),
+          parent.getDiary().getId(),
+          member.getNickname(),
+          request.getContent());
+    }
 
     return CommentResponse.from(saved, imageService.getFileUrl(member.getProfileUrl()), 0L);
   }
