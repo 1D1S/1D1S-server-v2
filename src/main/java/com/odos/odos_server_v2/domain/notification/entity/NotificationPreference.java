@@ -22,19 +22,19 @@ public class NotificationPreference {
 
   @Builder.Default
   @Column(name = "push_enabled", nullable = false)
-  private Boolean pushEnabled = true;
+  private Boolean pushEnabled = false;
 
   @Builder.Default
   @Column(name = "friend_enabled", nullable = false)
-  private Boolean friendEnabled = true;
+  private Boolean friendEnabled = false;
 
   @Builder.Default
   @Column(name = "diary_enabled", nullable = false)
-  private Boolean diaryEnabled = true;
+  private Boolean diaryEnabled = false;
 
   @Builder.Default
   @Column(name = "challenge_enabled", nullable = false)
-  private Boolean challengeEnabled = true;
+  private Boolean challengeEnabled = false;
 
   public void update(
       Boolean pushEnabled, Boolean friendEnabled, Boolean diaryEnabled, Boolean challengeEnabled) {
