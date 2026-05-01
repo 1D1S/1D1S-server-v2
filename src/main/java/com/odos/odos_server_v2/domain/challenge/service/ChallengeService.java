@@ -274,6 +274,8 @@ public class ChallengeService {
     }
     participant.setStatus(ParticipantStatus.PARTICIPANT);
     participantRepository.save(participant);
+    notificationService.notifyChallengeApproved(
+        participant.getMember().getId(), challenge.getId(), challenge.getTitle());
   }
 
   @Transactional
