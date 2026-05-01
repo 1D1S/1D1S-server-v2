@@ -43,6 +43,7 @@ public class Message {
   public static String GET_CHALLENGES_BY_MEMBER = "진행중인 챌린지 불러오기 성공했습니다.";
   public static String GET_MY_CHALLENGE = "내 챌린지 목록 조회 성공했습니다.";
   public static String GET_MY_CHALLENGE_DIARY_WRITTEN = "특정 챌린지의 3일 이내의 일지 작성 날짜 조회 성공했습니다.";
+  public static String JOIN_PRIVATE_CHALLENGE = "비공개 챌린지 참여 성공했습니다.";
 
   // member
   public static String GET_MYPAGE = "마이페이지 조회 성공했습니다.";
@@ -75,4 +76,18 @@ public class Message {
   public static String NOTIFICATION_ENDPOINT_UPSERT_SUCCESS = "알림 수신 단말 등록 성공했습니다.";
   public static String NOTIFICATION_ENDPOINT_DELETE_SUCCESS = "알림 수신 단말 삭제 성공했습니다.";
   public static String NOTIFICATION_WEB_PUSH_PUBLIC_KEY_SUCCESS = "웹푸시 공개키 조회 성공했습니다.";
+  public static String COMMENT_REPORT_CREATED = "댓글 신고 생성 성공했습니다.";
+
+  // friend
+  public static String FRIEND_REQUEST_SEND = "친구 신청을 보냈습니다.";
+  public static String FRIEND_REQUEST_CANCEL = "친구 신청을 취소했습니다.";
+  public static String FRIEND_REQUEST_ACCEPT = "친구 신청을 수락했습니다.";
+  public static String FRIEND_REQUEST_REJECT = "친구 신청을 거절했습니다.";
+  public static String FRIEND_DELETE = "친구를 삭제했습니다.";
+  public static String MEMBER_BLOCK = "회원을 차단했습니다.";
+  public static String MEMBER_UNBLOCK = "차단을 해제했습니다.";
+  public static String GET_FRIEND_LIST = "친구 목록 조회 성공했습니다.";
+  public static String GET_FRIEND_REQUESTS = "친구 신청 목록 조회 성공했습니다.";
+  public static String GET_BLOCK_LIST = "차단 목록 조회 성공했습니다.";
+  public static String GET_MEMBER_RELATION = "회원 관계 상태 조회 성공했습니다.";
 }
