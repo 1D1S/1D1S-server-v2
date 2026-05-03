@@ -1,8 +1,8 @@
 package com.odos.odos_server_v2.domain.notification.repository;
 
 import com.odos.odos_server_v2.domain.member.entity.Member;
-import com.odos.odos_server_v2.domain.notification.entity.Enum.NotificationType;
 import com.odos.odos_server_v2.domain.notification.entity.Notification;
+import com.odos.odos_server_v2.domain.notification.enums.NotificationType;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import org.springframework.data.domain.Page;

@@ -130,7 +130,7 @@ package com.odos.odos_server_v2.domain.notification.entity;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.odos.odos_server_v2.config.WebPushProperties;
-import com.odos.odos_server_v2.domain.notification.entity.Enum.NotificationChannelType;
+import com.odos.odos_server_v2.domain.notification.enums.NotificationChannelType;
 import com.odos.odos_server_v2.domain.notification.repository.NotificationSender;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
