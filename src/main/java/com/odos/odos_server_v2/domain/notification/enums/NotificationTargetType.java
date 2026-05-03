@@ -1,4 +1,4 @@
-package com.odos.odos_server_v2.domain.notification.entity.Enum;
+package com.odos.odos_server_v2.domain.notification.enums;
 
 public enum NotificationTargetType {
   MEMBER_PROFILE,

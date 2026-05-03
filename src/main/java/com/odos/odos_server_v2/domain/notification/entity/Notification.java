@@ -1,9 +1,9 @@
 package com.odos.odos_server_v2.domain.notification.entity;
 
 import com.odos.odos_server_v2.domain.member.entity.Member;
-import com.odos.odos_server_v2.domain.notification.entity.Enum.NotificationCategory;
-import com.odos.odos_server_v2.domain.notification.entity.Enum.NotificationTargetType;
-import com.odos.odos_server_v2.domain.notification.entity.Enum.NotificationType;
+import com.odos.odos_server_v2.domain.notification.enums.NotificationCategory;
+import com.odos.odos_server_v2.domain.notification.enums.NotificationTargetType;
+import com.odos.odos_server_v2.domain.notification.enums.NotificationType;
 import com.odos.odos_server_v2.domain.shared.entity.BaseTimeEntity;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
