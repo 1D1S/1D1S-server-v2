@@ -29,7 +29,7 @@ public class ChallengeEditRequest {
   private Optional<Boolean> allowMidJoin;
 
   @Schema(description = "최대 참여 인원", example = "10")
-  private Optional<Integer> maxParticipantCnt;
+  private Optional<Long> maxParticipantCnt;
 
   @Schema(description = "챌린지 목표 목록", example = "[\"알고리즘 1문제 풀기\", \"책 10페이지 읽기\"]")
   private Optional<List<String>> goals;

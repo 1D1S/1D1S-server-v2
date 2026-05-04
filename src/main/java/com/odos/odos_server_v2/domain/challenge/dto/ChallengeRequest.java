@@ -42,7 +42,7 @@ public class ChallengeRequest {
   private ParticipationType participationType;
 
   @Schema(description = "최대 참여 인원", example = "10")
-  private int maxParticipantCnt;
+  private Long maxParticipantCnt;
 
   @Schema(description = "챌린지 목표 유형 (FIXED: 고정형, FLEXIBLE: 유연형)", example = "FIXED")
   private GoalType goalType;

@@ -68,6 +68,7 @@ public class ChallengeService {
             .findById(memberId)
             .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
     if (challengeRequest.getParticipationType().equals(ParticipationType.GROUP)
+        && challengeRequest.getMaxParticipantCnt() != null
         && challengeRequest.getMaxParticipantCnt() < 2) {
       throw new CustomException(ErrorCode.INVALID_CHALLENGE_REQUEST);
     }

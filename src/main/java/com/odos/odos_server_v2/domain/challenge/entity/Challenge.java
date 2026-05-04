@@ -41,7 +41,7 @@ public class Challenge {
 
   @Column private boolean allowMidJoin;
 
-  @Column private long maxParticipantsCnt;
+  @Column private Long maxParticipantsCnt;
 
   @Column
   @Enumerated(EnumType.STRING)
@@ -98,7 +98,7 @@ public class Challenge {
     this.allowMidJoin = allowMidJoin;
   }
 
-  public void updateMaxParticipantCnt(Integer maxParticipantCnt) {
+  public void updateMaxParticipantCnt(Long maxParticipantCnt) {
     this.maxParticipantsCnt = maxParticipantCnt;
   }
 
