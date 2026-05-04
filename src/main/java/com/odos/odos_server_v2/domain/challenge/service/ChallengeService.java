@@ -314,7 +314,8 @@ public class ChallengeService {
     if (!challenge.isAllowMidJoin() && challenge.getStartDate().isBefore(LocalDate.now())) {
       throw new CustomException(ErrorCode.CANNOT_APPLY_PARTICIPANT);
     }
-    if (getParticipantCnt(challengeId) >= challenge.getMaxParticipantsCnt()) {
+    if (challenge.getMaxParticipantsCnt() != null
+        && getParticipantCnt(challengeId) >= challenge.getMaxParticipantsCnt()) {
       throw new CustomException(ErrorCode.CANNOT_ACCEPT_PARTICIPANT);
     }
 
@@ -354,7 +355,8 @@ public class ChallengeService {
     Challenge challenge = participant.getChallenge();
     if (!challenge.getHostMember().getId().equals(memberId)) {
       throw new CustomException(ErrorCode.NO_AUTHORITY);
-    } else if (getParticipantCnt(challenge.getId()) >= challenge.getMaxParticipantsCnt()) {
+    } else if (challenge.getMaxParticipantsCnt() != null
+        && getParticipantCnt(challenge.getId()) >= challenge.getMaxParticipantsCnt()) {
       throw new CustomException(ErrorCode.CANNOT_ACCEPT_PARTICIPANT);
     }
     participant.setStatus(ParticipantStatus.PARTICIPANT);
