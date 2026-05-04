@@ -140,17 +140,10 @@ public class ChallengeService {
       throw new CustomException(ErrorCode.CHALLENGE_NOT_ACCESS);
     }
 
-    if (challengeEditRequest.getMaxParticipantCnt() != null) {
-      challengeEditRequest
-          .getMaxParticipantCnt()
-          .ifPresent(
-              newMax -> {
-                if (newMax < getParticipantCnt(challengeId)) {
-                  throw new CustomException(ErrorCode.MAX_PARTICIPANT);
-                }
-                challenge.updateMaxParticipantCnt(newMax);
-              });
+    if (challengeEditRequest.getMaxParticipantCnt().isPresent()) {
+      challenge.updateMaxParticipantCnt(challengeEditRequest.getMaxParticipantCnt().orElse(null));
     }
+
     if (challengeEditRequest.getGoals() != null) {
       if (!challenge.getStartDate().isAfter(LocalDate.now())) {
         throw new CustomException(ErrorCode.CANNOT_EDIT_CHALLENGE_GOALS);

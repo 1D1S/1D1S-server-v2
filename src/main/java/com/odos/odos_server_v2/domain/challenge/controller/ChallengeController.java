@@ -116,7 +116,7 @@ public class ChallengeController {
 
             - 필드를 포함하면 해당 값으로 업데이트된다.
             - 필드를 생략하면 기존 값이 유지된다.
-            - 필드 값을 null로 명시하면 해당 값이 삭제된다.
+            - 필드 값을 null로 명시하면 해당 값이 삭제된다. (maxParticipant 의 경우 제한 없음으로 변경)
 
             예: 썸네일 이미지
             - 변경: presigned URL 발급 API를 통해 이미지를 업로드한 뒤, 해당 키 값을 thumbnailImage 필드에 담아 전송한다. ( /image/presigned-url API 참고 )
