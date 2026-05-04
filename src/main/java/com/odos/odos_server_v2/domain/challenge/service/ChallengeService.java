@@ -68,6 +68,7 @@ public class ChallengeService {
             .findById(memberId)
             .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
     if (challengeRequest.getParticipationType().equals(ParticipationType.GROUP)
+        && challengeRequest.getMaxParticipantCnt() != null
         && challengeRequest.getMaxParticipantCnt() < 2) {
       throw new CustomException(ErrorCode.INVALID_CHALLENGE_REQUEST);
     }
@@ -139,17 +140,10 @@ public class ChallengeService {
       throw new CustomException(ErrorCode.CHALLENGE_NOT_ACCESS);
     }
 
-    if (challengeEditRequest.getMaxParticipantCnt() != null) {
-      challengeEditRequest
-          .getMaxParticipantCnt()
-          .ifPresent(
-              newMax -> {
-                if (newMax < getParticipantCnt(challengeId)) {
-                  throw new CustomException(ErrorCode.MAX_PARTICIPANT);
-                }
-                challenge.updateMaxParticipantCnt(newMax);
-              });
+    if (challengeEditRequest.getMaxParticipantCnt().isPresent()) {
+      challenge.updateMaxParticipantCnt(challengeEditRequest.getMaxParticipantCnt().orElse(null));
     }
+
     if (challengeEditRequest.getGoals() != null) {
       if (!challenge.getStartDate().isAfter(LocalDate.now())) {
         throw new CustomException(ErrorCode.CANNOT_EDIT_CHALLENGE_GOALS);
@@ -320,7 +314,8 @@ public class ChallengeService {
     if (!challenge.isAllowMidJoin() && challenge.getStartDate().isBefore(LocalDate.now())) {
       throw new CustomException(ErrorCode.CANNOT_APPLY_PARTICIPANT);
     }
-    if (getParticipantCnt(challengeId) >= challenge.getMaxParticipantsCnt()) {
+    if (challenge.getMaxParticipantsCnt() != null
+        && getParticipantCnt(challengeId) >= challenge.getMaxParticipantsCnt()) {
       throw new CustomException(ErrorCode.CANNOT_ACCEPT_PARTICIPANT);
     }
 
@@ -360,7 +355,8 @@ public class ChallengeService {
     Challenge challenge = participant.getChallenge();
     if (!challenge.getHostMember().getId().equals(memberId)) {
       throw new CustomException(ErrorCode.NO_AUTHORITY);
-    } else if (getParticipantCnt(challenge.getId()) >= challenge.getMaxParticipantsCnt()) {
+    } else if (challenge.getMaxParticipantsCnt() != null
+        && getParticipantCnt(challenge.getId()) >= challenge.getMaxParticipantsCnt()) {
       throw new CustomException(ErrorCode.CANNOT_ACCEPT_PARTICIPANT);
     }
     participant.setStatus(ParticipantStatus.PARTICIPANT);
