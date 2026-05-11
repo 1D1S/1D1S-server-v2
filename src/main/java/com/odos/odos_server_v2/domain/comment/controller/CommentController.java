@@ -1,5 +1,6 @@
 package com.odos.odos_server_v2.domain.comment.controller;
 
+import com.odos.odos_server_v2.domain.comment.dto.CommentReportRequest;
 import com.odos.odos_server_v2.domain.comment.dto.CommentRequest;
 import com.odos.odos_server_v2.domain.comment.dto.CommentResponse;
 import com.odos.odos_server_v2.domain.comment.service.CommentService;
