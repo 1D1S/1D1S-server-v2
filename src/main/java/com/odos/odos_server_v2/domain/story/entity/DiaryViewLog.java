@@ -1,12 +1,10 @@
 package com.odos.odos_server_v2.domain.story.entity;
 
-import java.time.LocalDateTime;
-
-import lombok.*;
-
 import com.odos.odos_server_v2.domain.diary.entity.Diary;
 import com.odos.odos_server_v2.domain.member.entity.Member;
 import jakarta.persistence.*;
+import java.time.LocalDateTime;
+import lombok.*;
 
 @Entity
 @Builder

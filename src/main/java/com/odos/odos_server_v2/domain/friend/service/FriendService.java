@@ -1,7 +1,6 @@
 package com.odos.odos_server_v2.domain.friend.service;
 
 import com.odos.odos_server_v2.domain.friend.dto.*;
-import com.odos.odos_server_v2.domain.friend.entity.BlockList;
 import com.odos.odos_server_v2.domain.friend.entity.Enum.FriendRequestStatus;
 import com.odos.odos_server_v2.domain.friend.entity.Friend;
 import com.odos.odos_server_v2.domain.friend.entity.FriendRequest;
@@ -101,7 +100,7 @@ public class FriendService {
       throw new CustomException(ErrorCode.FRIEND_REQUEST_NOT_PENDING);
     }
 
-    friendRequestRepository.delete(friendRequest);
+    friendRequest.cancel();
   }
 
   /** 친구 신청 수락 */
@@ -243,14 +242,6 @@ public class FriendService {
     friendRepository
         .findByMemberAndFriendMember(friendMember, currentMember)
         .ifPresent(friendRepository::delete);
-
-    // 해당하는 친구 신청이 있으면 삭제
-    friendRequestRepository
-        .findByFromMemberAndToMember(currentMember, friendMember)
-        .ifPresent(friendRequestRepository::delete);
-    friendRequestRepository
-        .findByFromMemberAndToMember(friendMember, currentMember)
-        .ifPresent(friendRequestRepository::delete);
   }
 
   /** 차단 */
@@ -273,8 +264,11 @@ public class FriendService {
     }
 
     // 차단 목록에 추가
-    BlockList blockList =
-        BlockList.builder().member(currentMember).blockedMember(blockedMember).build();
+    com.odos.odos_server_v2.domain.friend.entity.BlockList blockList =
+        com.odos.odos_server_v2.domain.friend.entity.BlockList.builder()
+            .member(currentMember)
+            .blockedMember(blockedMember)
+            .build();
 
     blockListRepository.save(blockList);
 
@@ -304,7 +298,7 @@ public class FriendService {
             .findById(blockedMemberId)
             .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
 
-    BlockList blockList =
+    com.odos.odos_server_v2.domain.friend.entity.BlockList blockList =
         blockListRepository
             .findByMemberAndBlockedMember(currentMember, blockedMember)
             .orElseThrow(() -> new CustomException(ErrorCode.FRIEND_NOT_BLOCKED));
@@ -316,7 +310,8 @@ public class FriendService {
   @Transactional(readOnly = true)
   public List<FriendResponseDto> getBlockList() {
     Member currentMember = getCurrentMember();
-    List<BlockList> blockList = blockListRepository.findByMember(currentMember);
+    List<com.odos.odos_server_v2.domain.friend.entity.BlockList> blockList =
+        blockListRepository.findByMember(currentMember);
 
     return blockList.stream()
         .map(
