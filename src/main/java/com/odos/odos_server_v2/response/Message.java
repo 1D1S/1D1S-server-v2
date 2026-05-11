@@ -89,5 +89,9 @@ public class Message {
   public static String GET_FRIEND_LIST = "친구 목록 조회 성공했습니다.";
   public static String GET_FRIEND_REQUESTS = "친구 신청 목록 조회 성공했습니다.";
   public static String GET_BLOCK_LIST = "차단 목록 조회 성공했습니다.";
-  public static String GET_MEMBER_RELATION = "회원 관계 상태 조회 성공했습니다.";
+  public static String GET_MEMBER_RELATION = "멤버 관계 조회 성공했습니다.";
+
+  // story
+  public static String GET_STORY_LIST = "스토리 목록 조회 성공했습니다.";
+  public static String STORY_VIEW = "스토리를 시청했습니다.";
 }
