@@ -34,8 +34,8 @@ public class NotificationEvent extends BaseTimeEntity {
   @Column(nullable = false, length = 40)
   private NotificationType type;
 
-  @Column(nullable = false, columnDefinition = "TEXT")
-  private String message;
+  @Column(name = "target_info", columnDefinition = "TEXT")
+  private String targetInfo;
 
   @Enumerated(EnumType.STRING)
   @Column(name = "target_type", nullable = false, length = 30)
@@ -47,8 +47,8 @@ public class NotificationEvent extends BaseTimeEntity {
   @Column(name = "grouped_count")
   private Integer groupedCount;
 
-  public void updateGroupedMessage(String message, Integer groupedCount) {
-    this.message = message;
+  public void updateGroupedTargetInfo(String targetInfo, Integer groupedCount) {
+    this.targetInfo = targetInfo;
     this.groupedCount = groupedCount;
   }
 }

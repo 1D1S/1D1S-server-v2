@@ -51,8 +51,8 @@ public class Notification extends BaseTimeEntity {
   @Column(nullable = false, length = 40)
   private NotificationType type;
 
-  @Column(nullable = false, columnDefinition = "TEXT")
-  private String message;
+  @Column(name = "target_info", columnDefinition = "TEXT")
+  private String targetInfo;
 
   @Enumerated(EnumType.STRING)
   @Column(name = "target_type", nullable = false, length = 30)
@@ -91,8 +91,8 @@ public class Notification extends BaseTimeEntity {
     return event != null ? event.getType() : type;
   }
 
-  public String getResolvedMessage() {
-    return event != null ? event.getMessage() : message;
+  public String getResolvedTargetInfo() {
+    return event != null ? event.getTargetInfo() : targetInfo;
   }
 
   public NotificationTargetType getResolvedTargetType() {
@@ -111,12 +111,43 @@ public class Notification extends BaseTimeEntity {
     return this.expiresAt.isBefore(now);
   }
 
-  public void updateGroupedMessage(String message, Integer groupedCount) {
-    this.message = message;
+  public void updateGroupedTargetInfo(String targetInfo, Integer groupedCount) {
+    this.targetInfo = targetInfo;
     this.groupedCount = groupedCount;
     if (this.event != null) {
-      this.event.updateGroupedMessage(message, groupedCount);
+      this.event.updateGroupedTargetInfo(targetInfo, groupedCount);
     }
+  }
+
+  public String buildMessage() {
+    NotificationType currentType = getResolvedType();
+    String currentTargetInfo = getResolvedTargetInfo();
+    String actorNickname =
+        getResolvedActor() != null ? getResolvedActor().getNickname() : "알 수 없는 사용자";
+    Integer currentGroupedCount = getResolvedGroupedCount();
+
+    return switch (currentType) {
+      case FRIEND_REQUEST -> String.format("%s님이 친구 신청을 보냈어요.", actorNickname);
+      case FRIEND_ACCEPT -> String.format("%s님이 친구 신청을 수락했습니다. 이제 일지를 확인해보세요!", actorNickname);
+      case FRIEND_DIARY_CREATED ->
+          String.format("%s님이 일지를 등록했어요: %s", actorNickname, currentTargetInfo);
+      case MY_DIARY_COMMENTED -> {
+        if (currentGroupedCount != null && currentGroupedCount > 1) {
+          yield String.format("%s님 외 %d명이 댓글을 달았습니다.", actorNickname, currentGroupedCount - 1);
+        }
+        yield String.format("%s님이 댓글을 달았습니다: %s", actorNickname, currentTargetInfo);
+      }
+      case MY_COMMENT_REPLIED ->
+          String.format("%s님이 내 댓글에 답글을 남겼습니다: %s", actorNickname, currentTargetInfo);
+      case DIARY_LIKE_MILESTONE -> {
+        if ("1".equals(currentTargetInfo)) {
+          yield "작성하신 일지가 좋아요를 받았어요! 🎉";
+        }
+        yield String.format("작성하신 일지의 좋아요가 %s개를 넘어갔어요! 🎉", currentTargetInfo);
+      }
+      case CHALLENGE_APPROVED -> String.format("%s 챌린지원이 되었습니다! 열심히 참여해봐요!", currentTargetInfo);
+      case CHALLENGE_REJECTED -> String.format("%s 챌린지 참여가 거절되었습니다.", currentTargetInfo);
+    };
   }
 
   public String resolvePushTitle() {
