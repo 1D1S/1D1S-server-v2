@@ -1,13 +1,5 @@
 package com.odos.odos_server_v2.domain.friend.service;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
-import lombok.RequiredArgsConstructor;
-
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import com.odos.odos_server_v2.domain.friend.dto.*;
 import com.odos.odos_server_v2.domain.friend.entity.Enum.FriendRequestStatus;
 import com.odos.odos_server_v2.domain.friend.entity.Friend;
@@ -21,6 +13,11 @@ import com.odos.odos_server_v2.domain.member.repository.MemberRepository;
 import com.odos.odos_server_v2.domain.notification.service.NotificationService;
 import com.odos.odos_server_v2.exception.CustomException;
 import com.odos.odos_server_v2.exception.ErrorCode;
+import java.util.List;
+import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -216,7 +213,7 @@ public class FriendService {
         .filter(request -> request.getStatus() == FriendRequestStatus.PENDING)
         .map(
             request ->
-                    SentFriendResponseDto.builder()
+                SentFriendResponseDto.builder()
                     .requestId(request.getId())
                     .toMemberId(request.getToMember().getId())
                     .toMemberNickName(request.getToMember().getNickname())
