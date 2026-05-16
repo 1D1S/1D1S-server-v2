@@ -13,6 +13,12 @@ public class StoryItemDto {
   @Schema(description = "일지 ID", example = "10")
   private Long diaryId;
 
+  @Schema(description = "일지 제목")
+  private String diaryTitle;
+
+  @Schema(description = "일지 썸네일")
+  private String diaryThumbnail;
+
   @Schema(description = "업로드 시간", example = "2024-01-01T12:00:00")
   private LocalDateTime createdAt;
 
