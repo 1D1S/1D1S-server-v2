@@ -42,11 +42,15 @@ public class StoryController {
                             "stories": [
                               {
                                 "diaryId": 10,
+                                "diaryTitle": "나의 다이어리",
+                                "diaryThumbnail": "12345image.webp",
                                 "createdAt": "2024-01-01T12:00:00",
                                 "hasUnreadJournal": true
                               },
                               {
                                 "diaryId": 8,
+                                "diaryTitle": "나의 다이어리",
+                                "diaryThumbnail": "12345.webp",
                                 "createdAt": "2024-01-01T10:00:00",
                                 "hasUnreadJournal": false
                               }
