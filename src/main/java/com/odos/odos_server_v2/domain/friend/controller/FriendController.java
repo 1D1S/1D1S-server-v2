@@ -253,7 +253,7 @@ public class FriendController {
                 }))
   })
   @GetMapping("/requests/received")
-  public ApiResponse<List<FriendRequestResponseDto>> getReceivedFriendRequests() {
+  public ApiResponse<List<ReceivedFriendResponseDto>> getReceivedFriendRequests() {
     return ApiResponse.success(
         Message.GET_FRIEND_REQUESTS, friendService.getReceivedFriendRequests());
   }
@@ -273,7 +273,7 @@ public class FriendController {
                 }))
   })
   @GetMapping("/requests/sent")
-  public ApiResponse<List<FriendRequestResponseDto>> getSentFriendRequests() {
+  public ApiResponse<List<SentFriendResponseDto>> getSentFriendRequests() {
     return ApiResponse.success(Message.GET_FRIEND_REQUESTS, friendService.getSentFriendRequests());
   }
 

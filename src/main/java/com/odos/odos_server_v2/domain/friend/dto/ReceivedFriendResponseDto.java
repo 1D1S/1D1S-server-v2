@@ -5,10 +5,10 @@ import java.time.LocalDateTime;
 import lombok.Builder;
 import lombok.Getter;
 
-@Schema(description = "친구 신청 응답")
+@Schema(description = "받은 친구 신청 응답")
 @Builder
 @Getter
-public class FriendRequestResponseDto {
+public class ReceivedFriendResponseDto {
 
   @Schema(description = "친구 신청 ID", example = "1")
   private Long requestId;
