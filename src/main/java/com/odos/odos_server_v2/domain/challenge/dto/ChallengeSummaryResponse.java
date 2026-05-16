@@ -5,8 +5,10 @@ import com.odos.odos_server_v2.domain.challenge.entity.Enum.GoalType;
 import com.odos.odos_server_v2.domain.challenge.entity.Enum.ParticipationType;
 import com.odos.odos_server_v2.domain.shared.Enum.Category;
 import com.odos.odos_server_v2.domain.shared.dto.LikeDto;
+import com.odos.odos_server_v2.domain.shared.entity.MemberInfo;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalDate;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -55,4 +57,7 @@ public class ChallengeSummaryResponse {
 
   @Schema(description = "삭제 여부")
   private boolean isDeleted;
+
+  @Schema(description = "챌린지원 랜덤 3명 정보")
+  private List<MemberInfo> randomParticipants;
 }
