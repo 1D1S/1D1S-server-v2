@@ -1,5 +1,11 @@
 package com.odos.odos_server_v2.domain.friend.controller;
 
+import java.util.List;
+
+import lombok.RequiredArgsConstructor;
+
+import org.springframework.web.bind.annotation.*;
+
 import com.odos.odos_server_v2.domain.friend.dto.*;
 import com.odos.odos_server_v2.domain.friend.service.FriendService;
 import com.odos.odos_server_v2.response.ApiResponse;
@@ -9,9 +15,6 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import java.util.List;
-import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "친구", description = "친구 API")
 @RestController
@@ -253,7 +256,7 @@ public class FriendController {
                 }))
   })
   @GetMapping("/requests/received")
-  public ApiResponse<List<FriendRequestResponseDto>> getReceivedFriendRequests() {
+  public ApiResponse<List<ReceivedFriendResponseDto>> getReceivedFriendRequests() {
     return ApiResponse.success(
         Message.GET_FRIEND_REQUESTS, friendService.getReceivedFriendRequests());
   }
@@ -273,7 +276,7 @@ public class FriendController {
                 }))
   })
   @GetMapping("/requests/sent")
-  public ApiResponse<List<FriendRequestResponseDto>> getSentFriendRequests() {
+  public ApiResponse<List<SentFriendResponseDto>> getSentFriendRequests() {
     return ApiResponse.success(Message.GET_FRIEND_REQUESTS, friendService.getSentFriendRequests());
   }
 

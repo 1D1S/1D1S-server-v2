@@ -1,14 +1,16 @@
 package com.odos.odos_server_v2.domain.friend.dto;
 
-import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalDateTime;
+
 import lombok.Builder;
 import lombok.Getter;
 
-@Schema(description = "친구 신청 응답")
+import io.swagger.v3.oas.annotations.media.Schema;
+
+@Schema(description = "받은 친구 신청 응답")
 @Builder
 @Getter
-public class FriendRequestResponseDto {
+public class ReceivedFriendResponseDto {
 
   @Schema(description = "친구 신청 ID", example = "1")
   private Long requestId;

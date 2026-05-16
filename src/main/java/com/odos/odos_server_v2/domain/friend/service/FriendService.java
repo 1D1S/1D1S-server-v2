@@ -1,5 +1,13 @@
 package com.odos.odos_server_v2.domain.friend.service;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
+import lombok.RequiredArgsConstructor;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.odos.odos_server_v2.domain.friend.dto.*;
 import com.odos.odos_server_v2.domain.friend.entity.Enum.FriendRequestStatus;
 import com.odos.odos_server_v2.domain.friend.entity.Friend;
@@ -13,11 +21,6 @@ import com.odos.odos_server_v2.domain.member.repository.MemberRepository;
 import com.odos.odos_server_v2.domain.notification.service.NotificationService;
 import com.odos.odos_server_v2.exception.CustomException;
 import com.odos.odos_server_v2.exception.ErrorCode;
-import java.util.List;
-import java.util.stream.Collectors;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -184,7 +187,7 @@ public class FriendService {
 
   /** 받은 친구 신청 목록 조회 */
   @Transactional(readOnly = true)
-  public List<FriendRequestResponseDto> getReceivedFriendRequests() {
+  public List<ReceivedFriendResponseDto> getReceivedFriendRequests() {
     Member currentMember = getCurrentMember();
     List<FriendRequest> requests =
         friendRequestRepository.findByToMemberAndStatus(currentMember, FriendRequestStatus.PENDING);
@@ -192,7 +195,7 @@ public class FriendService {
     return requests.stream()
         .map(
             request ->
-                FriendRequestResponseDto.builder()
+                ReceivedFriendResponseDto.builder()
                     .requestId(request.getId())
                     .fromMemberId(request.getFromMember().getId())
                     .fromMemberNickname(request.getFromMember().getNickname())
@@ -205,7 +208,7 @@ public class FriendService {
 
   /** 보낸 친구 신청 목록 조회 */
   @Transactional(readOnly = true)
-  public List<FriendRequestResponseDto> getSentFriendRequests() {
+  public List<SentFriendResponseDto> getSentFriendRequests() {
     Member currentMember = getCurrentMember();
     List<FriendRequest> requests = friendRequestRepository.findByFromMember(currentMember);
 
@@ -213,11 +216,11 @@ public class FriendService {
         .filter(request -> request.getStatus() == FriendRequestStatus.PENDING)
         .map(
             request ->
-                FriendRequestResponseDto.builder()
+                    SentFriendResponseDto.builder()
                     .requestId(request.getId())
-                    .fromMemberId(request.getFromMember().getId())
-                    .fromMemberNickname(request.getFromMember().getNickname())
-                    .fromMemberProfileUrl(request.getFromMember().getProfileUrl())
+                    .toMemberId(request.getToMember().getId())
+                    .toMemberNickName(request.getToMember().getNickname())
+                    .toMemberProfileUrl(request.getToMember().getProfileUrl())
                     .status(request.getStatus().name())
                     .createdAt(request.getCreatedAt())
                     .build())
