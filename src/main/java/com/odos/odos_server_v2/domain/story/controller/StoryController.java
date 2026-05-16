@@ -1,5 +1,9 @@
 package com.odos.odos_server_v2.domain.story.controller;
 
+import lombok.RequiredArgsConstructor;
+
+import org.springframework.web.bind.annotation.*;
+
 import com.odos.odos_server_v2.domain.story.dto.StoryResponseDto;
 import com.odos.odos_server_v2.domain.story.service.StoryService;
 import com.odos.odos_server_v2.response.ApiResponse;
@@ -9,8 +13,6 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "스토리", description = "실시간 일지(스토리) API")
 @RestController
@@ -42,11 +44,15 @@ public class StoryController {
                             "stories": [
                               {
                                 "diaryId": 10,
+                                "diaryTitle": "나의 다이어리",
+                                "diaryThumbnail": "12345image.webp",
                                 "createdAt": "2024-01-01T12:00:00",
                                 "hasUnreadJournal": true
                               },
                               {
                                 "diaryId": 8,
+                                "diaryTitle": "나의 다이어리",
+                                "diaryThumbnail": "12345.webp",
                                 "createdAt": "2024-01-01T10:00:00",
                                 "hasUnreadJournal": false
                               }
