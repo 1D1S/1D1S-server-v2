@@ -67,6 +67,23 @@ public class ChallengeController {
                                 "challengeType": "FIXED",
                                 "participantCnt": 1,
                                 "likeInfo": { "likedByMe": false, "likeCnt": 0 },
+                                "randomParticipants": [
+                                                  {
+                                                    "memberId": 2,
+                                                    "nickname": "내손안에흙염룡",
+                                                    "profileImg": null
+                                                  },
+                                                  {
+                                                    "memberId": 1,
+                                                    "nickname": "asdf",
+                                                    "profileImg": null
+                                                  },
+                                                  {
+                                                    "memberId": 5,
+                                                    "nickname": "김철수",
+                                                    "profileImg": null
+                                                  }
+                                                ],
                                 "deleted": false
                               }
                             }
@@ -149,6 +166,23 @@ public class ChallengeController {
                                                 "challengeType": "FIXED",
                                                 "participantCnt": 1,
                                                 "likeInfo": { "likedByMe": false, "likeCnt": 0 },
+                                                "randomParticipants": [
+                                                  {
+                                                    "memberId": 2,
+                                                    "nickname": "내손안에흙염룡",
+                                                    "profileImg": null
+                                                  },
+                                                  {
+                                                    "memberId": 1,
+                                                    "nickname": "asdf",
+                                                    "profileImg": null
+                                                  },
+                                                  {
+                                                    "memberId": 5,
+                                                    "nickname": "김철수",
+                                                    "profileImg": null
+                                                  }
+                                                ],
                                                 "deleted": false
                                               }
                                             }
@@ -228,6 +262,23 @@ public class ChallengeController {
                                   "challengeType": "FIXED",
                                   "participantCnt": 5,
                                   "likeInfo": { "likedByMe": true, "likeCnt": 12 },
+                                  "randomParticipants": [
+                                                  {
+                                                    "memberId": 2,
+                                                    "nickname": "내손안에흙염룡",
+                                                    "profileImg": null
+                                                  },
+                                                  {
+                                                    "memberId": 1,
+                                                    "nickname": "asdf",
+                                                    "profileImg": null
+                                                  },
+                                                  {
+                                                    "memberId": 5,
+                                                    "nickname": "김철수",
+                                                    "profileImg": null
+                                                  }
+                                                ],
                                   "deleted": false
                                 },
                                 "challengeDetail": {
@@ -664,6 +715,23 @@ public class ChallengeController {
                                   "challengeType": "FIXED",
                                   "participantCnt": 5,
                                   "likeInfo": { "likedByMe": false, "likeCnt": 3 },
+                                  "randomParticipants": [
+                                                  {
+                                                    "memberId": 2,
+                                                    "nickname": "내손안에흙염룡",
+                                                    "profileImg": null
+                                                  },
+                                                  {
+                                                    "memberId": 1,
+                                                    "nickname": "asdf",
+                                                    "profileImg": null
+                                                  },
+                                                  {
+                                                    "memberId": 5,
+                                                    "nickname": "김철수",
+                                                    "profileImg": null
+                                                  }
+                                                ],
                                   "deleted": false
                                 }
                               ]
@@ -708,6 +776,23 @@ public class ChallengeController {
                                   "challengeType": "FIXED",
                                   "participantCnt": 5,
                                   "likeInfo": { "likedByMe": false, "likeCnt": 3 },
+                                  "randomParticipants": [
+                                                  {
+                                                    "memberId": 2,
+                                                    "nickname": "내손안에흙염룡",
+                                                    "profileImg": null
+                                                  },
+                                                  {
+                                                    "memberId": 1,
+                                                    "nickname": "asdf",
+                                                    "profileImg": null
+                                                  },
+                                                  {
+                                                    "memberId": 5,
+                                                    "nickname": "김철수",
+                                                    "profileImg": null
+                                                  }
+                                                ],
                                   "deleted": false
                                 }
                               ]
@@ -847,6 +932,23 @@ public class ChallengeController {
                                     "challengeType": "FIXED",
                                     "participantCnt": 5,
                                     "likeInfo": { "likedByMe": false, "likeCnt": 3 },
+                                    "randomParticipants": [
+                                                  {
+                                                    "memberId": 2,
+                                                    "nickname": "내손안에흙염룡",
+                                                    "profileImg": null
+                                                  },
+                                                  {
+                                                    "memberId": 1,
+                                                    "nickname": "asdf",
+                                                    "profileImg": null
+                                                  },
+                                                  {
+                                                    "memberId": 5,
+                                                    "nickname": "김철수",
+                                                    "profileImg": null
+                                                  }
+                                                ],
                                     "deleted": false
                                   }
                                 ],
@@ -919,6 +1021,23 @@ public class ChallengeController {
                                     "challengeType": "FIXED",
                                     "participantCnt": 5,
                                     "likeInfo": { "likedByMe": false, "likeCnt": 3 },
+                                    "randomParticipants": [
+                                                  {
+                                                    "memberId": 2,
+                                                    "nickname": "내손안에흙염룡",
+                                                    "profileImg": null
+                                                  },
+                                                  {
+                                                    "memberId": 1,
+                                                    "nickname": "asdf",
+                                                    "profileImg": null
+                                                  },
+                                                  {
+                                                    "memberId": 5,
+                                                    "nickname": "김철수",
+                                                    "profileImg": null
+                                                  }
+                                                ],
                                     "deleted": false
                                   }
                                 ],
@@ -1114,6 +1233,23 @@ public class ChallengeController {
                                   "challengeType": "FIXED",
                                   "participantCnt": 5,
                                   "likeInfo": { "likedByMe": false, "likeCnt": 3 },
+                                  "randomParticipants": [
+                                                  {
+                                                    "memberId": 2,
+                                                    "nickname": "내손안에흙염룡",
+                                                    "profileImg": null
+                                                  },
+                                                  {
+                                                    "memberId": 1,
+                                                    "nickname": "asdf",
+                                                    "profileImg": null
+                                                  },
+                                                  {
+                                                    "memberId": 5,
+                                                    "nickname": "김철수",
+                                                    "profileImg": null
+                                                  }
+                                                ],
                                   "deleted": false
                                 }
                               ]
