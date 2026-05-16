@@ -38,6 +38,7 @@ public class StoryController {
                         "storyGroups": [
                           {
                             "userId": 2,
+                            "userName" : "김나영",
                             "profileImage": "https://example.com/profile.jpg",
                             "stories": [
                               {

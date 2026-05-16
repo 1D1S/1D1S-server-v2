@@ -13,6 +13,9 @@ public class StoryGroupDto {
   @Schema(description = "친구 회원 ID", example = "2")
   private Long userId;
 
+  @Schema(description = "친구 회원 이름", example = "김나영")
+  private String userName;
+
   @Schema(description = "친구 프로필 이미지 URL", example = "https://example.com/profile.jpg")
   private String profileImage;
 

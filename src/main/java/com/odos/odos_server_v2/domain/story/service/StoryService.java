@@ -102,6 +102,7 @@ public class StoryService {
       StoryGroupDto group =
           StoryGroupDto.builder()
               .userId(friendMember.getId())
+              .userName(friendMember.getNickname())
               .profileImage(friendMember.getProfileUrl())
               .stories(storyItems)
               .build();
