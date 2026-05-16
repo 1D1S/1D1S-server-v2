@@ -25,6 +25,7 @@ import com.odos.odos_server_v2.domain.shared.dto.LikeDto;
 import com.odos.odos_server_v2.domain.shared.dto.OffsetPagination;
 import com.odos.odos_server_v2.domain.shared.dto.PageInfo;
 import com.odos.odos_server_v2.domain.shared.dto.Pagination;
+import com.odos.odos_server_v2.domain.shared.entity.MemberInfo;
 import com.odos.odos_server_v2.domain.shared.service.CursorService;
 import com.odos.odos_server_v2.domain.shared.service.ImageService;
 import com.odos.odos_server_v2.exception.CustomException;
@@ -623,6 +624,17 @@ public class ChallengeService {
     return result;
   }
 
+  private List<MemberInfo> pickRandomParticipants(Long challengeId, int size) {
+    List<Participant> participants =
+        participantRepository.findByChallengeIdAndStatusIn(
+            challengeId, List.of(ParticipantStatus.HOST, ParticipantStatus.PARTICIPANT));
+
+    if (participants.isEmpty()) return List.of();
+
+    Collections.shuffle(participants);
+    return participants.stream().limit(size).map(p -> MemberInfo.from(p.getMember())).toList();
+  }
+
   public ChallengeResponse toChallengeResponse(Challenge challenge, Member member) {
     Long challengeId = challenge.getId();
     Long memberId = member.getId();
@@ -688,7 +700,8 @@ public class ChallengeService {
         challenge.getChallengeType(),
         getParticipantCnt(challengeId),
         likeInfo,
-        challenge.getDeletedAt() != null);
+        challenge.getDeletedAt() != null,
+        pickRandomParticipants(challengeId, 3));
   }
 
   private ChallengeDetailDto toChallengeDetail(Challenge challenge, Long memberId) {
