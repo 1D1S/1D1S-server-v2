@@ -632,7 +632,13 @@ public class ChallengeService {
     if (participants.isEmpty()) return List.of();
 
     Collections.shuffle(participants);
-    return participants.stream().limit(size).map(p -> MemberInfo.from(p.getMember())).toList();
+    return participants.stream()
+        .limit(size)
+        .map(
+            p ->
+                MemberInfo.from(
+                    p.getMember(), imageService.getFileUrl(p.getMember().getProfileUrl())))
+        .toList();
   }
 
   public ChallengeResponse toChallengeResponse(Challenge challenge, Member member) {
