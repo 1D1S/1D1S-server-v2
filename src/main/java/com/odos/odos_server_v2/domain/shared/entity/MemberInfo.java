@@ -18,7 +18,11 @@ public class MemberInfo {
   @Schema(description = "프로필 이미지 URL", example = "https://example.com/profile.jpg")
   private String profileImg;
 
-  public static MemberInfo from(Member member) {
-    return MemberInfo.builder().memberId(member.getId()).nickname(member.getNickname()).build();
+  public static MemberInfo from(Member member, String profileImageUrl) {
+    return MemberInfo.builder()
+        .memberId(member.getId())
+        .nickname(member.getNickname())
+        .profileImg(profileImageUrl)
+        .build();
   }
 }
