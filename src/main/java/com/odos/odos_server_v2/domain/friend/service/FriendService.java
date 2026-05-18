@@ -1,13 +1,5 @@
 package com.odos.odos_server_v2.domain.friend.service;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
-import lombok.RequiredArgsConstructor;
-
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import com.odos.odos_server_v2.domain.friend.dto.*;
 import com.odos.odos_server_v2.domain.friend.entity.Enum.FriendRequestStatus;
 import com.odos.odos_server_v2.domain.friend.entity.Friend;
@@ -22,6 +14,11 @@ import com.odos.odos_server_v2.domain.notification.service.NotificationService;
 import com.odos.odos_server_v2.domain.shared.service.ImageService;
 import com.odos.odos_server_v2.exception.CustomException;
 import com.odos.odos_server_v2.exception.ErrorCode;
+import java.util.List;
+import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -201,7 +198,8 @@ public class FriendService {
                     .requestId(request.getId())
                     .fromMemberId(request.getFromMember().getId())
                     .fromMemberNickname(request.getFromMember().getNickname())
-                    .fromMemberProfileUrl(imageService.getFileUrl(request.getFromMember().getProfileUrl()))
+                    .fromMemberProfileUrl(
+                        imageService.getFileUrl(request.getFromMember().getProfileUrl()))
                     .status(request.getStatus().name())
                     .createdAt(request.getCreatedAt())
                     .build())
@@ -222,7 +220,8 @@ public class FriendService {
                     .requestId(request.getId())
                     .toMemberId(request.getToMember().getId())
                     .toMemberNickName(request.getToMember().getNickname())
-                    .toMemberProfileUrl(imageService.getFileUrl(request.getToMember().getProfileUrl()))
+                    .toMemberProfileUrl(
+                        imageService.getFileUrl(request.getToMember().getProfileUrl()))
                     .status(request.getStatus().name())
                     .createdAt(request.getCreatedAt())
                     .build())
