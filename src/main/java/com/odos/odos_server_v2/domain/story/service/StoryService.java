@@ -5,6 +5,7 @@ import com.odos.odos_server_v2.domain.diary.repository.DiaryImageRepository;
 import com.odos.odos_server_v2.domain.member.CurrentUserContext;
 import com.odos.odos_server_v2.domain.member.entity.Member;
 import com.odos.odos_server_v2.domain.member.repository.MemberRepository;
+import com.odos.odos_server_v2.domain.shared.service.ImageService;
 import com.odos.odos_server_v2.domain.story.dto.StoryGroupDto;
 import com.odos.odos_server_v2.domain.story.dto.StoryItemDto;
 import com.odos.odos_server_v2.domain.story.dto.StoryResponseDto;
@@ -32,6 +33,7 @@ public class StoryService {
   private final DiaryViewLogRepository diaryViewLogRepository;
   private final MemberRepository memberRepository;
   private final DiaryImageRepository diaryImageRepository;
+  private final ImageService imageService;
 
   /** 실시간 일지(스토리) 목록 조회 - 24시간 이내 친구의 일지 조회 - 인스타그램처럼 친구별로 그룹화하여 반환 - 미시청 스토리가 있는 그룹 우선 배치 */
   @Transactional(readOnly = true)
@@ -103,7 +105,7 @@ public class StoryService {
           StoryGroupDto.builder()
               .userId(friendMember.getId())
               .userName(friendMember.getNickname())
-              .profileImage(friendMember.getProfileUrl())
+              .profileImage(imageService.getFileUrl(friendMember.getProfileUrl()))
               .stories(storyItems)
               .build();
 

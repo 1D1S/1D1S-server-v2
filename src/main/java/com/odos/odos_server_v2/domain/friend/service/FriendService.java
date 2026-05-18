@@ -11,6 +11,7 @@ import com.odos.odos_server_v2.domain.member.CurrentUserContext;
 import com.odos.odos_server_v2.domain.member.entity.Member;
 import com.odos.odos_server_v2.domain.member.repository.MemberRepository;
 import com.odos.odos_server_v2.domain.notification.service.NotificationService;
+import com.odos.odos_server_v2.domain.shared.service.ImageService;
 import com.odos.odos_server_v2.exception.CustomException;
 import com.odos.odos_server_v2.exception.ErrorCode;
 import java.util.List;
@@ -28,6 +29,7 @@ public class FriendService {
   private final BlockListRepository blockListRepository;
   private final MemberRepository memberRepository;
   private final NotificationService notificationService;
+  private final ImageService imageService;
 
   /** 친구 신청 */
   @Transactional
@@ -177,7 +179,7 @@ public class FriendService {
                 FriendResponseDto.builder()
                     .memberId(friend.getFriendMember().getId())
                     .nickname(friend.getFriendMember().getNickname())
-                    .profileUrl(friend.getFriendMember().getProfileUrl())
+                    .profileUrl(imageService.getFileUrl(friend.getFriendMember().getProfileUrl()))
                     .build())
         .collect(Collectors.toList());
   }
@@ -196,7 +198,8 @@ public class FriendService {
                     .requestId(request.getId())
                     .fromMemberId(request.getFromMember().getId())
                     .fromMemberNickname(request.getFromMember().getNickname())
-                    .fromMemberProfileUrl(request.getFromMember().getProfileUrl())
+                    .fromMemberProfileUrl(
+                        imageService.getFileUrl(request.getFromMember().getProfileUrl()))
                     .status(request.getStatus().name())
                     .createdAt(request.getCreatedAt())
                     .build())
@@ -217,7 +220,8 @@ public class FriendService {
                     .requestId(request.getId())
                     .toMemberId(request.getToMember().getId())
                     .toMemberNickName(request.getToMember().getNickname())
-                    .toMemberProfileUrl(request.getToMember().getProfileUrl())
+                    .toMemberProfileUrl(
+                        imageService.getFileUrl(request.getToMember().getProfileUrl()))
                     .status(request.getStatus().name())
                     .createdAt(request.getCreatedAt())
                     .build())
@@ -322,7 +326,7 @@ public class FriendService {
                 FriendResponseDto.builder()
                     .memberId(block.getBlockedMember().getId())
                     .nickname(block.getBlockedMember().getNickname())
-                    .profileUrl(block.getBlockedMember().getProfileUrl())
+                    .profileUrl(imageService.getFileUrl(block.getBlockedMember().getProfileUrl()))
                     .build())
         .collect(Collectors.toList());
   }
