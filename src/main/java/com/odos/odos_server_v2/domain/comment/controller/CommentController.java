@@ -1,5 +1,6 @@
 package com.odos.odos_server_v2.domain.comment.controller;
 
+import com.odos.odos_server_v2.domain.comment.dto.CommentReportRequest;
 import com.odos.odos_server_v2.domain.comment.dto.CommentRequest;
 import com.odos.odos_server_v2.domain.comment.dto.CommentResponse;
 import com.odos.odos_server_v2.domain.comment.service.CommentService;
@@ -156,6 +157,63 @@ public class CommentController {
     Long memberId = CurrentUserContext.getCurrentMemberId();
     commentService.deleteComment(memberId, commentId);
     return ApiResponse.success(Message.COMMENT_DELETE_SUCCESS);
+  }
+
+  @Operation(
+      summary = "댓글 신고",
+      description =
+          """
+          댓글을 신고한다. 동일한 댓글을 중복 신고할 수 없다.
+
+          신고 타입(report type): BAD_CONTENT, SPAM, ETC
+           (댓글 신고 타입 종류 추가 가능)
+          """)
+  @ApiResponses({
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "200",
+        description = "댓글 신고 성공",
+        content =
+            @Content(
+                mediaType = "application/json",
+                examples =
+                    @ExampleObject(
+                        value =
+                            """
+                            { "message": "댓글 신고 생성 성공했습니다." }
+                            """))),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "404",
+        description = "존재하지 않는 댓글",
+        content =
+            @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class),
+                examples =
+                    @ExampleObject(
+                        value =
+                            """
+                            { "code": "COMMENT-001", "message": "존재하지 않는 댓글입니다." }
+                            """))),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "409",
+        description = "이미 신고한 댓글",
+        content =
+            @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class),
+                examples =
+                    @ExampleObject(
+                        value =
+                            """
+                            { "code": "COMMENT-004", "message": "이미 신고한 댓글입니다." }
+                            """)))
+  })
+  @PostMapping("/{commentId}/report")
+  public ApiResponse<Void> reportComment(
+      @PathVariable Long commentId, @RequestBody CommentReportRequest request) {
+    Long memberId = CurrentUserContext.getCurrentMemberId();
+    commentService.reportComment(memberId, commentId, request);
+    return ApiResponse.success(Message.COMMENT_REPORT_CREATED);
   }
 
   @Operation(summary = "일지 댓글 목록 조회", description = "특정 일지의 부모 댓글 목록을 offset 페이징으로 조회한다.")

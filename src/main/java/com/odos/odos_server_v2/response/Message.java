@@ -43,6 +43,7 @@ public class Message {
   public static String GET_CHALLENGES_BY_MEMBER = "진행중인 챌린지 불러오기 성공했습니다.";
   public static String GET_MY_CHALLENGE = "내 챌린지 목록 조회 성공했습니다.";
   public static String GET_MY_CHALLENGE_DIARY_WRITTEN = "특정 챌린지의 3일 이내의 일지 작성 날짜 조회 성공했습니다.";
+  public static String JOIN_PRIVATE_CHALLENGE = "비공개 챌린지 참여 성공했습니다.";
 
   // member
   public static String GET_MYPAGE = "마이페이지 조회 성공했습니다.";
@@ -62,4 +63,35 @@ public class Message {
   public static String COMMENT_DELETE_SUCCESS = "댓글 삭제 성공했습니다.";
   public static String COMMENT_GET_SUCCESS = "댓글 조회 성공했습니다.";
   public static String REPLY_GET_SUCCESS = "대댓글 조회 성공했습니다.";
+
+  // notification
+  public static String NOTIFICATION_LIST_SUCCESS = "알림 목록 조회 성공했습니다.";
+  public static String NOTIFICATION_UNREAD_COUNT_SUCCESS = "미읽음 알림 수 조회 성공했습니다.";
+  public static String NOTIFICATION_READ_SUCCESS = "알림 읽음 처리 성공했습니다.";
+  public static String NOTIFICATION_READ_ALL_SUCCESS = "전체 알림 읽음 처리 성공했습니다.";
+  public static String NOTIFICATION_PREFERENCE_GET_SUCCESS = "알림 설정 조회 성공했습니다.";
+  public static String NOTIFICATION_PREFERENCE_UPDATE_SUCCESS = "알림 설정 변경 성공했습니다.";
+
+  public static String NOTIFICATION_ENDPOINT_LIST_SUCCESS = "알림 수신 단말 목록 조회 성공했습니다.";
+  public static String NOTIFICATION_ENDPOINT_UPSERT_SUCCESS = "알림 수신 단말 등록 성공했습니다.";
+  public static String NOTIFICATION_ENDPOINT_DELETE_SUCCESS = "알림 수신 단말 삭제 성공했습니다.";
+  public static String NOTIFICATION_WEB_PUSH_PUBLIC_KEY_SUCCESS = "웹푸시 공개키 조회 성공했습니다.";
+  public static String COMMENT_REPORT_CREATED = "댓글 신고 생성 성공했습니다.";
+
+  // friend
+  public static String FRIEND_REQUEST_SEND = "친구 신청을 보냈습니다.";
+  public static String FRIEND_REQUEST_CANCEL = "친구 신청을 취소했습니다.";
+  public static String FRIEND_REQUEST_ACCEPT = "친구 신청을 수락했습니다.";
+  public static String FRIEND_REQUEST_REJECT = "친구 신청을 거절했습니다.";
+  public static String FRIEND_DELETE = "친구를 삭제했습니다.";
+  public static String MEMBER_BLOCK = "회원을 차단했습니다.";
+  public static String MEMBER_UNBLOCK = "차단을 해제했습니다.";
+  public static String GET_FRIEND_LIST = "친구 목록 조회 성공했습니다.";
+  public static String GET_FRIEND_REQUESTS = "친구 신청 목록 조회 성공했습니다.";
+  public static String GET_BLOCK_LIST = "차단 목록 조회 성공했습니다.";
+  public static String GET_MEMBER_RELATION = "멤버 관계 조회 성공했습니다.";
+
+  // story
+  public static String GET_STORY_LIST = "스토리 목록 조회 성공했습니다.";
+  public static String STORY_VIEW = "스토리를 시청했습니다.";
 }

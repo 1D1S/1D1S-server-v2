@@ -1,0 +1,2 @@
+ALTER TABLE notification_endpoint
+ADD COLUMN enabled BOOLEAN NOT NULL DEFAULT TRUE;

@@ -1,13 +1,17 @@
 package com.odos.odos_server_v2.domain.comment.service;
 
+import com.odos.odos_server_v2.domain.comment.dto.CommentReportRequest;
 import com.odos.odos_server_v2.domain.comment.dto.CommentRequest;
 import com.odos.odos_server_v2.domain.comment.dto.CommentResponse;
 import com.odos.odos_server_v2.domain.comment.entity.Comment;
+import com.odos.odos_server_v2.domain.comment.entity.CommentReport;
+import com.odos.odos_server_v2.domain.comment.repository.CommentReportRepository;
 import com.odos.odos_server_v2.domain.comment.repository.CommentRepository;
 import com.odos.odos_server_v2.domain.diary.entity.Diary;
 import com.odos.odos_server_v2.domain.diary.repository.DiaryRepository;
 import com.odos.odos_server_v2.domain.member.entity.Member;
 import com.odos.odos_server_v2.domain.member.repository.MemberRepository;
+import com.odos.odos_server_v2.domain.notification.service.NotificationService;
 import com.odos.odos_server_v2.domain.shared.dto.OffsetPagination;
 import com.odos.odos_server_v2.domain.shared.service.ImageService;
 import com.odos.odos_server_v2.exception.CustomException;
@@ -25,9 +29,11 @@ import org.springframework.stereotype.Service;
 public class CommentService {
 
   private final CommentRepository commentRepository;
+  private final CommentReportRepository commentReportRepository;
   private final DiaryRepository diaryRepository;
   private final MemberRepository memberRepository;
   private final ImageService imageService;
+  private final NotificationService notificationService;
 
   @Transactional
   public CommentResponse createComment(Long memberId, Long diaryId, CommentRequest request) {
@@ -37,12 +43,21 @@ public class CommentService {
             .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
     Diary diary =
         diaryRepository
-            .findById(diaryId)
+            .findByIdAndIsDeletedFalse(diaryId)
             .orElseThrow(() -> new CustomException(ErrorCode.DIARY_NOT_FOUND));
 
     Comment comment =
         Comment.builder().content(request.getContent()).member(member).diary(diary).build();
     Comment saved = commentRepository.save(comment);
+
+    if (!diary.getMember().getId().equals(memberId)) {
+      notificationService.notifyMyDiaryCommented(
+          memberId,
+          diary.getMember().getId(),
+          diary.getId(),
+          member.getNickname(),
+          request.getContent());
+    }
 
     return CommentResponse.from(saved, imageService.getFileUrl(member.getProfileUrl()), 0L);
   }
@@ -73,6 +88,15 @@ public class CommentService {
             .parent(parent)
             .build();
     Comment saved = commentRepository.save(reply);
+
+    if (!parent.getMember().getId().equals(memberId)) {
+      notificationService.notifyMyCommentReplied(
+          memberId,
+          parent.getMember().getId(),
+          parent.getDiary().getId(),
+          member.getNickname(),
+          request.getContent());
+    }
 
     return CommentResponse.from(saved, imageService.getFileUrl(member.getProfileUrl()), 0L);
   }
@@ -105,6 +129,37 @@ public class CommentService {
                     commentRepository.countByParentId(comment.getId())));
 
     return OffsetPagination.from(responsePage);
+  }
+
+  @Transactional
+  public void reportComment(Long memberId, Long commentId, CommentReportRequest request) {
+    Member member =
+        memberRepository
+            .findById(memberId)
+            .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+    Comment comment =
+        commentRepository
+            .findById(commentId)
+            .orElseThrow(() -> new CustomException(ErrorCode.COMMENT_NOT_FOUND));
+
+    if (comment.getIsDeleted()) {
+      throw new CustomException(ErrorCode.COMMENT_NOT_FOUND);
+    }
+
+    boolean alreadyReported =
+        commentReportRepository.existsByMemberIdAndCommentId(memberId, commentId);
+    if (alreadyReported) {
+      throw new CustomException(ErrorCode.COMMENT_ALREADY_REPORTED);
+    }
+
+    CommentReport report =
+        CommentReport.builder()
+            .member(member)
+            .comment(comment)
+            .type(request.getReportType())
+            .content(request.getContent())
+            .build();
+    commentReportRepository.save(report);
   }
 
   @Transactional

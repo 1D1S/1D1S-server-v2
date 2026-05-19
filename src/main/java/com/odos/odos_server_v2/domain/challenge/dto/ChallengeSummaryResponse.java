@@ -1,11 +1,14 @@
 package com.odos.odos_server_v2.domain.challenge.dto;
 
+import com.odos.odos_server_v2.domain.challenge.entity.Enum.ChallengeType;
 import com.odos.odos_server_v2.domain.challenge.entity.Enum.GoalType;
 import com.odos.odos_server_v2.domain.challenge.entity.Enum.ParticipationType;
 import com.odos.odos_server_v2.domain.shared.Enum.Category;
 import com.odos.odos_server_v2.domain.shared.dto.LikeDto;
+import com.odos.odos_server_v2.domain.shared.entity.MemberInfo;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalDate;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -43,6 +46,9 @@ public class ChallengeSummaryResponse {
   @Schema(description = "챌린지 유형 (FIXED: 고정목표, FLEXIBLE: 자유목표)", example = "FIXED")
   private GoalType goalType;
 
+  @Schema(description = "챌린지 종류 (PUBLIC: 공개, PRIVATE: 비공개, OFFICIAL: 공식)", example = "PUBLIC")
+  private ChallengeType challengeType;
+
   @Schema(description = "현재 참여 인원", example = "5")
   private Long participantCnt;
 
@@ -51,4 +57,7 @@ public class ChallengeSummaryResponse {
 
   @Schema(description = "삭제 여부")
   private boolean isDeleted;
+
+  @Schema(description = "챌린지원 랜덤 3명 정보")
+  private List<MemberInfo> randomParticipants;
 }

@@ -34,7 +34,12 @@ public class ChallengeController {
           """
           새로운 챌린지를 생성한다.
 
-          챌린지 썸네일 이미지 등록 시 presigned URL 발급 API를 통해 이미지를 업로드 한 뒤, 해당 키 값을 thumbnailImage 필드에 담아 전송한다. ( /image/presigned-url API 참고 )
+          - 챌린지 썸네일 이미지 등록 시 presigned URL 발급 API를 통해 이미지를 업로드 한 뒤, 해당 키 값을 thumbnailImage 필드에 담아 전송한다. ( /image/presigned-url API 참고 )
+          - 챌린지 카테고리는 다음에서 선택한다. DEV/EXERCISE/BOOK/MUSIC/STUDY/LEISURE/ECONOMY
+          - 챌린지 형태는 다음에서 선택한다. INDIVIDUAL(개인)/ GROUP(단체)
+          - 최대 참여 인원 제한이 없다면 NULL로 보낸다.
+          - 챌린지 목표는 다음에서 선택한다. FIXED(고정형)/FLEXIBLE(유연형)
+          - 챌린지 종류는 다음에서 선택한다. PUBLIC(공개)/PRIVATE(비공개)/OFFICIAL(공식)
           """)
   @ApiResponses({
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
@@ -62,6 +67,23 @@ public class ChallengeController {
                                 "challengeType": "FIXED",
                                 "participantCnt": 1,
                                 "likeInfo": { "likedByMe": false, "likeCnt": 0 },
+                                "randomParticipants": [
+                                                  {
+                                                    "memberId": 2,
+                                                    "nickname": "내손안에흙염룡",
+                                                    "profileImg": null
+                                                  },
+                                                  {
+                                                    "memberId": 1,
+                                                    "nickname": "asdf",
+                                                    "profileImg": null
+                                                  },
+                                                  {
+                                                    "memberId": 5,
+                                                    "nickname": "김철수",
+                                                    "profileImg": null
+                                                  }
+                                                ],
                                 "deleted": false
                               }
                             }
@@ -111,7 +133,7 @@ public class ChallengeController {
 
             - 필드를 포함하면 해당 값으로 업데이트된다.
             - 필드를 생략하면 기존 값이 유지된다.
-            - 필드 값을 null로 명시하면 해당 값이 삭제된다.
+            - 필드 값을 null로 명시하면 해당 값이 삭제된다. (maxParticipant 의 경우 제한 없음으로 변경)
 
             예: 썸네일 이미지
             - 변경: presigned URL 발급 API를 통해 이미지를 업로드한 뒤, 해당 키 값을 thumbnailImage 필드에 담아 전송한다. ( /image/presigned-url API 참고 )
@@ -144,6 +166,23 @@ public class ChallengeController {
                                                 "challengeType": "FIXED",
                                                 "participantCnt": 1,
                                                 "likeInfo": { "likedByMe": false, "likeCnt": 0 },
+                                                "randomParticipants": [
+                                                  {
+                                                    "memberId": 2,
+                                                    "nickname": "내손안에흙염룡",
+                                                    "profileImg": null
+                                                  },
+                                                  {
+                                                    "memberId": 1,
+                                                    "nickname": "asdf",
+                                                    "profileImg": null
+                                                  },
+                                                  {
+                                                    "memberId": 5,
+                                                    "nickname": "김철수",
+                                                    "profileImg": null
+                                                  }
+                                                ],
                                                 "deleted": false
                                               }
                                             }
@@ -185,7 +224,17 @@ public class ChallengeController {
         challengeService.editChallenge(challengeId, challengeRequest, memberId));
   }
 
-  @Operation(summary = "챌린지 상세 조회", description = "챌린지 ID로 챌린지의 상세 정보를 조회한다.")
+  @Operation(
+      summary = "챌린지 상세 조회",
+      description =
+          """
+  챌린지 ID로 챌린지의 상세 정보를 조회한다.
+
+  - 공개 챌린지의 경우: 접근 가능
+  - 비공개 챌린지의 경우: 참여자만 접근 가능
+
+  '403 비공개 챌린지 입니다.' 에러가 나올 시 POST /challenges/{challengeId}/verify-password API를 호출 해 챌린지 참여
+  """)
   @ApiResponses({
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
         responseCode = "200",
@@ -213,6 +262,23 @@ public class ChallengeController {
                                   "challengeType": "FIXED",
                                   "participantCnt": 5,
                                   "likeInfo": { "likedByMe": true, "likeCnt": 12 },
+                                  "randomParticipants": [
+                                                  {
+                                                    "memberId": 2,
+                                                    "nickname": "내손안에흙염룡",
+                                                    "profileImg": null
+                                                  },
+                                                  {
+                                                    "memberId": 1,
+                                                    "nickname": "asdf",
+                                                    "profileImg": null
+                                                  },
+                                                  {
+                                                    "memberId": 5,
+                                                    "nickname": "김철수",
+                                                    "profileImg": null
+                                                  }
+                                                ],
                                   "deleted": false
                                 },
                                 "challengeDetail": {
@@ -252,6 +318,22 @@ public class ChallengeController {
                             { "code": "AUTH-001", "message": "인증되지 않은 접근입니다." }
                             """))),
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "403",
+        description = "접근 권한 없음",
+        content =
+            @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class),
+                examples =
+                    @ExampleObject(
+                        value =
+                            """
+                                                  {
+                                                    "code": "CHALLENGE_016",
+                                                    "message": "비공개 챌린지 입니다."
+                                                  }
+                                          """))),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
         responseCode = "404",
         description = "챌린지 또는 회원을 찾을 수 없음",
         content =
@@ -279,6 +361,75 @@ public class ChallengeController {
     Long memberId = CurrentUserContext.getCurrentMemberId();
     return ApiResponse.success(
         Message.GET_CHALLENGE, challengeService.getChallenge(challengeId, memberId));
+  }
+
+  @Operation(
+      summary = "비공개 챌린지 참여",
+      description =
+          """
+          비공개 챌린지에 비밀번호를 검증하고 즉시 참여한다. (주최자 수락 없이 바로 참여 완료)
+
+          - FLEXIBLE 챌린지: goals 필드에 목표 목록을 전달한다.
+          - FIXED 챌린지: goals 필드는 무시되며 호스트의 목표가 자동으로 적용된다.
+          """)
+  @ApiResponses({
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "200",
+        description = "비공개 챌린지 참여 성공",
+        content =
+            @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ChallengeResponse.class),
+                examples =
+                    @ExampleObject(
+                        value =
+                            """
+                            {
+                              "message": "비공개 챌린지 참여 성공했습니다.",
+                              "data": {
+                                "challengeSummary": { "challengeId": 1, "title": "비공개 챌린지", "challengeType": "PRIVATE" },
+                                "challengeDetail": { "description": "설명", "myStatus": "PARTICIPANT" },
+                                "challengeGoals": [],
+                                "participants": []
+                              }
+                            }
+                            """))),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "400",
+        description = "비공개 챌린지가 아님",
+        content =
+            @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class),
+                examples =
+                    @ExampleObject(
+                        value =
+                            """
+                            { "code": "CHALLENGE_015", "message": "비공개 챌린지가 아닙니다." }
+                            """))),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "401",
+        description = "비밀번호 불일치",
+        content =
+            @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class),
+                examples =
+                    @ExampleObject(
+                        value =
+                            """
+                            { "code": "CHALLENGE_014", "message": "챌린지 비밀번호가 올바르지 않습니다." }
+                            """)))
+  })
+  @PostMapping("/{challengeId}/verify-password")
+  public ApiResponse<ChallengeResponse> joinPrivateChallenge(
+      @Parameter(description = "챌린지 ID") @PathVariable Long challengeId,
+      @RequestBody ChallengeJoinPrivateRequest request) {
+    Long memberId = CurrentUserContext.getCurrentMemberId();
+    return ApiResponse.success(
+        Message.JOIN_PRIVATE_CHALLENGE,
+        challengeService.verifyPasswordAndJoin(
+            challengeId, memberId, request.getPassword(), request.getGoals()));
   }
 
   @Operation(summary = "챌린지 참여 신청", description = "챌린지에 참여를 신청한다. 신청 시 달성할 목표 목록을 함께 전달한다.")
@@ -564,6 +715,23 @@ public class ChallengeController {
                                   "challengeType": "FIXED",
                                   "participantCnt": 5,
                                   "likeInfo": { "likedByMe": false, "likeCnt": 3 },
+                                  "randomParticipants": [
+                                                  {
+                                                    "memberId": 2,
+                                                    "nickname": "내손안에흙염룡",
+                                                    "profileImg": null
+                                                  },
+                                                  {
+                                                    "memberId": 1,
+                                                    "nickname": "asdf",
+                                                    "profileImg": null
+                                                  },
+                                                  {
+                                                    "memberId": 5,
+                                                    "nickname": "김철수",
+                                                    "profileImg": null
+                                                  }
+                                                ],
                                   "deleted": false
                                 }
                               ]
@@ -608,6 +776,23 @@ public class ChallengeController {
                                   "challengeType": "FIXED",
                                   "participantCnt": 5,
                                   "likeInfo": { "likedByMe": false, "likeCnt": 3 },
+                                  "randomParticipants": [
+                                                  {
+                                                    "memberId": 2,
+                                                    "nickname": "내손안에흙염룡",
+                                                    "profileImg": null
+                                                  },
+                                                  {
+                                                    "memberId": 1,
+                                                    "nickname": "asdf",
+                                                    "profileImg": null
+                                                  },
+                                                  {
+                                                    "memberId": 5,
+                                                    "nickname": "김철수",
+                                                    "profileImg": null
+                                                  }
+                                                ],
                                   "deleted": false
                                 }
                               ]
@@ -747,6 +932,23 @@ public class ChallengeController {
                                     "challengeType": "FIXED",
                                     "participantCnt": 5,
                                     "likeInfo": { "likedByMe": false, "likeCnt": 3 },
+                                    "randomParticipants": [
+                                                  {
+                                                    "memberId": 2,
+                                                    "nickname": "내손안에흙염룡",
+                                                    "profileImg": null
+                                                  },
+                                                  {
+                                                    "memberId": 1,
+                                                    "nickname": "asdf",
+                                                    "profileImg": null
+                                                  },
+                                                  {
+                                                    "memberId": 5,
+                                                    "nickname": "김철수",
+                                                    "profileImg": null
+                                                  }
+                                                ],
                                     "deleted": false
                                   }
                                 ],
@@ -819,6 +1021,23 @@ public class ChallengeController {
                                     "challengeType": "FIXED",
                                     "participantCnt": 5,
                                     "likeInfo": { "likedByMe": false, "likeCnt": 3 },
+                                    "randomParticipants": [
+                                                  {
+                                                    "memberId": 2,
+                                                    "nickname": "내손안에흙염룡",
+                                                    "profileImg": null
+                                                  },
+                                                  {
+                                                    "memberId": 1,
+                                                    "nickname": "asdf",
+                                                    "profileImg": null
+                                                  },
+                                                  {
+                                                    "memberId": 5,
+                                                    "nickname": "김철수",
+                                                    "profileImg": null
+                                                  }
+                                                ],
                                     "deleted": false
                                   }
                                 ],
@@ -1014,6 +1233,23 @@ public class ChallengeController {
                                   "challengeType": "FIXED",
                                   "participantCnt": 5,
                                   "likeInfo": { "likedByMe": false, "likeCnt": 3 },
+                                  "randomParticipants": [
+                                                  {
+                                                    "memberId": 2,
+                                                    "nickname": "내손안에흙염룡",
+                                                    "profileImg": null
+                                                  },
+                                                  {
+                                                    "memberId": 1,
+                                                    "nickname": "asdf",
+                                                    "profileImg": null
+                                                  },
+                                                  {
+                                                    "memberId": 5,
+                                                    "nickname": "김철수",
+                                                    "profileImg": null
+                                                  }
+                                                ],
                                   "deleted": false
                                 }
                               ]

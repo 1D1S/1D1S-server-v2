@@ -1,5 +1,6 @@
 package com.odos.odos_server_v2.domain.challenge.entity;
 
+import com.odos.odos_server_v2.domain.challenge.entity.Enum.ChallengeType;
 import com.odos.odos_server_v2.domain.challenge.entity.Enum.GoalType;
 import com.odos.odos_server_v2.domain.challenge.entity.Enum.ParticipationType;
 import com.odos.odos_server_v2.domain.diary.entity.Diary;
@@ -40,7 +41,7 @@ public class Challenge {
 
   @Column private boolean allowMidJoin;
 
-  @Column private long maxParticipantsCnt;
+  @Column private Long maxParticipantsCnt;
 
   @Column
   @Enumerated(EnumType.STRING)
@@ -53,6 +54,12 @@ public class Challenge {
   @Column private String description;
 
   @Column private String thumbnailImage;
+
+  @Column
+  @Enumerated(EnumType.STRING)
+  private ChallengeType challengeType;
+
+  @Column private String password;
 
   @Column @CreatedDate private LocalDateTime createdAt;
 
@@ -91,8 +98,16 @@ public class Challenge {
     this.allowMidJoin = allowMidJoin;
   }
 
-  public void updateMaxParticipantCnt(Integer maxParticipantCnt) {
+  public void updateMaxParticipantCnt(Long maxParticipantCnt) {
     this.maxParticipantsCnt = maxParticipantCnt;
+  }
+
+  public void updateChallengeType(ChallengeType challengeType) {
+    this.challengeType = challengeType;
+  }
+
+  public void updatePassword(String encodedPassword) {
+    this.password = encodedPassword;
   }
 
   public void setHostMember(Member member) {

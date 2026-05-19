@@ -1,6 +1,7 @@
 package com.odos.odos_server_v2.domain.challenge.repository;
 
 import com.odos.odos_server_v2.domain.challenge.entity.Challenge;
+import com.odos.odos_server_v2.domain.challenge.entity.Enum.ChallengeType;
 import com.odos.odos_server_v2.domain.challenge.entity.Enum.ParticipationType;
 import com.odos.odos_server_v2.domain.shared.Enum.Category;
 import java.util.List;
@@ -21,20 +22,28 @@ public interface ChallengeRepository extends JpaRepository<Challenge, Long> {
        and ( :keyword = ''
              or lower(c.title) like concat('%', lower(:keyword), '%')
              or lower(c.description) like concat('%', lower(:keyword), '%') )
+       and c.challengeType != :excludeType
      order by c.id desc
   """)
   List<Challenge> searchPage(
-      @Param("cursorId") Long cursorId, @Param("keyword") String keyword, Pageable pageable);
+      @Param("cursorId") Long cursorId,
+      @Param("keyword") String keyword,
+      @Param("excludeType") ChallengeType excludeType,
+      Pageable pageable);
 
   @Query(
       """
         SELECT c FROM Challenge c
         WHERE (:keyword IS NULL OR c.title LIKE CONCAT('%', :keyword, '%'))
           AND (:category IS NULL OR c.category = :category)
+          AND c.challengeType != :excludeType
         ORDER BY c.id DESC
         """)
   Page<Challenge> findByFilters(
-      @Param("keyword") String keyword, @Param("category") Category category, Pageable pageable);
+      @Param("keyword") String keyword,
+      @Param("category") Category category,
+      @Param("excludeType") ChallengeType excludeType,
+      Pageable pageable);
 
   List<Challenge> findByHostMemberId(Long memberId);
 
