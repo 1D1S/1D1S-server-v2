@@ -9,6 +9,6 @@ import lombok.*;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @NoArgsConstructor
 public class NicknameRequest {
-  @Schema(description = "닉네임 (한글 또는 영어, 8자 이내, 특수문자 불가)", example = "내손안의흙염룡")
+  @Schema(description = "닉네임 (한글, 영어 또는 숫자, 8자 이내, 특수문자 불가)", example = "내손안의흙염룡")
   private String nickname;
 }

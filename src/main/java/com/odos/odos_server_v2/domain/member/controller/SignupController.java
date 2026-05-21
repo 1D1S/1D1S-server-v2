@@ -33,7 +33,7 @@ public class SignupController {
       description =
           """
               OAuth2 소셜 로그인 이후 닉네임, 직업, 생년월일, 성별, 관심 카테고리 등 추가 정보를 입력하여 회원가입을 완료한다.
-              - 닉네임은 한글 또는 영어로 8자 이내이며 특수문자는 불가하다.
+              - 닉네임은 한글, 영어 또는 숫자로 8자 이내이며 특수문자는 불가하다.
               - 관심 카테고리는 1개 이상 3개 이하로 선택해야 한다.
               - 프로필 이미지 등록 시 presigned URL 발급 API를 통해 이미지를 업로드 한 뒤, 해당 키 값을 profileImageKey 필드에 담아 전송한다. ( /image/presigned-url API 참고 )
               """)
@@ -74,7 +74,7 @@ public class SignupController {
                       name = "닉네임 형식 오류",
                       value =
                           """
-                          { "code": "USER-004", "message": "닉네임은 한글 또는 영어로 8자 이내이며, 특수문자는 사용할 수 없습니다." }
+                          { "code": "USER-004", "message": "닉네임은 한글, 영어 또는 숫자로 8자 이내이며, 특수문자는 사용할 수 없습니다." }
                           """)
                 })),
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
