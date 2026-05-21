@@ -57,7 +57,7 @@ public class MemberService {
 
   @Transactional
   public void editNickname(Long memberId, String nickname) {
-    String regex = "^[가-힣a-zA-Z]{1,8}$";
+    String regex = "^[가-힣a-zA-Z0-9]{1,8}$";
     if (!nickname.matches(regex)) {
       throw new CustomException(ErrorCode.INVALID_NICKNAME_FORMAT);
     }

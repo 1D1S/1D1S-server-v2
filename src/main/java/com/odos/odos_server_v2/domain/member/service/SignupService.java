@@ -32,7 +32,7 @@ public class SignupService {
       throw new CustomException(ErrorCode.CATEGORY_TOO_MANY);
     }
 
-    String regex = "^[가-힣a-zA-Z]{1,8}$";
+    String regex = "^[가-힣a-zA-Z0-9]{1,8}$";
     if (!request.getNickname().matches(regex)) {
       throw new CustomException(ErrorCode.INVALID_NICKNAME_FORMAT);
     }
