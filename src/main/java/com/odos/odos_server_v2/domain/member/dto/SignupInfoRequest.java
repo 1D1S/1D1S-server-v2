@@ -16,7 +16,7 @@ import lombok.*;
 @NoArgsConstructor
 public class SignupInfoRequest {
 
-  @Schema(description = "닉네임 (한글 또는 영어, 8자 이내, 특수문자 불가)", example = "홍길동")
+  @Schema(description = "닉네임 (한글, 영어 또는 숫자, 8자 이내, 특수문자 불가)", example = "홍길동")
   @NotNull
   private String nickname;
 
