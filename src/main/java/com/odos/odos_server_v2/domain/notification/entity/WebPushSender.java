@@ -100,7 +100,8 @@
 //        Map<String, Object> payload = new LinkedHashMap<>();
 //        payload.put("notificationId", notification.getId());
 //        payload.put("title", notification.resolvePushTitle());
-//        payload.put("body", notification.getMessage());
+//        payload.put("body",
+// com.odos.odos_server_v2.domain.notification.dto.NotificationResponse.formatMessage(notification.getResolvedType(), notification.getResolvedActor() != null ? notification.getResolvedActor().getNickname() : null, notification.getResolvedDynamicArgs(), notification.getResolvedGroupedCount()));
 //        payload.put("type", notification.getType().name());
 //        payload.put("landingPath", notification.getLandingPath());
 //
@@ -130,7 +131,7 @@ package com.odos.odos_server_v2.domain.notification.entity;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.odos.odos_server_v2.config.WebPushProperties;
-import com.odos.odos_server_v2.domain.notification.entity.Enum.NotificationChannelType;
+import com.odos.odos_server_v2.domain.notification.entity.enums.NotificationChannelType;
 import com.odos.odos_server_v2.domain.notification.repository.NotificationSender;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
@@ -220,7 +221,15 @@ public class WebPushSender implements NotificationSender {
     Map<String, Object> payload = new LinkedHashMap<>();
     payload.put("notificationId", notification.getId());
     payload.put("title", notification.resolvePushTitle());
-    payload.put("body", notification.getMessage());
+    payload.put(
+        "body",
+        com.odos.odos_server_v2.domain.notification.dto.NotificationResponse.formatMessage(
+            notification.getResolvedType(),
+            notification.getResolvedActor() != null
+                ? notification.getResolvedActor().getNickname()
+                : null,
+            notification.getResolvedDynamicArgs(),
+            notification.getResolvedGroupedCount()));
     payload.put("type", notification.getType().name());
     payload.put(
         "targetType",

@@ -1,9 +1,9 @@
 package com.odos.odos_server_v2.domain.notification.entity;
 
 import com.odos.odos_server_v2.domain.member.entity.Member;
-import com.odos.odos_server_v2.domain.notification.entity.Enum.NotificationCategory;
-import com.odos.odos_server_v2.domain.notification.entity.Enum.NotificationTargetType;
-import com.odos.odos_server_v2.domain.notification.entity.Enum.NotificationType;
+import com.odos.odos_server_v2.domain.notification.entity.enums.NotificationCategory;
+import com.odos.odos_server_v2.domain.notification.entity.enums.NotificationTargetType;
+import com.odos.odos_server_v2.domain.notification.entity.enums.NotificationType;
 import com.odos.odos_server_v2.domain.shared.entity.BaseTimeEntity;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
@@ -51,8 +51,8 @@ public class Notification extends BaseTimeEntity {
   @Column(nullable = false, length = 40)
   private NotificationType type;
 
-  @Column(nullable = false, columnDefinition = "TEXT")
-  private String message;
+  @Column(columnDefinition = "TEXT")
+  private String dynamicArgs;
 
   @Enumerated(EnumType.STRING)
   @Column(name = "target_type", nullable = false, length = 30)
@@ -91,8 +91,8 @@ public class Notification extends BaseTimeEntity {
     return event != null ? event.getType() : type;
   }
 
-  public String getResolvedMessage() {
-    return event != null ? event.getMessage() : message;
+  public String getResolvedDynamicArgs() {
+    return event != null ? event.getDynamicArgs() : dynamicArgs;
   }
 
   public NotificationTargetType getResolvedTargetType() {
@@ -111,11 +111,11 @@ public class Notification extends BaseTimeEntity {
     return this.expiresAt.isBefore(now);
   }
 
-  public void updateGroupedMessage(String message, Integer groupedCount) {
-    this.message = message;
+  public void updateGroupedDynamicArgs(String dynamicArgs, Integer groupedCount) {
+    this.dynamicArgs = dynamicArgs;
     this.groupedCount = groupedCount;
     if (this.event != null) {
-      this.event.updateGroupedMessage(message, groupedCount);
+      this.event.updateGroupedDynamicArgs(dynamicArgs, groupedCount);
     }
   }
 

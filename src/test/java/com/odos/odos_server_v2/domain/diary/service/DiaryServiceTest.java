@@ -152,7 +152,7 @@ class DiaryServiceTest {
         .category(Category.EXERCISE) // 실제 값으로 수정
         .startDate(LocalDate.of(2026, 3, 1))
         .endDate(LocalDate.of(2026, 3, 31))
-        .maxParticipantsCnt(10)
+        .maxParticipantsCnt(10L)
         .goalType(GoalType.FIXED)
         .participationType(ParticipationType.GROUP)
         .description("host 목표 기준으로 진행")
