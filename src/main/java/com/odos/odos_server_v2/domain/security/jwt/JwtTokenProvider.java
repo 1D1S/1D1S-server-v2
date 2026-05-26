@@ -11,6 +11,8 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.security.Key;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Optional;
@@ -183,6 +185,16 @@ public class JwtTokenProvider {
     try {
       Object id = parseToken(accessToken).get("id");
       return Optional.ofNullable(id).map(Object::toString);
+    } catch (JwtException | IllegalArgumentException e) {
+      return Optional.empty();
+    }
+  }
+
+  public Optional<LocalDateTime> extractExpiration(String token) {
+    try {
+      return Optional.of(parseToken(token).getExpiration())
+          .map(Date::toInstant)
+          .map(instant -> LocalDateTime.ofInstant(instant, ZoneId.systemDefault()));
     } catch (JwtException | IllegalArgumentException e) {
       return Optional.empty();
     }

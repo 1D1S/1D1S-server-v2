@@ -2,16 +2,19 @@ package com.odos.odos_server_v2.domain.security.controller;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.odos.odos_server_v2.domain.member.entity.Member;
 import com.odos.odos_server_v2.domain.member.repository.MemberRepository;
 import com.odos.odos_server_v2.domain.security.jwt.JwtTokenProvider;
+import com.odos.odos_server_v2.domain.security.service.RefreshTokenService;
 import com.odos.odos_server_v2.exception.CustomException;
 import com.odos.odos_server_v2.exception.ErrorCode;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.time.LocalDateTime;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -24,16 +27,17 @@ class AuthTokenControllerTest {
 
   @Mock private JwtTokenProvider jwtTokenProvider;
   @Mock private MemberRepository memberRepository;
+  @Mock private RefreshTokenService refreshTokenService;
   @Mock private HttpServletRequest request;
   @Mock private HttpServletResponse response;
 
   @InjectMocks private AuthTokenController authTokenController;
 
   @Test
-  void reissueAccessToken_usesRefreshTokenMemberIdWithoutStoredTokenMatch() {
+  void reissueAccessToken_validatesStoredRefreshTokenAndReissuesOnlyAccessToken() {
     String refreshToken = "valid-refresh-token";
     String accessToken = "new-access-token";
-    String newRefreshToken = "new-refresh-token";
+    LocalDateTime expiresAt = LocalDateTime.now().plusDays(14);
     Member member = Member.builder().id(1L).build();
 
     when(jwtTokenProvider.extractRefreshToken(request)).thenReturn(Optional.of(refreshToken));
@@ -41,12 +45,14 @@ class AuthTokenControllerTest {
     when(jwtTokenProvider.isExpired(refreshToken)).thenReturn(false);
     when(jwtTokenProvider.extractMemberId(refreshToken)).thenReturn(Optional.of("1"));
     when(memberRepository.findById(1L)).thenReturn(Optional.of(member));
+    when(jwtTokenProvider.extractExpiration(refreshToken)).thenReturn(Optional.of(expiresAt));
     when(jwtTokenProvider.createAccessToken(member)).thenReturn(accessToken);
-    when(jwtTokenProvider.createRefreshToken(member)).thenReturn(newRefreshToken);
 
     authTokenController.reissueAccessToken(request, response);
 
-    verify(jwtTokenProvider).sendAccessAndRefreshToken(response, accessToken, newRefreshToken);
+    verify(refreshTokenService).validateOrRegisterMigrationToken(member, refreshToken, expiresAt);
+    verify(jwtTokenProvider).addAccessTokenCookie(response, accessToken);
+    verify(jwtTokenProvider, never()).createRefreshToken(member);
   }
 
   @Test
