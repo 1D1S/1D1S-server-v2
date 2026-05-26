@@ -10,6 +10,7 @@ import com.odos.odos_server_v2.domain.member.service.MemberDeleteService;
 import com.odos.odos_server_v2.domain.security.jwt.JwtTokenProvider;
 import com.odos.odos_server_v2.domain.security.jwt.MemberPrincipal;
 import com.odos.odos_server_v2.domain.security.oauth2.OAuth2LoginResponse;
+import com.odos.odos_server_v2.domain.security.service.RefreshTokenService;
 import com.odos.odos_server_v2.exception.CustomException;
 import com.odos.odos_server_v2.exception.ErrorCode;
 import com.odos.odos_server_v2.response.ApiResponse;
@@ -30,6 +31,7 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
   private final ObjectMapper objectMapper;
   private final MemberRepository memberRepository;
   private final MemberDeleteService memberDeleteService;
+  private final RefreshTokenService refreshTokenService;
 
   @Override
   public void onAuthenticationSuccess(
@@ -45,18 +47,13 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
             .orElseThrow(() -> new CustomException(ErrorCode.OAUTH_USER_NOT_FOUND));
 
     String accessToken = jwtTokenProvider.createAccessToken(member);
-
-    String existingRefresh = member.getRefreshToken();
-    boolean needNewRefresh =
-        (existingRefresh == null
-            || !jwtTokenProvider.isValidToken(existingRefresh)
-            || jwtTokenProvider.isExpired(existingRefresh));
-
-    String refreshToken = needNewRefresh ? jwtTokenProvider.createRefreshToken() : existingRefresh;
-
-    if (needNewRefresh) {
-      jwtTokenProvider.updateRefreshToken(member.getId(), refreshToken);
-    }
+    String refreshToken = jwtTokenProvider.createRefreshToken(member);
+    refreshTokenService.saveActiveToken(
+        member,
+        refreshToken,
+        jwtTokenProvider
+            .extractExpiration(refreshToken)
+            .orElseThrow(() -> new CustomException(ErrorCode.INVALID_REFRESH_TOKEN)));
 
     jwtTokenProvider.sendAccessAndRefreshToken(response, accessToken, refreshToken);
 
