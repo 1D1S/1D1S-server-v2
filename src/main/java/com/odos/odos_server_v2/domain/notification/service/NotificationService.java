@@ -260,6 +260,22 @@ public class NotificationService {
   }
 
   @Transactional
+  public void notifyChallengeApplied(
+      Long actorId, Long receiverId, Long challengeId, String actorNickname, String challengeName) {
+    Member receiver = getMember(receiverId);
+    Member actor = getMember(actorId);
+    createNotification(
+        receiver,
+        actor,
+        NotificationCategory.CHALLENGE,
+        NotificationType.CHALLENGE_APPLIED,
+        String.format("%s님이 %s 챌린지에 참여 신청했습니다.", actorNickname, challengeName),
+        NotificationTargetType.CHALLENGE_DETAIL,
+        challengeId,
+        null);
+  }
+
+  @Transactional
   public void notifyChallengeApproved(
       Long actorId, Long receiverId, Long challengeId, String challengeName) {
     Member receiver = getMember(receiverId);
