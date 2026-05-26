@@ -280,6 +280,14 @@ public class ChallengeService {
             ChallengeGoal.builder().participant(participant).content(cg.getContent()).build());
       }
     }
+
+    notificationService.notifyChallengeApplied(
+        member.getId(),
+        challenge.getHostMember().getId(),
+        challenge.getId(),
+        member.getNickname(),
+        challenge.getTitle());
+
     return toParticipant(participant);
   }
 

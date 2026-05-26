@@ -6,11 +6,14 @@ import static com.odos.odos_server_v2.response.Message.TOKEN_REFRESH;
 import com.odos.odos_server_v2.domain.member.entity.Member;
 import com.odos.odos_server_v2.domain.member.repository.MemberRepository;
 import com.odos.odos_server_v2.domain.security.jwt.JwtTokenProvider;
+import com.odos.odos_server_v2.domain.security.service.RefreshTokenService;
 import com.odos.odos_server_v2.exception.CustomException;
 import com.odos.odos_server_v2.exception.ErrorCode;
 import com.odos.odos_server_v2.response.ApiResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.time.LocalDateTime;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,6 +23,7 @@ import org.springframework.web.bind.annotation.*;
 public class AuthTokenController {
   private final JwtTokenProvider jwtTokenProvider;
   private final MemberRepository memberRepository;
+  private final RefreshTokenService refreshTokenService;
 
   @GetMapping("/token")
   public ApiResponse<Void> reissueAccessToken(
@@ -38,15 +42,31 @@ public class AuthTokenController {
     }
 
     Member member =
-        memberRepository
-            .findByRefreshToken(refreshToken)
+        findMemberByRefreshTokenMemberId(refreshToken)
             .orElseThrow(() -> new CustomException(ErrorCode.REFRESH_TOKEN_NOT_FOUND));
 
+    LocalDateTime expiresAt =
+        jwtTokenProvider
+            .extractExpiration(refreshToken)
+            .orElseThrow(() -> new CustomException(ErrorCode.INVALID_REFRESH_TOKEN));
+    refreshTokenService.validateOrRegisterMigrationToken(member, refreshToken, expiresAt);
+
     String newAccessToken = jwtTokenProvider.createAccessToken(member);
-    String newRefreshToken = jwtTokenProvider.createRefreshToken();
-    jwtTokenProvider.updateRefreshToken(member.getId(), newRefreshToken);
-    jwtTokenProvider.sendAccessAndRefreshToken(response, newAccessToken, newRefreshToken);
+    jwtTokenProvider.addAccessTokenCookie(response, newAccessToken);
 
     return success(TOKEN_REFRESH);
+  }
+
+  private Optional<Member> findMemberByRefreshTokenMemberId(String refreshToken) {
+    return jwtTokenProvider
+        .extractMemberId(refreshToken)
+        .flatMap(
+            memberId -> {
+              try {
+                return memberRepository.findById(Long.parseLong(memberId));
+              } catch (NumberFormatException e) {
+                return Optional.empty();
+              }
+            });
   }
 }
