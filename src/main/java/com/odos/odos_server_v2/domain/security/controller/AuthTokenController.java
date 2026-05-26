@@ -11,6 +11,7 @@ import com.odos.odos_server_v2.exception.ErrorCode;
 import com.odos.odos_server_v2.response.ApiResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -38,15 +39,26 @@ public class AuthTokenController {
     }
 
     Member member =
-        memberRepository
-            .findByRefreshToken(refreshToken)
+        findMemberByRefreshTokenMemberId(refreshToken)
             .orElseThrow(() -> new CustomException(ErrorCode.REFRESH_TOKEN_NOT_FOUND));
 
     String newAccessToken = jwtTokenProvider.createAccessToken(member);
-    String newRefreshToken = jwtTokenProvider.createRefreshToken();
-    jwtTokenProvider.updateRefreshToken(member.getId(), newRefreshToken);
+    String newRefreshToken = jwtTokenProvider.createRefreshToken(member);
     jwtTokenProvider.sendAccessAndRefreshToken(response, newAccessToken, newRefreshToken);
 
     return success(TOKEN_REFRESH);
+  }
+
+  private Optional<Member> findMemberByRefreshTokenMemberId(String refreshToken) {
+    return jwtTokenProvider
+        .extractMemberId(refreshToken)
+        .flatMap(
+            memberId -> {
+              try {
+                return memberRepository.findById(Long.parseLong(memberId));
+              } catch (NumberFormatException e) {
+                return Optional.empty();
+              }
+            });
   }
 }

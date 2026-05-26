@@ -45,18 +45,7 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
             .orElseThrow(() -> new CustomException(ErrorCode.OAUTH_USER_NOT_FOUND));
 
     String accessToken = jwtTokenProvider.createAccessToken(member);
-
-    String existingRefresh = member.getRefreshToken();
-    boolean needNewRefresh =
-        (existingRefresh == null
-            || !jwtTokenProvider.isValidToken(existingRefresh)
-            || jwtTokenProvider.isExpired(existingRefresh));
-
-    String refreshToken = needNewRefresh ? jwtTokenProvider.createRefreshToken() : existingRefresh;
-
-    if (needNewRefresh) {
-      jwtTokenProvider.updateRefreshToken(member.getId(), refreshToken);
-    }
+    String refreshToken = jwtTokenProvider.createRefreshToken(member);
 
     jwtTokenProvider.sendAccessAndRefreshToken(response, accessToken, refreshToken);
 

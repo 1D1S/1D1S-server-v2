@@ -1,9 +1,6 @@
 package com.odos.odos_server_v2.domain.security.jwt;
 
 import com.odos.odos_server_v2.domain.member.entity.Member;
-import com.odos.odos_server_v2.domain.member.repository.MemberRepository;
-import com.odos.odos_server_v2.exception.CustomException;
-import com.odos.odos_server_v2.exception.ErrorCode;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
@@ -36,8 +33,6 @@ public class JwtTokenProvider {
 
   private static final String LEGACY_ACCESS_TOKEN_COOKIE_NAME = "access_token";
   private static final String LEGACY_REFRESH_TOKEN_COOKIE_NAME = "refresh_token";
-
-  private final MemberRepository memberRepository;
 
   @Value("${jwt.secret-key}")
   private String secretKey;
@@ -78,13 +73,14 @@ public class JwtTokenProvider {
         .compact();
   }
 
-  public String createRefreshToken() {
+  public String createRefreshToken(Member member) {
     Date now = new Date();
     Date expiry = new Date(now.getTime() + refreshTokenExpirationPeriod);
 
     return Jwts.builder()
         .setSubject("RefreshToken")
         .setId(UUID.randomUUID().toString())
+        .claim("id", member.getId())
         .setIssuedAt(now)
         .setExpiration(expiry)
         .signWith(getSigningKey(), SignatureAlgorithm.HS256)
@@ -222,18 +218,5 @@ public class JwtTokenProvider {
       return Optional.of(bearerToken.substring(7));
     }
     return Optional.empty();
-  }
-
-  public void updateRefreshToken(Long memberId, String refreshToken) {
-    memberRepository
-        .findById(memberId)
-        .ifPresentOrElse(
-            member -> {
-              member.updateRefreshToken(refreshToken);
-              memberRepository.save(member);
-            },
-            () -> {
-              throw new CustomException(ErrorCode.EMAIL_USER_NOT_FOUND);
-            });
   }
 }

@@ -13,8 +13,6 @@ import org.springframework.stereotype.Repository;
 public interface MemberRepository extends JpaRepository<Member, Long> {
   Optional<Member> findByEmailAndSignupRoute(String email, SignupRoute signupRoute);
 
-  Optional<Member> findByRefreshToken(String refreshToken);
-
   @Query(
       "SELECT m FROM Member m WHERE m.status='WITHDRAWN' and m.deletedAt IS NOT NULL AND m.deletedAt < :threshold")
   List<Member> findDeletableMembers(LocalDateTime threshold);
