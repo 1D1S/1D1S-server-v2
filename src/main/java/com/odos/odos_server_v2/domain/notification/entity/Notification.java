@@ -51,8 +51,8 @@ public class Notification extends BaseTimeEntity {
   @Column(nullable = false, length = 40)
   private NotificationType type;
 
-  @Column(nullable = false, columnDefinition = "TEXT")
-  private String message;
+  @Column(name = "related_content", columnDefinition = "TEXT")
+  private String relatedContent;
 
   @Enumerated(EnumType.STRING)
   @Column(name = "target_type", nullable = false, length = 30)
@@ -91,8 +91,8 @@ public class Notification extends BaseTimeEntity {
     return event != null ? event.getType() : type;
   }
 
-  public String getResolvedMessage() {
-    return event != null ? event.getMessage() : message;
+  public String getResolvedRelatedContent() {
+    return event != null ? event.getRelatedContent() : relatedContent;
   }
 
   public NotificationTargetType getResolvedTargetType() {
@@ -111,11 +111,11 @@ public class Notification extends BaseTimeEntity {
     return this.expiresAt.isBefore(now);
   }
 
-  public void updateGroupedMessage(String message, Integer groupedCount) {
-    this.message = message;
+  public void updateGroupedContext(String relatedContent, Integer groupedCount) {
+    this.relatedContent = relatedContent;
     this.groupedCount = groupedCount;
     if (this.event != null) {
-      this.event.updateGroupedMessage(message, groupedCount);
+      this.event.updateGroupedContext(relatedContent, groupedCount);
     }
   }
 

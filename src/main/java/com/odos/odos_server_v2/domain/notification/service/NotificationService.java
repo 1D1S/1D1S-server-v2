@@ -161,7 +161,7 @@ public class NotificationService {
         actor,
         NotificationCategory.FRIEND,
         NotificationType.FRIEND_REQUEST,
-        String.format("%s님이 친구 신청을 보냈어요.", actorNickname),
+        null,
         NotificationTargetType.MEMBER_PROFILE,
         actor.getId(),
         null);
@@ -177,7 +177,7 @@ public class NotificationService {
         actor,
         NotificationCategory.FRIEND,
         NotificationType.FRIEND_ACCEPT,
-        String.format("%s님이 친구 신청을 수락했습니다. 이제 일지를 확인해보세요!", actorNickname),
+        null,
         NotificationTargetType.MEMBER_PROFILE,
         actor.getId(),
         null);
@@ -198,7 +198,7 @@ public class NotificationService {
           actor,
           NotificationCategory.DIARY,
           NotificationType.FRIEND_DIARY_CREATED,
-          String.format("%s님이 일지를 등록했어요: %s", actorNickname, diaryTitle),
+          diaryTitle,
           NotificationTargetType.DIARY_DETAIL,
           diaryId,
           null);
@@ -225,9 +225,7 @@ public class NotificationService {
                   latest.getResolvedActor() != null
                       ? latest.getResolvedActor().getNickname()
                       : actorNickname;
-              String groupedMessage =
-                  String.format("%s님 외 %d명이 댓글을 달았습니다.", firstActorNickname, groupedCount - 1);
-              latest.updateGroupedMessage(groupedMessage, groupedCount);
+              latest.updateGroupedContext(firstActorNickname, groupedCount);
               notificationDispatchService.dispatch(latest);
             },
             () ->
@@ -236,7 +234,7 @@ public class NotificationService {
                     actor,
                     NotificationCategory.DIARY,
                     NotificationType.MY_DIARY_COMMENTED,
-                    String.format("%s님이 댓글을 달았습니다: %s", actorNickname, commentContent),
+                    commentContent,
                     NotificationTargetType.DIARY_COMMENT,
                     diaryId,
                     1));
@@ -253,7 +251,7 @@ public class NotificationService {
         actor,
         NotificationCategory.DIARY,
         NotificationType.MY_COMMENT_REPLIED,
-        String.format("%s님이 내 댓글에 답글을 남겼습니다: %s", actorNickname, commentContent),
+        commentContent,
         NotificationTargetType.DIARY_COMMENT,
         diaryId,
         null);
@@ -269,7 +267,7 @@ public class NotificationService {
         actor,
         NotificationCategory.CHALLENGE,
         NotificationType.CHALLENGE_APPLIED,
-        String.format("%s님이 %s 챌린지에 참여 신청했습니다.", actorNickname, challengeName),
+        challengeName,
         NotificationTargetType.CHALLENGE_DETAIL,
         challengeId,
         null);
@@ -285,7 +283,7 @@ public class NotificationService {
         actor,
         NotificationCategory.CHALLENGE,
         NotificationType.CHALLENGE_APPROVED,
-        String.format("%s 챌린지원이 되었습니다! 열심히 참여해봐요!", challengeName),
+        challengeName,
         NotificationTargetType.CHALLENGE_DETAIL,
         challengeId,
         null);
@@ -301,7 +299,7 @@ public class NotificationService {
         actor,
         NotificationCategory.CHALLENGE,
         NotificationType.CHALLENGE_REJECTED,
-        String.format("%s 챌린지 참여가 거절되었습니다.", challengeName),
+        challengeName,
         NotificationTargetType.CHALLENGE_LIST,
         challengeId,
         null);
@@ -332,20 +330,16 @@ public class NotificationService {
     }
 
     Member receiver = diary.getMember();
-    String message =
-        milestone == 1
-            ? "작성하신 일지가 좋아요를 받았어요! 🎉"
-            : String.format("작성하신 일지의 좋아요가 %d개를 넘어갔어요! 🎉", milestone);
 
     createNotification(
         receiver,
         null,
         NotificationCategory.DIARY,
         NotificationType.DIARY_LIKE_MILESTONE,
-        message,
+        null,
         NotificationTargetType.DIARY_DETAIL,
         diaryId,
-        null);
+        milestone);
 
     state.updateLastNotifiedMilestone(milestone);
     return true;
@@ -357,7 +351,7 @@ public class NotificationService {
       Member actor,
       NotificationCategory category,
       NotificationType type,
-      String message,
+      String relatedContent,
       NotificationTargetType targetType,
       Long targetId,
       Integer groupedCount) {
@@ -379,7 +373,7 @@ public class NotificationService {
             .actor(actor)
             .category(category)
             .type(type)
-            .message(message)
+            .relatedContent(relatedContent)
             .targetType(targetType)
             .targetId(targetId)
             .groupedCount(groupedCount)
@@ -389,7 +383,7 @@ public class NotificationService {
                         .actor(actor)
                         .category(category)
                         .type(type)
-                        .message(message)
+                        .relatedContent(relatedContent)
                         .targetType(targetType)
                         .targetId(targetId)
                         .groupedCount(groupedCount)

@@ -223,7 +223,7 @@ class ChallengeServiceTest {
         .category(Category.EXERCISE)
         .startDate(LocalDate.of(2026, 1, 1))
         .endDate(LocalDate.of(2026, 12, 31))
-        .maxParticipantsCnt(10)
+        .maxParticipantsCnt(10L)
         .goalType(GoalType.FLEXIBLE)
         .participationType(ParticipationType.GROUP)
         .description("설명")
