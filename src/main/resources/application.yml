@@ -1,6 +1,6 @@
 spring:
   application:
-    name: odos-server-v2
+    name: ${SPRING_APPLICATION_NAME:odos-server-v2}
   config:
     import:
       - classpath:application-security.yml
