@@ -1,14 +1,12 @@
 package com.odos.odos_server_v2.domain.security.oauth2.handler;
 
+import jakarta.servlet.http.HttpServletRequest;
 import java.net.URI;
 import java.util.Optional;
-
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.client.web.DefaultOAuth2AuthorizationRequestResolver;
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestResolver;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
-
-import jakarta.servlet.http.HttpServletRequest;
 
 public class CustomOAuth2AuthorizationRequestResolver
     implements OAuth2AuthorizationRequestResolver {
@@ -39,7 +37,9 @@ public class CustomOAuth2AuthorizationRequestResolver
   }
 
   private OAuth2AuthorizationRequest customize(
-      OAuth2AuthorizationRequest authorizationRequest, HttpServletRequest request, String registrationId) {
+      OAuth2AuthorizationRequest authorizationRequest,
+      HttpServletRequest request,
+      String registrationId) {
     if (authorizationRequest == null) {
       return null;
     }
