@@ -1,5 +1,18 @@
 package com.odos.odos_server_v2.domain.story.service;
 
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import lombok.RequiredArgsConstructor;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.odos.odos_server_v2.domain.diary.entity.Diary;
 import com.odos.odos_server_v2.domain.diary.repository.DiaryImageRepository;
 import com.odos.odos_server_v2.domain.member.CurrentUserContext;
@@ -14,16 +27,6 @@ import com.odos.odos_server_v2.domain.story.repository.DiaryViewLogRepository;
 import com.odos.odos_server_v2.domain.story.repository.StoryRepository;
 import com.odos.odos_server_v2.exception.CustomException;
 import com.odos.odos_server_v2.exception.ErrorCode;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -42,7 +45,7 @@ public class StoryService {
     LocalDateTime since = LocalDateTime.now().minusHours(24);
 
     // 1. 최근 24시간 이내 친구들이 작성한 일지 전체 조회
-    List<Diary> diaries = storyRepository.findFriendDiariesWithin24Hours(currentMember, since);
+    List<Diary> diaries = storyRepository.findFriendDiariesWithin24Hours(currentMember.getId(), since);
 
     if (diaries.isEmpty()) {
       return StoryResponseDto.builder().storyGroups(Collections.emptyList()).unreadCount(0).build();
