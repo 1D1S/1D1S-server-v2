@@ -164,6 +164,12 @@ public class WebPushSender implements NotificationSender {
       return;
     }
 
+    long startedAt = System.currentTimeMillis();
+    log.info(
+        "Web push send started. notificationId={}, endpointId={}, elapsedMs=0",
+        notification.getId(),
+        endpoint.getId());
+
     try {
       validateSubscription(endpoint);
 
@@ -178,18 +184,31 @@ public class WebPushSender implements NotificationSender {
           new nl.martijndwars.webpush.Notification(subscription, payload);
 
       pushService.send(pushNotification);
+      long elapsedMs = System.currentTimeMillis() - startedAt;
+      log.info(
+          "Web push send completed. notificationId={}, endpointId={}, elapsedMs={}",
+          notification.getId(),
+          endpoint.getId(),
+          elapsedMs);
+
     } catch (IllegalArgumentException e) {
+      long elapsedMs = System.currentTimeMillis() - startedAt;
       log.warn(
-          "Invalid web push payload/subscription. notificationId={}, endpointId={}, reason={}",
+          "Invalid web push payload/subscription. notificationId={}, endpointId={}, elapsedMs={}, reason={}",
           notification.getId(),
           endpoint.getId(),
+          elapsedMs,
           e.getMessage());
+      throw e;
     } catch (Exception e) {
+      long elapsedMs = System.currentTimeMillis() - startedAt;
       log.warn(
-          "Failed to send web push. notificationId={}, endpointId={}",
+          "Web push send failed. notificationId={}, endpointId={}, elapsedMs={}",
           notification.getId(),
           endpoint.getId(),
+          elapsedMs,
           e);
+      throw new IllegalStateException("Failed to send web push", e);
     }
   }
 
