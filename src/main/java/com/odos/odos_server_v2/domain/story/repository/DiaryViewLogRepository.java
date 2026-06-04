@@ -1,11 +1,9 @@
 package com.odos.odos_server_v2.domain.story.repository;
 
+import com.odos.odos_server_v2.domain.story.entity.DiaryViewLog;
 import java.util.List;
-
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
-
-import com.odos.odos_server_v2.domain.story.entity.DiaryViewLog;
 
 @Repository
 public interface DiaryViewLogRepository extends JpaRepository<DiaryViewLog, Long> {
