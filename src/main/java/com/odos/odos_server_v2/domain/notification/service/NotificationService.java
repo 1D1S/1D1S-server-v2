@@ -21,6 +21,7 @@ import com.odos.odos_server_v2.domain.notification.entity.Notification;
 import com.odos.odos_server_v2.domain.notification.entity.NotificationEndpoint;
 import com.odos.odos_server_v2.domain.notification.entity.NotificationEvent;
 import com.odos.odos_server_v2.domain.notification.entity.NotificationPreference;
+import com.odos.odos_server_v2.domain.notification.event.NotificationPushRequestedEvent;
 import com.odos.odos_server_v2.domain.notification.repository.DiaryLikeMilestoneStateRepository;
 import com.odos.odos_server_v2.domain.notification.repository.NotificationEndpointRepository;
 import com.odos.odos_server_v2.domain.notification.repository.NotificationEventRepository;
@@ -34,6 +35,7 @@ import jakarta.transaction.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -56,8 +58,8 @@ public class NotificationService {
   private final DiaryRepository diaryRepository;
   private final ImageService imageService;
   private final NotificationEndpointRepository notificationEndpointRepository;
-  private final NotificationDispatchService notificationDispatchService;
   private final WebPushProperties webPushProperties;
+  private final ApplicationEventPublisher eventPublisher;
 
   @Transactional
   public OffsetPagination<NotificationResponse> getMyNotifications(
@@ -228,7 +230,7 @@ public class NotificationService {
               String groupedMessage =
                   String.format("%s님 외 %d명이 댓글을 달았습니다.", firstActorNickname, groupedCount - 1);
               latest.updateGroupedMessage(groupedMessage, groupedCount);
-              notificationDispatchService.dispatch(latest);
+              publishPushRequested(latest.getId());
             },
             () ->
                 createNotification(
@@ -400,7 +402,7 @@ public class NotificationService {
 
     Notification saved = notificationRepository.save(notification);
     trimOldNotifications(receiver);
-    notificationDispatchService.dispatch(saved);
+    publishPushRequested(saved.getId());
   }
 
   @Transactional
@@ -502,6 +504,10 @@ public class NotificationService {
     return memberRepository
         .findById(memberId)
         .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+  }
+
+  private void publishPushRequested(Long notificationId) {
+    eventPublisher.publishEvent(new NotificationPushRequestedEvent(notificationId));
   }
 
   private void trimOldNotifications(Member receiver) {
