@@ -17,6 +17,9 @@ import lombok.*;
       @UniqueConstraint(
           name = "uk_diary_view_log_member_diary",
           columnNames = {"member_id", "diary_id"})
+    },
+    indexes = {
+      @Index(name = "idx_diary_view_log_member_diary", columnList = "member_id, diary_id")
     })
 public class DiaryViewLog {
 
