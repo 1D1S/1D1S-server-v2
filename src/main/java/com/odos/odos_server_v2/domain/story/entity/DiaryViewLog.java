@@ -1,10 +1,12 @@
 package com.odos.odos_server_v2.domain.story.entity;
 
+import java.time.LocalDateTime;
+
+import lombok.*;
+
 import com.odos.odos_server_v2.domain.diary.entity.Diary;
 import com.odos.odos_server_v2.domain.member.entity.Member;
 import jakarta.persistence.*;
-import java.time.LocalDateTime;
-import lombok.*;
 
 @Entity
 @Builder
@@ -17,6 +19,9 @@ import lombok.*;
       @UniqueConstraint(
           name = "uk_diary_view_log_member_diary",
           columnNames = {"member_id", "diary_id"})
+    },
+    indexes = {
+      @Index(name = "idx_diary_view_log_member_diary", columnList = "member_id, diary_id")
     })
 public class DiaryViewLog {
 
