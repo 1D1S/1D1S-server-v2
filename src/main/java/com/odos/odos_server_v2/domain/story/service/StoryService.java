@@ -13,10 +13,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.odos.odos_server_v2.domain.diary.entity.Diary;
 import com.odos.odos_server_v2.domain.diary.repository.DiaryImageRepository;
 import com.odos.odos_server_v2.domain.member.CurrentUserContext;
-import com.odos.odos_server_v2.domain.member.entity.Member;
 import com.odos.odos_server_v2.domain.member.repository.MemberRepository;
 import com.odos.odos_server_v2.domain.shared.service.ImageService;
 import com.odos.odos_server_v2.domain.story.dto.StoryDiarySummaryProjection;
@@ -42,12 +40,12 @@ public class StoryService {
   /** 실시간 일지(스토리) 목록 조회 - 24시간 이내 친구의 일지 조회 - 인스타그램처럼 친구별로 그룹화하여 반환 - 미시청 스토리가 있는 그룹 우선 배치 */
   @Transactional(readOnly = true)
   public StoryResponseDto getStories() {
-    Member currentMember = getCurrentMember();
+    Long currentMemberId = getCurrentMemberId();
     LocalDateTime since = LocalDateTime.now().minusHours(24);
 
     // 1. 최근 24시간 이내 친구들이 작성한 일지 요약 조회
     List<StoryDiarySummaryProjection> diaries =
-        storyRepository.findFriendDiarySummariesWithin24Hours(currentMember.getId(), since);
+        storyRepository.findFriendDiarySummariesWithin24Hours(currentMemberId, since);
 
     if (diaries.isEmpty()) {
       return StoryResponseDto.builder().storyGroups(Collections.emptyList()).unreadCount(0).build();
@@ -56,7 +54,7 @@ public class StoryService {
     // 2. 시청 기록 조회
     List<Long> diaryIds = diaries.stream().map(StoryDiarySummaryProjection::getDiaryId).toList();
     List<DiaryViewLog> viewLogs =
-        diaryViewLogRepository.findByMemberIdAndDiaryIdIn(currentMember.getId(), diaryIds);
+        diaryViewLogRepository.findByMemberIdAndDiaryIdIn(currentMemberId, diaryIds);
     Set<Long> viewedDiaryIds =
         viewLogs.stream().map(log -> log.getDiary().getId()).collect(Collectors.toSet());
 
@@ -139,24 +137,23 @@ public class StoryService {
   /** 스토리 시청 (일지 조회 시 자동 기록) */
   @Transactional
   public void viewStory(Long diaryId) {
-    Member currentMember = getCurrentMember();
+    Long currentMemberId = getCurrentMemberId();
 
-    Diary diary =
-        storyRepository
-            .findById(diaryId)
-            .orElseThrow(() -> new CustomException(ErrorCode.DIARY_NOT_FOUND));
+    if (!storyRepository.existsById(diaryId)) {
+      throw new CustomException(ErrorCode.DIARY_NOT_FOUND);
+    }
 
-    // 이미 시청했는지 확인
-    if (!diaryViewLogRepository.existsByMemberAndDiary(currentMember, diary)) {
-      DiaryViewLog viewLog = DiaryViewLog.builder().member(currentMember).diary(diary).build();
+    if (!diaryViewLogRepository.existsByMemberIdAndDiaryId(currentMemberId, diaryId)) {
+      DiaryViewLog viewLog =
+          DiaryViewLog.builder()
+              .member(memberRepository.getReferenceById(currentMemberId))
+              .diary(storyRepository.getReferenceById(diaryId))
+              .build();
       diaryViewLogRepository.save(viewLog);
     }
   }
 
-  private Member getCurrentMember() {
-    Long memberId = CurrentUserContext.getCurrentMemberId();
-    return memberRepository
-        .findById(memberId)
-        .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+  private Long getCurrentMemberId() {
+    return CurrentUserContext.getCurrentMemberId();
   }
 }
