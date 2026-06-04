@@ -23,8 +23,13 @@ public class NotificationDispatchService {
   }
 
   public void dispatch(Notification notification) {
+    long startedAt = System.currentTimeMillis();
     Member receiver = notification.getReceiver();
     List<NotificationEndpoint> endpoints = endpointRepository.findByMemberAndIsActiveTrue(receiver);
+    log.info(
+        "Notification push send started. notificationId={}, endpointCount={}, elapsedMs=0",
+        notification.getId(),
+        endpoints.size());
 
     for (NotificationEndpoint endpoint : endpoints) {
       NotificationSender sender = findSender(endpoint);
@@ -32,16 +37,31 @@ public class NotificationDispatchService {
         continue;
       }
 
+      long endpointStartedAt = System.currentTimeMillis();
       try {
         sender.send(notification, endpoint);
-      } catch (Exception e) {
-        log.warn(
-            "Notification channel send failed. notificationId={}, endpointId={}",
+        log.info(
+            "Notification push send completed. notificationId={}, endpointId={}, channel={}, elapsedMs={}",
             notification.getId(),
             endpoint.getId(),
+            sender.channel(),
+            elapsedMs(endpointStartedAt));
+      } catch (Exception e) {
+        log.warn(
+            "Notification push send failed. notificationId={}, endpointId={}, channel={}, elapsedMs={}",
+            notification.getId(),
+            endpoint.getId(),
+            sender.channel(),
+            elapsedMs(endpointStartedAt),
             e);
       }
     }
+
+    log.info(
+        "Notification push send finished. notificationId={}, endpointCount={}, elapsedMs={}",
+        notification.getId(),
+        endpoints.size(),
+        elapsedMs(startedAt));
   }
 
   private NotificationSender findSender(NotificationEndpoint endpoint) {
@@ -51,5 +71,9 @@ public class NotificationDispatchService {
       }
     }
     return null;
+  }
+
+  private long elapsedMs(long startedAt) {
+    return System.currentTimeMillis() - startedAt;
   }
 }
