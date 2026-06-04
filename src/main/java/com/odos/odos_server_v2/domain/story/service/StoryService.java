@@ -19,6 +19,7 @@ import com.odos.odos_server_v2.domain.member.CurrentUserContext;
 import com.odos.odos_server_v2.domain.member.entity.Member;
 import com.odos.odos_server_v2.domain.member.repository.MemberRepository;
 import com.odos.odos_server_v2.domain.shared.service.ImageService;
+import com.odos.odos_server_v2.domain.story.dto.StoryDiarySummaryProjection;
 import com.odos.odos_server_v2.domain.story.dto.StoryGroupDto;
 import com.odos.odos_server_v2.domain.story.dto.StoryItemDto;
 import com.odos.odos_server_v2.domain.story.dto.StoryResponseDto;
@@ -44,41 +45,44 @@ public class StoryService {
     Member currentMember = getCurrentMember();
     LocalDateTime since = LocalDateTime.now().minusHours(24);
 
-    // 1. 최근 24시간 이내 친구들이 작성한 일지 전체 조회
-    List<Diary> diaries = storyRepository.findFriendDiariesWithin24Hours(currentMember.getId(), since);
+    // 1. 최근 24시간 이내 친구들이 작성한 일지 요약 조회
+    List<StoryDiarySummaryProjection> diaries =
+        storyRepository.findFriendDiarySummariesWithin24Hours(currentMember.getId(), since);
 
     if (diaries.isEmpty()) {
       return StoryResponseDto.builder().storyGroups(Collections.emptyList()).unreadCount(0).build();
     }
 
     // 2. 시청 기록 조회
+    List<Long> diaryIds = diaries.stream().map(StoryDiarySummaryProjection::getDiaryId).toList();
     List<DiaryViewLog> viewLogs =
-        diaryViewLogRepository.findByMemberAndDiaryIn(currentMember, diaries);
+        diaryViewLogRepository.findByMemberIdAndDiaryIdIn(currentMember.getId(), diaryIds);
     Set<Long> viewedDiaryIds =
         viewLogs.stream().map(log -> log.getDiary().getId()).collect(Collectors.toSet());
 
     // 3. 친구별로 일지 그룹화
-    Map<Member, List<Diary>> diariesByFriend =
-        diaries.stream().collect(Collectors.groupingBy(Diary::getMember));
+    Map<Long, List<StoryDiarySummaryProjection>> diariesByFriend =
+        diaries.stream().collect(Collectors.groupingBy(StoryDiarySummaryProjection::getMemberId));
 
     // 4. 각 친구 그룹을 StoryGroupDto로 변환 및 정렬
     List<StoryGroupDto> storyGroups = new ArrayList<>();
     int totalUnreadCount = 0;
 
-    for (Map.Entry<Member, List<Diary>> entry : diariesByFriend.entrySet()) {
-      Member friendMember = entry.getKey();
-      List<Diary> friendDiaries = entry.getValue();
+    for (Map.Entry<Long, List<StoryDiarySummaryProjection>> entry : diariesByFriend.entrySet()) {
+      Long friendMemberId = entry.getKey();
+      List<StoryDiarySummaryProjection> friendDiaries = entry.getValue();
+      StoryDiarySummaryProjection firstDiary = friendDiaries.get(0);
 
-      // 그룹 내 스토리 아이템 생성 및 정렬 (최신순, 미시청 우선)
+      // 그룹 내 스토리 아이템 생성 및 정렬 (미시청 우선, 최신순)
       List<StoryItemDto> storyItems =
           friendDiaries.stream()
               .map(
                   diary -> {
-                    boolean hasUnread = !viewedDiaryIds.contains(diary.getId());
-                    String diaryThumbnail = diaryImageRepository.getDiaryThumbNail(diary.getId());
+                    boolean hasUnread = !viewedDiaryIds.contains(diary.getDiaryId());
+                    String diaryThumbnail = diaryImageRepository.getDiaryThumbNail(diary.getDiaryId());
                     return StoryItemDto.builder()
-                        .diaryId(diary.getId())
-                        .diaryTitle(diary.getTitle())
+                        .diaryId(diary.getDiaryId())
+                        .diaryTitle(diary.getDiaryTitle())
                         .diaryThumbnail(diaryThumbnail)
                         .createdAt(diary.getCreatedAt())
                         .hasUnreadJournal(hasUnread)
@@ -86,29 +90,25 @@ public class StoryService {
                   })
               .sorted(
                   (a, b) -> {
-                    // 미시청 우선, 그 다음 최신순 (createdAt 최신이 앞)
                     if (a.getHasUnreadJournal() && !b.getHasUnreadJournal()) {
                       return -1;
                     }
                     if (!a.getHasUnreadJournal() && b.getHasUnreadJournal()) {
                       return 1;
                     }
-                    return b.getCreatedAt().compareTo(a.getCreatedAt()); // 최신순
+                    return b.getCreatedAt().compareTo(a.getCreatedAt());
                   })
               .collect(Collectors.toList());
 
-      // 그룹에 미시청 스토리가 있는지 확인
-      boolean hasUnreadInGroup = storyItems.stream().anyMatch(StoryItemDto::getHasUnreadJournal);
-      if (hasUnreadInGroup) {
-        totalUnreadCount +=
-            storyItems.stream().mapToInt(item -> item.getHasUnreadJournal() ? 1 : 0).sum();
-      }
+      int unreadCountInGroup =
+          (int) storyItems.stream().filter(StoryItemDto::getHasUnreadJournal).count();
+      totalUnreadCount += unreadCountInGroup;
 
       StoryGroupDto group =
           StoryGroupDto.builder()
-              .userId(friendMember.getId())
-              .userName(friendMember.getNickname())
-              .profileImage(imageService.getFileUrl(friendMember.getProfileUrl()))
+              .userId(friendMemberId)
+              .userName(firstDiary.getMemberNickname())
+              .profileImage(imageService.getFileUrl(firstDiary.getMemberProfileUrl()))
               .stories(storyItems)
               .build();
 
