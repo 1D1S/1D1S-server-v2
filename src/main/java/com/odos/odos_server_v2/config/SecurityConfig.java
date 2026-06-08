@@ -64,6 +64,7 @@ public class SecurityConfig {
                         "/challenges/random",
                         "/diaries/random",
                         "/member/nickname/check",
+                        "/redis-test",
                         "/swagger",
                         "/swagger-ui.html",
                         "/swagger-ui/**",
