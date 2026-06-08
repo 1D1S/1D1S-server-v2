@@ -31,6 +31,10 @@ spring:
     multipart:
       max-file-size: 20MB
       max-request-size: 60MB
+  data:
+    redis:
+      host: ${REDIS_PRIVATE_IP}
+      port: ${REDIS_PORT}
 
 logging:
   level:

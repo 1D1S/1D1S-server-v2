@@ -83,6 +83,10 @@ dependencies {
 	// monitoring
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'
 	implementation 'io.micrometer:micrometer-registry-prometheus'
+
+	// redos
+	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+	implementation 'io.projectreactor:reactor-core'
 }
 
 tasks.named('test') {
