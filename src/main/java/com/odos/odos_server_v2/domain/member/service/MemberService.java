@@ -215,12 +215,17 @@ public class MemberService {
   }
 
   private List<CalendarStreakDto> generateCalendar(List<Diary> diaryList) {
-    YearMonth currentMonth = YearMonth.now();
+    LocalDate today = LocalDate.now();
+    LocalDate startDate = today.minusWeeks(20);
 
     // 날짜별 개수를 저장할 Map
     Map<LocalDate, Long> diaryCountByDate =
         diaryList.stream()
-            .filter(diary -> YearMonth.from(diary.getCompletedDate()).equals(currentMonth))
+            .filter(
+                diary -> {
+                  LocalDate completedDate = diary.getCompletedDate();
+                  return !completedDate.isBefore(startDate) && !completedDate.isAfter(today);
+                })
             .collect(Collectors.groupingBy(Diary::getCompletedDate, Collectors.counting()));
 
     // Map을 DailyStreakDto 리스트로 변환
