@@ -8,6 +8,7 @@ import com.odos.odos_server_v2.domain.challenge.repository.ChallengeGoalReposito
 import com.odos.odos_server_v2.domain.challenge.repository.ParticipantRepository;
 import com.odos.odos_server_v2.domain.challenge.service.ChallengeService;
 import com.odos.odos_server_v2.domain.diary.entity.Diary;
+import com.odos.odos_server_v2.domain.diary.entity.DiaryGoal;
 import com.odos.odos_server_v2.domain.diary.repository.DiaryRepository;
 import com.odos.odos_server_v2.domain.diary.service.DiaryService;
 import com.odos.odos_server_v2.domain.friend.dto.MemberRelationResponseDto;
@@ -162,10 +163,11 @@ public class MemberService {
         memberRepository
             .findById(id)
             .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+    List<Diary> diaryList = diaryRepository.findDiariesByMember_IdAndIsDeletedFalse(id);
     return SideBarDto.builder()
         .nickname(member.getNickname())
         .profileUrl(imageService.getFileUrl(member.getProfileUrl()))
-        .streakCount(calculateStreaks(member.getDiaries())[0])
+        .streakCount(calculateStreaks(diaryList)[0])
         .todayGoalCount(getTodayGoalCount(id))
         .challengeList(challengeService.getMemberChallenge(id, id))
         .build();
@@ -344,7 +346,9 @@ public class MemberService {
     for (ChallengeGoal goal : goals) {
       Set<LocalDate> dates =
           goal.getDiaryGoals().stream()
-              .map(dg -> dg.getDiary().getCompletedDate())
+              .map(DiaryGoal::getDiary)
+              .filter(diary -> diary != null && !Boolean.TRUE.equals(diary.getIsDeleted()))
+              .map(Diary::getCompletedDate)
               .collect(Collectors.toSet());
 
       int streak = calculateMaxStreak(dates);
