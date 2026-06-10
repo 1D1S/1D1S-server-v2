@@ -272,9 +272,7 @@ public class MemberService {
 
     // 날짜 Set 생성 (중복 제거)
     Set<LocalDate> dates =
-        diaryList.stream()
-            .map(Diary::getCompletedDate)
-            .collect(Collectors.toSet()); // TODO : isCompleted 처리
+        diaryList.stream().map(Diary::getCompletedDate).collect(Collectors.toSet());
 
     LocalDate today = LocalDate.now();
 
@@ -346,8 +344,6 @@ public class MemberService {
     for (ChallengeGoal goal : goals) {
       Set<LocalDate> dates =
           goal.getDiaryGoals().stream()
-              .filter(
-                  dg -> Boolean.TRUE.equals(dg.getIsCompleted())) // TODO: 완료한것만 필터링 추가완료 - 컨펌 체크
               .map(dg -> dg.getDiary().getCompletedDate())
               .collect(Collectors.toSet());
 
