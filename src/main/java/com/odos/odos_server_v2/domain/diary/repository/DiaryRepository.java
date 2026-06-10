@@ -22,6 +22,8 @@ public interface DiaryRepository extends JpaRepository<Diary, Long> {
 
   Page<Diary> findDiariesByMember_IdAndIsDeletedFalse(Long memberId, Pageable pageable);
 
+  List<Diary> findDiariesByMember_IdAndIsDeletedFalse(Long memberId);
+
   long countByChallengeIdAndIsAllGoalsCompletedTrue(Long challengeId);
 
   // DiaryRepository.java

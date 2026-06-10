@@ -8,6 +8,7 @@ import com.odos.odos_server_v2.domain.challenge.repository.ChallengeGoalReposito
 import com.odos.odos_server_v2.domain.challenge.repository.ParticipantRepository;
 import com.odos.odos_server_v2.domain.challenge.service.ChallengeService;
 import com.odos.odos_server_v2.domain.diary.entity.Diary;
+import com.odos.odos_server_v2.domain.diary.repository.DiaryRepository;
 import com.odos.odos_server_v2.domain.diary.service.DiaryService;
 import com.odos.odos_server_v2.domain.friend.dto.MemberRelationResponseDto;
 import com.odos.odos_server_v2.domain.friend.service.FriendService;
@@ -43,6 +44,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class MemberService {
   private final MemberRepository memberRepository;
   private final ChallengeGoalRepository challengeGoalRepository;
+  private final DiaryRepository diaryRepository;
   private final ImageService imageService;
   private final ChallengeService challengeService;
   private final DiaryService diaryService;
@@ -175,7 +177,9 @@ public class MemberService {
             .findById(id)
             .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
 
-    List<Diary> diaryList = member.getDiaries();
+    // List<Diary> diaryList = member.getDiaries();
+    // 삭제한 다이어리는 스트릭에 반영 X
+    List<Diary> diaryList = diaryRepository.findDiariesByMember_IdAndIsDeletedFalse(member.getId());
 
     int[] streaks = calculateStreaks(diaryList);
 
@@ -289,8 +293,17 @@ public class MemberService {
   private int calculateCurrentStreak(Set<LocalDate> dates, LocalDate today) {
 
     // 오늘 작성했으면 오늘부터,
-    // 아니면 어제부터 시작
-    LocalDate baseDate = dates.contains(today) ? today : today.minusDays(1);
+    // 아니면 어제부터 시작  => 3일까지 일지작성 즉 스트릭 유지 가능으로 정책 변경 => 수정함
+    LocalDate baseDate =
+        dates.stream()
+            .filter(date -> !date.isBefore(today.minusDays(2)))
+            .filter(date -> !date.isAfter(today))
+            .max(LocalDate::compareTo)
+            .orElse(null);
+
+    if (baseDate == null) {
+      return 0;
+    }
 
     int streak = 0;
 
