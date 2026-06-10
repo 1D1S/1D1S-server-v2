@@ -288,8 +288,17 @@ public class MemberService {
   private int calculateCurrentStreak(Set<LocalDate> dates, LocalDate today) {
 
     // 오늘 작성했으면 오늘부터,
-    // 아니면 어제부터 시작
-    LocalDate baseDate = dates.contains(today) ? today : today.minusDays(1);
+    // 아니면 어제부터 시작  => 3일까지 일지작성 즉 스트릭 유지 가능으로 정책 변경 => 수정함
+    LocalDate baseDate =
+        dates.stream()
+            .filter(date -> !date.isBefore(today.minusDays(2)))
+            .filter(date -> !date.isAfter(today))
+            .max(LocalDate::compareTo)
+            .orElse(null);
+
+    if (baseDate == null) {
+      return 0;
+    }
 
     int streak = 0;
 
