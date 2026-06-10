@@ -8,6 +8,7 @@ import com.odos.odos_server_v2.domain.challenge.repository.ChallengeGoalReposito
 import com.odos.odos_server_v2.domain.challenge.repository.ParticipantRepository;
 import com.odos.odos_server_v2.domain.challenge.service.ChallengeService;
 import com.odos.odos_server_v2.domain.diary.entity.Diary;
+import com.odos.odos_server_v2.domain.diary.repository.DiaryRepository;
 import com.odos.odos_server_v2.domain.diary.service.DiaryService;
 import com.odos.odos_server_v2.domain.friend.dto.MemberRelationResponseDto;
 import com.odos.odos_server_v2.domain.friend.service.FriendService;
@@ -43,6 +44,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class MemberService {
   private final MemberRepository memberRepository;
   private final ChallengeGoalRepository challengeGoalRepository;
+  private final DiaryRepository diaryRepository;
   private final ImageService imageService;
   private final ChallengeService challengeService;
   private final DiaryService diaryService;
@@ -175,7 +177,9 @@ public class MemberService {
             .findById(id)
             .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
 
-    List<Diary> diaryList = member.getDiaries();
+    // List<Diary> diaryList = member.getDiaries();
+    // 삭제한 다이어리는 스트릭에 반영 X
+    List<Diary> diaryList = diaryRepository.findDiariesByMember_IdAndIsDeletedFalse(member.getId());
 
     int[] streaks = calculateStreaks(diaryList);
 
