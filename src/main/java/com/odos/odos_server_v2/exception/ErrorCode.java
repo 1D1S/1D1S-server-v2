@@ -57,6 +57,13 @@ public enum ErrorCode {
   INVALID_CHALLENGE_PASSWORD(HttpStatus.FORBIDDEN, "CHALLENGE_014", "챌린지 비밀번호가 올바르지 않습니다."),
   CHALLENGE_NOT_PRIVATE(HttpStatus.BAD_REQUEST, "CHALLENGE_015", "비공개 챌린지가 아닙니다."),
   PRIVATE_CHALLENGE(HttpStatus.FORBIDDEN, "CHALLENGE_016", "비공개 챌린지 입니다."),
+  CHALLENGE_POKE_EMPTY_TARGET(HttpStatus.BAD_REQUEST, "CHALLENGE_017", "찌를 챌린지원을 선택해주세요."),
+  CHALLENGE_POKE_SELF(HttpStatus.BAD_REQUEST, "CHALLENGE_018", "자기 자신은 찌를 수 없습니다."),
+  CHALLENGE_POKE_TARGET_NOT_PARTICIPANT(
+      HttpStatus.FORBIDDEN, "CHALLENGE_019", "같은 챌린지에 참여 중인 회원만 찌를 수 있습니다."),
+  CHALLENGE_POKE_ALREADY_SENT(HttpStatus.CONFLICT, "CHALLENGE_020", "오늘 이미 해당 챌린지원을 찔렀습니다."),
+  CHALLENGE_POKE_TARGET_ALREADY_WRITTEN(
+      HttpStatus.CONFLICT, "CHALLENGE_021", "이미 오늘 일지를 작성한 챌린지원은 찌를 수 없습니다."),
 
   // comment
   COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "COMMENT-001", "존재하지 않는 댓글입니다."),

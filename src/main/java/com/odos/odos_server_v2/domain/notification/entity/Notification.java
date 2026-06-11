@@ -125,6 +125,7 @@ public class Notification extends BaseTimeEntity {
       case FRIEND_DIARY_CREATED, MY_DIARY_COMMENTED, MY_COMMENT_REPLIED, DIARY_LIKE_MILESTONE ->
           "일지 알림";
       case CHALLENGE_APPLIED, CHALLENGE_APPROVED, CHALLENGE_REJECTED -> "챌린지 알림";
+      default -> "알림";
     };
   }
 }

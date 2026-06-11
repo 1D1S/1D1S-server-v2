@@ -308,6 +308,23 @@ public class NotificationService {
   }
 
   @Transactional
+  public void notifyChallengePoke(
+      Long actorId, Long receiverId, Long challengeId, String challengeName, String actorNickname) {
+    Member receiver = getMember(receiverId);
+    Member actor = getMember(actorId);
+    createNotification(
+        receiver,
+        actor,
+        NotificationCategory.CHALLENGE,
+        NotificationType.CHALLENGE_POKE,
+        String.format(
+            "%s 챌린지의 %s님이 %s님을 콕 찔렀어요.", challengeName, actorNickname, receiver.getNickname()),
+        NotificationTargetType.CHALLENGE_DETAIL,
+        challengeId,
+        null);
+  }
+
+  @Transactional
   public boolean notifyDiaryLikeMilestone(Long diaryId, int currentLikeCount) {
     Diary diary =
         diaryRepository
