@@ -26,6 +26,9 @@ public interface DiaryRepository extends JpaRepository<Diary, Long> {
 
   long countByChallengeIdAndIsAllGoalsCompletedTrueAndIsDeletedFalse(Long challengeId);
 
+  boolean existsByChallengeIdAndMemberIdAndCompletedDateAndIsDeletedFalse(
+      Long challengeId, Long memberId, LocalDate completedDate);
+
   // DiaryRepository.java
   @Query(
       """
