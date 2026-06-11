@@ -540,7 +540,7 @@ public class ChallengeService {
     List<ChallengeGoal> challengeGoals = challengeGoalRepository.findByParticipantId(participantId);
     long total = 0;
     for (ChallengeGoal cg : challengeGoals) {
-      total += diaryGoalRepository.countByChallengeGoalId(cg.getId());
+      total += diaryGoalRepository.countByChallengeGoalIdAndDiary_IsDeletedFalse(cg.getId());
     }
     return total;
   }
@@ -770,7 +770,7 @@ public class ChallengeService {
 
     Long challengeId = challenge.getId();
     long allGoalsCompletedDiaryCnt =
-        diaryRepository.countByChallengeIdAndIsAllGoalsCompletedTrue(challengeId);
+        diaryRepository.countByChallengeIdAndIsAllGoalsCompletedTrueAndIsDeletedFalse(challengeId);
 
     long participantCnt = getParticipantCnt(challengeId);
     if (participantCnt == 0) return 0;
@@ -797,7 +797,8 @@ public class ChallengeService {
 
     // 수행된 목표 수
     long completedGoalCnt =
-        diaryGoalRepository.countByDiary_Challenge_IdAndIsCompletedTrue(challengeId);
+        diaryGoalRepository.countByDiary_Challenge_IdAndIsCompletedTrueAndDiary_IsDeletedFalse(
+            challengeId);
     // 전체 참여자
     long participantCnt = getParticipantCnt(challengeId);
     // 진행된 일 수

@@ -22,7 +22,9 @@ public interface DiaryRepository extends JpaRepository<Diary, Long> {
 
   Page<Diary> findDiariesByMember_IdAndIsDeletedFalse(Long memberId, Pageable pageable);
 
-  long countByChallengeIdAndIsAllGoalsCompletedTrue(Long challengeId);
+  List<Diary> findDiariesByMember_IdAndIsDeletedFalse(Long memberId);
+
+  long countByChallengeIdAndIsAllGoalsCompletedTrueAndIsDeletedFalse(Long challengeId);
 
   // DiaryRepository.java
   @Query(
@@ -56,7 +58,7 @@ public interface DiaryRepository extends JpaRepository<Diary, Long> {
       """
             select d
             from Diary d
-            where d.isPublic = true and d.member.id = :memberId
+            where d.isPublic = true and d.member.id = :memberId and d.isDeleted=false
             order by d.createdAt desc, d.id desc
             """)
   Page<Diary> findOthersPublicDiariesByOffset(@Param("memberId") Long memberId, Pageable pageable);

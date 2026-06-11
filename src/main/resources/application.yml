@@ -27,6 +27,15 @@ spring:
     baseline-version: 1
     baseline-description: baseline-existing-schema
 
+  servlet:
+    multipart:
+      max-file-size: 20MB
+      max-request-size: 60MB
+  data:
+    redis:
+      host: ${REDIS_PRIVATE_IP}
+      port: ${REDIS_PORT}
+
 logging:
   level:
     root: INFO
