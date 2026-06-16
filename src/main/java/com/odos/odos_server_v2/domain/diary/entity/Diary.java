@@ -13,6 +13,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.BatchSize;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @Entity
@@ -58,14 +59,17 @@ public class Diary extends BaseTimeEntity {
   @Builder.Default @Column private Boolean isDeleted = false;
 
   @Builder.Default
+  @BatchSize(size = 100)
   @OneToMany(mappedBy = "diary", cascade = CascadeType.ALL, orphanRemoval = true)
   private List<DiaryGoal> diaryGoals = new ArrayList<>();
 
   @Builder.Default
+  @BatchSize(size = 100)
   @OneToMany(mappedBy = "diary", cascade = CascadeType.ALL)
   private List<DiaryImage> images = new ArrayList<>();
 
   @Builder.Default
+  @BatchSize(size = 100)
   @OneToMany(mappedBy = "diary", cascade = CascadeType.ALL)
   private List<DiaryLike> likes = new ArrayList<>();
 
