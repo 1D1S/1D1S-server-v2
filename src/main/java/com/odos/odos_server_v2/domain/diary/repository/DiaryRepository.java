@@ -123,4 +123,14 @@ where (:startDate is null or cast(d.createdAt as LocalDate) >= :startDate)
             """)
   void restoreByChallengeIdAndMemberId(
       @Param("challengeId") Long challengeId, @Param("memberId") Long memberId);
+
+  @Modifying
+  @Query(
+      """
+            update Diary d
+            set d.isDeleted = true
+            where d.challenge.id = :challengeId
+              and d.isDeleted = false
+            """)
+  void softDeleteByChallengeId(@Param("challengeId") Long challengeId);
 }
