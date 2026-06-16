@@ -23,12 +23,14 @@ public interface ChallengeRepository extends JpaRepository<Challenge, Long> {
              or lower(c.title) like concat('%', lower(:keyword), '%')
              or lower(c.description) like concat('%', lower(:keyword), '%') )
        and c.challengeType != :excludeType
+       and (:challengeType is null or c.challengeType = :challengeType)
      order by c.id desc
   """)
   List<Challenge> searchPage(
       @Param("cursorId") Long cursorId,
       @Param("keyword") String keyword,
       @Param("excludeType") ChallengeType excludeType,
+      @Param("challengeType") ChallengeType challengeType,
       Pageable pageable);
 
   @Query(
@@ -37,12 +39,14 @@ public interface ChallengeRepository extends JpaRepository<Challenge, Long> {
         WHERE (:keyword IS NULL OR c.title LIKE CONCAT('%', :keyword, '%'))
           AND (:category IS NULL OR c.category = :category)
           AND c.challengeType != :excludeType
+          AND (:challengeType IS NULL OR c.challengeType = :challengeType)
         ORDER BY c.id DESC
         """)
   Page<Challenge> findByFilters(
       @Param("keyword") String keyword,
       @Param("category") Category category,
       @Param("excludeType") ChallengeType excludeType,
+      @Param("challengeType") ChallengeType challengeType,
       Pageable pageable);
 
   List<Challenge> findByHostMemberId(Long memberId);
