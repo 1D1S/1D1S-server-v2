@@ -40,6 +40,9 @@ public interface DiaryRepository extends JpaRepository<Diary, Long> {
       """)
   List<Object[]> countCommentsByDiaryIds(@Param("diaryIds") Collection<Long> diaryIds);
 
+  boolean existsByChallengeIdAndMemberIdAndCompletedDateAndIsDeletedFalse(
+      Long challengeId, Long memberId, LocalDate completedDate);
+
   @Query(
       """
       select d
