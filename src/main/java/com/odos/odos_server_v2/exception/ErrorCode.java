@@ -57,6 +57,8 @@ public enum ErrorCode {
   INVALID_CHALLENGE_PASSWORD(HttpStatus.FORBIDDEN, "CHALLENGE_014", "챌린지 비밀번호가 올바르지 않습니다."),
   CHALLENGE_NOT_PRIVATE(HttpStatus.BAD_REQUEST, "CHALLENGE_015", "비공개 챌린지가 아닙니다."),
   PRIVATE_CHALLENGE(HttpStatus.FORBIDDEN, "CHALLENGE_016", "비공개 챌린지 입니다."),
+  CHALLENGE_NOT_OFFICIAL(HttpStatus.BAD_REQUEST, "CHALLENGE_017", "공식 챌린지가 아닙니다."),
+  OFFICIAL_CHALLENGE_NOT_AUTHORIZED(HttpStatus.FORBIDDEN, "CHALLENGE_018", "공식 챌린지 생성 권한이 없습니다."),
 
   // comment
   COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "COMMENT-001", "존재하지 않는 댓글입니다."),
