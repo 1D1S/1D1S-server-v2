@@ -4,6 +4,7 @@ import com.odos.odos_server_v2.domain.challenge.dto.*;
 import com.odos.odos_server_v2.domain.challenge.entity.Challenge;
 import com.odos.odos_server_v2.domain.challenge.entity.ChallengeGoal;
 import com.odos.odos_server_v2.domain.challenge.entity.ChallengeLike;
+import com.odos.odos_server_v2.domain.challenge.entity.ChallengePoke;
 import com.odos.odos_server_v2.domain.challenge.entity.Enum.ChallengeType;
 import com.odos.odos_server_v2.domain.challenge.entity.Enum.GoalType;
 import com.odos.odos_server_v2.domain.challenge.entity.Enum.ParticipantStatus;
@@ -11,6 +12,7 @@ import com.odos.odos_server_v2.domain.challenge.entity.Enum.ParticipationType;
 import com.odos.odos_server_v2.domain.challenge.entity.Participant;
 import com.odos.odos_server_v2.domain.challenge.repository.ChallengeGoalRepository;
 import com.odos.odos_server_v2.domain.challenge.repository.ChallengeLikeRepository;
+import com.odos.odos_server_v2.domain.challenge.repository.ChallengePokeRepository;
 import com.odos.odos_server_v2.domain.challenge.repository.ChallengeRepository;
 import com.odos.odos_server_v2.domain.challenge.repository.ParticipantRepository;
 import com.odos.odos_server_v2.domain.diary.dto.DiaryStreakResponse;
@@ -33,9 +35,12 @@ import com.odos.odos_server_v2.exception.ErrorCode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -52,6 +57,7 @@ public class ChallengeService {
   private final ParticipantRepository participantRepository;
   private final ChallengeLikeRepository challengeLikeRepository;
   private final ChallengeGoalRepository challengeGoalRepository;
+  private final ChallengePokeRepository challengePokeRepository;
   private final DiaryGoalRepository diaryGoalRepository;
   private final DiaryRepository diaryRepository;
   private final ImageService imageService;
@@ -609,6 +615,77 @@ public class ChallengeService {
     challengeLikeRepository.delete(challengeLike);
   }
 
+  @Transactional
+  public ChallengePokeResponse pokeChallengeMembers(
+      Long challengeId, Long actorId, ChallengePokeRequest request) {
+    Challenge challenge =
+        challengeRepository
+            .findById(challengeId)
+            .orElseThrow(() -> new CustomException(ErrorCode.CHALLENGE_NOT_FOUND));
+    Member actor =
+        memberRepository
+            .findById(actorId)
+            .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+
+    if (!isActiveParticipant(challengeId, actorId)) {
+      throw new CustomException(ErrorCode.PARTICIPANT_NOT_FOUND);
+    }
+    if (request == null
+        || request.getReceiverMemberIds() == null
+        || request.getReceiverMemberIds().isEmpty()) {
+      throw new CustomException(ErrorCode.CHALLENGE_POKE_EMPTY_TARGET);
+    }
+
+    LocalDate today = LocalDate.now();
+    Set<Long> receiverIds = new LinkedHashSet<>(request.getReceiverMemberIds());
+    List<ChallengePoke> pokes = new ArrayList<>();
+
+    for (Long receiverId : receiverIds) {
+      if (receiverId == null) {
+        throw new CustomException(ErrorCode.MEMBER_NOT_FOUND);
+      }
+      if (receiverId.equals(actorId)) {
+        throw new CustomException(ErrorCode.CHALLENGE_POKE_SELF);
+      }
+      if (!isActiveParticipant(challengeId, receiverId)) {
+        throw new CustomException(ErrorCode.CHALLENGE_POKE_TARGET_NOT_PARTICIPANT);
+      }
+      if (diaryRepository.existsByChallengeIdAndMemberIdAndCompletedDateAndIsDeletedFalse(
+          challengeId, receiverId, today)) {
+        throw new CustomException(ErrorCode.CHALLENGE_POKE_TARGET_ALREADY_WRITTEN);
+      }
+      if (challengePokeRepository.existsByChallengeIdAndActorIdAndReceiverIdAndPokedDate(
+          challengeId, actorId, receiverId, today)) {
+        throw new CustomException(ErrorCode.CHALLENGE_POKE_ALREADY_SENT);
+      }
+
+      Member receiver =
+          memberRepository
+              .findById(receiverId)
+              .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+      pokes.add(
+          ChallengePoke.builder()
+              .challenge(challenge)
+              .actor(actor)
+              .receiver(receiver)
+              .pokedDate(today)
+              .build());
+    }
+
+    challengePokeRepository.saveAll(pokes);
+
+    for (ChallengePoke poke : pokes) {
+      notificationService.notifyChallengePoke(
+          actorId,
+          poke.getReceiver().getId(),
+          challengeId,
+          challenge.getTitle(),
+          actor.getNickname());
+    }
+
+    return new ChallengePokeResponse(receiverIds.stream().toList());
+  }
+
   public List<ChallengeSummaryResponse> getMemberChallenge(Long currentMemberId, Long memberId) {
     Member member =
         memberRepository
@@ -760,6 +837,13 @@ public class ChallengeService {
     } else {
       return participant.get().getStatus();
     }
+  }
+
+  private boolean isActiveParticipant(Long challengeId, Long memberId) {
+    return participantRepository.existsByChallengeIdAndMemberIdAndStatus(
+            challengeId, memberId, ParticipantStatus.HOST)
+        || participantRepository.existsByChallengeIdAndMemberIdAndStatus(
+            challengeId, memberId, ParticipantStatus.PARTICIPANT);
   }
 
   private double getParticipationRate(Challenge challenge) {
