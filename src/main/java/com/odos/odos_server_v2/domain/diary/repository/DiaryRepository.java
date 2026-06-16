@@ -35,7 +35,7 @@ public interface DiaryRepository extends JpaRepository<Diary, Long> {
       """
       select c.diary.id, count(c)
       from Comment c
-      where c.diary.id in :diaryIds
+      where c.diary.id in :diaryIds and c.isDeleted=false
       group by c.diary.id
       """)
   List<Object[]> countCommentsByDiaryIds(@Param("diaryIds") Collection<Long> diaryIds);
