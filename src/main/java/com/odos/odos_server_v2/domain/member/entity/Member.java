@@ -7,6 +7,7 @@ import java.util.List;
 
 import lombok.*;
 
+import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import com.odos.odos_server_v2.domain.challenge.entity.Challenge;
@@ -73,6 +74,10 @@ public class Member {
   private MemberStatus status = MemberStatus.ACTIVE;
 
   private LocalDateTime deletedAt;
+
+  @CreatedDate
+  @Column(name = "created_at", nullable = false, updatable = false)
+  private LocalDateTime createdAt;
 
   @Builder.Default
   @OneToMany(mappedBy = "hostMember", cascade = CascadeType.ALL)

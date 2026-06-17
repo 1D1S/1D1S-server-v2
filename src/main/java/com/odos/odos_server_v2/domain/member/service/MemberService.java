@@ -425,18 +425,18 @@ public class MemberService {
     // 요청자가 관리자인지 검증
     Long currentMemberId = CurrentUserContext.getCurrentMemberId();
     Member currentMember =
-            memberRepository
-                    .findById(currentMemberId)
-                    .orElseThrow(() -> new IllegalArgumentException("회원이 존재하지 않습니다."));
+        memberRepository
+            .findById(currentMemberId)
+            .orElseThrow(() -> new IllegalArgumentException("회원이 존재하지 않습니다."));
     if (currentMember.getRole() != MemberRole.ADMIN) {
       throw new CustomException(ErrorCode.MEMBER_NOT_ADMIN);
     }
 
     // 멤버 있는지 검증
     Member member =
-            memberRepository
-                    .findById(memberId)
-                    .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+        memberRepository
+            .findById(memberId)
+            .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
 
     // 삭제 처리된 계정인지 검증
     if (member.getStatus() == MemberStatus.WITHDRAWN) {
