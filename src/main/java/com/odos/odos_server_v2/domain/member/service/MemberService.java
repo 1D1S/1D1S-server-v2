@@ -1,5 +1,22 @@
 package com.odos.odos_server_v2.domain.member.service;
 
+import java.time.LocalDate;
+import java.time.YearMonth;
+import java.time.temporal.ChronoUnit;
+import java.util.*;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.odos.odos_server_v2.domain.challenge.entity.Challenge;
 import com.odos.odos_server_v2.domain.challenge.entity.ChallengeGoal;
 import com.odos.odos_server_v2.domain.challenge.entity.Enum.ParticipantStatus;
@@ -13,30 +30,18 @@ import com.odos.odos_server_v2.domain.diary.repository.DiaryRepository;
 import com.odos.odos_server_v2.domain.diary.service.DiaryService;
 import com.odos.odos_server_v2.domain.friend.dto.MemberRelationResponseDto;
 import com.odos.odos_server_v2.domain.friend.service.FriendService;
+import com.odos.odos_server_v2.domain.member.CurrentUserContext;
 import com.odos.odos_server_v2.domain.member.dto.CalendarStreakDto;
 import com.odos.odos_server_v2.domain.member.dto.MyPageDto;
 import com.odos.odos_server_v2.domain.member.dto.SideBarDto;
 import com.odos.odos_server_v2.domain.member.dto.StreakDto;
+import com.odos.odos_server_v2.domain.member.entity.Enum.MemberRole;
 import com.odos.odos_server_v2.domain.member.entity.Enum.MemberStatus;
 import com.odos.odos_server_v2.domain.member.entity.Member;
 import com.odos.odos_server_v2.domain.member.repository.MemberRepository;
 import com.odos.odos_server_v2.domain.shared.service.ImageService;
 import com.odos.odos_server_v2.exception.CustomException;
 import com.odos.odos_server_v2.exception.ErrorCode;
-import java.time.LocalDate;
-import java.time.YearMonth;
-import java.time.temporal.ChronoUnit;
-import java.util.*;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -411,5 +416,36 @@ public class MemberService {
                   return (double) diaryDays / totalDays >= 0.7;
                 })
             .count();
+  }
+
+  // 관리자 권한 부여
+  @Transactional
+  public void grantAdminAuthority(Long memberId) {
+
+    // 요청자가 관리자인지 검증
+    Long currentMemberId = CurrentUserContext.getCurrentMemberId();
+    Member currentMember =
+            memberRepository
+                    .findById(currentMemberId)
+                    .orElseThrow(() -> new IllegalArgumentException("회원이 존재하지 않습니다."));
+    if (currentMember.getRole() != MemberRole.ADMIN) {
+      throw new CustomException(ErrorCode.MEMBER_NOT_ADMIN);
+    }
+
+    // 멤버 있는지 검증
+    Member member =
+            memberRepository
+                    .findById(memberId)
+                    .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+
+    // 삭제 처리된 계정인지 검증
+    if (member.getStatus() == MemberStatus.WITHDRAWN) {
+      throw new CustomException(ErrorCode.MEMBER_DELETED);
+    }
+    // 이미 관리자 권한 있는지 검증
+    if (member.getRole() == MemberRole.ADMIN) {
+      throw new CustomException(ErrorCode.MEMBER_IS_ADMIN);
+    }
+    member.updateAdminRole();
   }
 }
