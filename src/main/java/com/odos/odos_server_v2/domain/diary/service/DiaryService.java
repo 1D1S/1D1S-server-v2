@@ -274,18 +274,7 @@ public class DiaryService {
     Long memberId = CurrentUserContext.getCurrentMemberIdOrNull();
     Member member = (memberId != null) ? memberRepository.findById(memberId).orElse(null) : null;
     List<Diary> diaries = diaryRepository.findDiariesByIsPublicAndIsDeletedFalse(Boolean.TRUE);
-    List<DiaryResponse> diaryResponses = new ArrayList<>();
-
-    for (Diary diary : diaries) {
-      diaryResponses.add(
-          DiaryResponse.from(
-              member,
-              diary,
-              challengeService.toChallengeSummary(diary.getChallenge(), memberId),
-              imageService.getFileUrl(diary.getMember().getProfileUrl()),
-              commentRepository.countByDiaryId(diary.getId())));
-    }
-    return diaryResponses;
+    return toDiaryResponses(member, memberId, diaries);
   }
 
   @Transactional
@@ -306,16 +295,7 @@ public class DiaryService {
       diaries = diaries.subList(0, limit);
     }
 
-    List<DiaryResponse> items = new ArrayList<>(diaries.size());
-    for (Diary diary : diaries) {
-      items.add(
-          DiaryResponse.from(
-              member,
-              diary,
-              challengeService.toChallengeSummary(diary.getChallenge(), memberId),
-              imageService.getFileUrl(diary.getMember().getProfileUrl()),
-              commentRepository.countByDiaryId(diary.getId())));
-    }
+    List<DiaryResponse> items = toDiaryResponses(member, memberId, diaries);
 
     String nextCursor = null;
     if (hasNext && !diaries.isEmpty()) {
@@ -397,17 +377,8 @@ public class DiaryService {
       }
 
       Collections.shuffle(diaries);
-      return diaries.stream()
-          .limit(size)
-          .map(
-              diary ->
-                  DiaryResponse.from(
-                      currentMember,
-                      diary,
-                      challengeService.toChallengeSummary(diary.getChallenge(), currentMemberId),
-                      imageService.getFileUrl(diary.getMember().getProfileUrl()),
-                      commentRepository.countByDiaryId(diary.getId())))
-          .toList();
+      List<Diary> selectedDiaries = diaries.stream().limit(size).toList();
+      return toDiaryResponses(currentMember, currentMemberId, selectedDiaries);
     } catch (CustomException e) {
       return Collections.emptyList();
     }
@@ -447,15 +418,7 @@ public class DiaryService {
         diaryRepository.findDiariesByMember_IdAndIsDeletedFalse(
             memberId, pageable); // TODO : 마이페이지에서도 softDelete된거 안보이게? 적용하긴 하였으나
 
-    Page<DiaryResponse> diaryResponsePage =
-        diaries.map(
-            diary ->
-                DiaryResponse.from(
-                    member,
-                    diary,
-                    challengeService.toChallengeSummary(diary.getChallenge(), memberId),
-                    imageService.getFileUrl(diary.getMember().getProfileUrl()),
-                    commentRepository.countByDiaryId(diary.getId())));
+    Page<DiaryResponse> diaryResponsePage = toDiaryResponsePage(member, memberId, diaries);
 
     return OffsetPagination.from(diaryResponsePage);
   }
@@ -514,6 +477,7 @@ public class DiaryService {
               challengeId, Boolean.TRUE, pageable);
     }
 
+    Map<Long, Long> commentCounts = getCommentCountMap(diaries.getContent());
     Page<DiaryResponse> result =
         diaries.map(
             diary ->
@@ -522,7 +486,7 @@ public class DiaryService {
                     diary,
                     summary,
                     imageService.getFileUrl(diary.getMember().getProfileUrl()),
-                    commentRepository.countByDiaryId(diary.getId())));
+                    commentCounts.getOrDefault(diary.getId(), 0L)));
     return OffsetPagination.from(result);
   }
 
@@ -536,17 +500,7 @@ public class DiaryService {
               .findById(memberId)
               .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
       List<Diary> diaries = diaryRepository.findOthersPublicDiaries(otherMemberId);
-      List<DiaryResponse> diaryResponses = new ArrayList<>();
-      for (Diary diary : diaries) {
-        diaryResponses.add(
-            DiaryResponse.from(
-                member,
-                diary,
-                challengeService.toChallengeSummary(diary.getChallenge(), memberId),
-                imageService.getFileUrl(diary.getMember().getProfileUrl()),
-                commentRepository.countByDiaryId(diary.getId())));
-      }
-      return diaryResponses;
+      return toDiaryResponses(member, memberId, diaries);
     } catch (Exception e) {
       return Collections.emptyList();
     }
@@ -564,15 +518,7 @@ public class DiaryService {
 
     Page<Diary> diaries = diaryRepository.findOthersPublicDiariesByOffset(otherMemberId, pageable);
 
-    Page<DiaryResponse> diaryResponsePage =
-        diaries.map(
-            diary ->
-                DiaryResponse.from(
-                    member,
-                    diary,
-                    challengeService.toChallengeSummary(diary.getChallenge(), memberId),
-                    imageService.getFileUrl(diary.getMember().getProfileUrl()),
-                    commentRepository.countByDiaryId(diary.getId())));
+    Page<DiaryResponse> diaryResponsePage = toDiaryResponsePage(member, memberId, diaries);
 
     return OffsetPagination.from(diaryResponsePage);
   }
@@ -588,15 +534,7 @@ public class DiaryService {
 
     Page<Diary> diaries = diaryRepository.findDiariesWithCompletedDate(completedDate, pageable);
 
-    Page<DiaryResponse> diaryResponsePage =
-        diaries.map(
-            diary ->
-                DiaryResponse.from(
-                    member,
-                    diary,
-                    challengeService.toChallengeSummary(diary.getChallenge(), memberId),
-                    imageService.getFileUrl(diary.getMember().getProfileUrl()),
-                    commentRepository.countByDiaryId(diary.getId())));
+    Page<DiaryResponse> diaryResponsePage = toDiaryResponsePage(member, memberId, diaries);
 
     return OffsetPagination.from(diaryResponsePage);
   }
@@ -612,15 +550,7 @@ public class DiaryService {
 
     Page<Diary> diaries = diaryRepository.findDiariesWithCreatedDate(createdAt, pageable);
 
-    Page<DiaryResponse> diaryResponsePage =
-        diaries.map(
-            diary ->
-                DiaryResponse.from(
-                    member,
-                    diary,
-                    challengeService.toChallengeSummary(diary.getChallenge(), memberId),
-                    imageService.getFileUrl(diary.getMember().getProfileUrl()),
-                    commentRepository.countByDiaryId(diary.getId())));
+    Page<DiaryResponse> diaryResponsePage = toDiaryResponsePage(member, memberId, diaries);
 
     return OffsetPagination.from(diaryResponsePage);
   }
@@ -637,15 +567,7 @@ public class DiaryService {
     Page<Diary> diaries =
         diaryRepository.findDiariesByDateRangeWithCompletedDate(start, last, pageable);
 
-    Page<DiaryResponse> diaryResponsePage =
-        diaries.map(
-            diary ->
-                DiaryResponse.from(
-                    member,
-                    diary,
-                    challengeService.toChallengeSummary(diary.getChallenge(), memberId),
-                    imageService.getFileUrl(diary.getMember().getProfileUrl()),
-                    commentRepository.countByDiaryId(diary.getId())));
+    Page<DiaryResponse> diaryResponsePage = toDiaryResponsePage(member, memberId, diaries);
 
     return OffsetPagination.from(diaryResponsePage);
   }
@@ -662,17 +584,55 @@ public class DiaryService {
     Page<Diary> diaries =
         diaryRepository.findDiariesByDateRangeWithCreatedDate(start, last, pageable);
 
-    Page<DiaryResponse> diaryResponsePage =
-        diaries.map(
-            diary ->
-                DiaryResponse.from(
-                    member,
-                    diary,
-                    challengeService.toChallengeSummary(diary.getChallenge(), memberId),
-                    imageService.getFileUrl(diary.getMember().getProfileUrl()),
-                    commentRepository.countByDiaryId(diary.getId())));
+    Page<DiaryResponse> diaryResponsePage = toDiaryResponsePage(member, memberId, diaries);
 
     return OffsetPagination.from(diaryResponsePage);
+  }
+
+  private List<DiaryResponse> toDiaryResponses(Member member, Long memberId, List<Diary> diaries) {
+    if (diaries == null || diaries.isEmpty()) {
+      return Collections.emptyList();
+    }
+
+    Map<Long, Long> commentCounts = getCommentCountMap(diaries);
+
+    return diaries.stream()
+        .map(diary -> toDiaryResponse(member, memberId, diary, commentCounts))
+        .toList();
+  }
+
+  private Page<DiaryResponse> toDiaryResponsePage(
+      Member member, Long memberId, Page<Diary> diaries) {
+    Map<Long, Long> commentCounts = getCommentCountMap(diaries.getContent());
+
+    return diaries.map(diary -> toDiaryResponse(member, memberId, diary, commentCounts));
+  }
+
+  private DiaryResponse toDiaryResponse(
+      Member member, Long memberId, Diary diary, Map<Long, Long> commentCounts) {
+    return DiaryResponse.from(
+        member,
+        diary,
+        challengeService.toChallengeSummary(diary.getChallenge(), memberId),
+        imageService.getFileUrl(diary.getMember().getProfileUrl()),
+        commentCounts.getOrDefault(diary.getId(), 0L));
+  }
+
+  private Map<Long, Long> getCommentCountMap(List<Diary> diaries) {
+    if (diaries == null || diaries.isEmpty()) {
+      return Collections.emptyMap();
+    }
+
+    List<Long> diaryIds = diaries.stream().map(Diary::getId).filter(Objects::nonNull).toList();
+    if (diaryIds.isEmpty()) {
+      return Collections.emptyMap();
+    }
+
+    Map<Long, Long> commentCounts = new HashMap<>();
+    for (Object[] row : diaryRepository.countCommentsByDiaryIds(diaryIds)) {
+      commentCounts.put((Long) row[0], (Long) row[1]);
+    }
+    return commentCounts;
   }
 
   @Transactional
