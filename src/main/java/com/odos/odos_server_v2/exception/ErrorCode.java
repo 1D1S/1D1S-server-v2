@@ -66,6 +66,7 @@ public enum ErrorCode {
   CHALLENGE_POKE_ALREADY_SENT(HttpStatus.CONFLICT, "CHALLENGE_020", "오늘 이미 해당 챌린지원을 찔렀습니다."),
   CHALLENGE_POKE_TARGET_ALREADY_WRITTEN(
       HttpStatus.CONFLICT, "CHALLENGE_021", "이미 오늘 일지를 작성한 챌린지원은 찌를 수 없습니다."),
+  FLEXIBLE_GOAL_REQUIRED(HttpStatus.BAD_REQUEST, "CHALLENGE_022", "자유 목표 챌린지는 목표를 입력해야 합니다."),
 
   // comment
   COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "COMMENT-001", "존재하지 않는 댓글입니다."),

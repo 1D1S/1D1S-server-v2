@@ -271,6 +271,9 @@ public class ChallengeService {
     participantRepository.save(participant);
 
     if (challenge.getGoalType().equals(GoalType.FLEXIBLE)) {
+      if (goals == null || goals.isEmpty()) {
+        throw new CustomException(ErrorCode.FLEXIBLE_GOAL_REQUIRED);
+      }
       for (String g : goals) {
         ChallengeGoal goal = ChallengeGoal.builder().content(g).participant(participant).build();
         challengeGoalRepository.save(goal);
@@ -343,6 +346,9 @@ public class ChallengeService {
     participantRepository.save(participant);
 
     if (challenge.getGoalType().equals(GoalType.FLEXIBLE)) {
+      if (goals == null || goals.isEmpty()) {
+        throw new CustomException(ErrorCode.FLEXIBLE_GOAL_REQUIRED);
+      }
       for (String g : goals) {
         challengeGoalRepository.save(
             ChallengeGoal.builder().content(g).participant(participant).build());
