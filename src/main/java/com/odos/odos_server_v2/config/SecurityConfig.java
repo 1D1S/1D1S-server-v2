@@ -109,6 +109,9 @@ public class SecurityConfig {
     config.addAllowedOriginPattern("https://local.1day1streak.com");
     config.addAllowedOriginPattern("https://local.dev.1day1streak.com");
     config.addAllowedOriginPattern("https://dev.1day1streak.com");
+    config.addAllowedOriginPattern("https://local.admin.1day1streak.com");
+    config.addAllowedOriginPattern("https://dev.admin.1day1streak.com");
+    config.addAllowedOriginPattern("https://admin.1day1streak.com");
 
     config.addAllowedMethod("*");
     config.addAllowedHeader("*");
