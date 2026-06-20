@@ -69,27 +69,32 @@ public class MemberService {
     if (memberRepository.existsByNicknameAndIdNot(nickname, memberId)) {
       throw new CustomException(ErrorCode.NICKNAME_ALREADY_EXISTS);
     }
-    Member member =
-        memberRepository
-            .findById(memberId)
-            .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+    Member member = findActiveMemberById(memberId);
     member.updateNickname(nickname);
   }
 
   @Transactional
   public void editProfileImage(Long memberId, String objectKey) {
-    Member member =
-        memberRepository
-            .findById(memberId)
-            .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+    Member member = findActiveMemberById(memberId);
     member.updateProfileImage(objectKey);
   }
 
+  private Member findActiveMemberById(Long memberId) {
+    Optional<Member> activeMember =
+        memberRepository.findByIdAndStatus(memberId, MemberStatus.ACTIVE);
+    if (activeMember.isPresent()) {
+      return activeMember.get();
+    }
+
+    Optional<Member> member = memberRepository.findById(memberId);
+    if (member.isPresent()) {
+      throw new CustomException(ErrorCode.MEMBER_DELETED);
+    }
+    throw new CustomException(ErrorCode.MEMBER_NOT_FOUND);
+  }
+
   public MyPageDto getMyPage(Long id, Pageable pageable) {
-    Member member =
-        memberRepository
-            .findById(id)
-            .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+    Member member = findActiveMemberById(id);
     return MyPageDto.builder()
         .nickname(member.getNickname())
         .profileUrl(imageService.getFileUrl(member.getProfileUrl()))
@@ -102,14 +107,7 @@ public class MemberService {
   }
 
   public MyPageDto getOtherMyPage(Long id, Pageable pageable) {
-    Member member =
-        memberRepository
-            .findById(id)
-            .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
-
-    if (member.getStatus() == MemberStatus.WITHDRAWN) {
-      throw new CustomException(ErrorCode.MEMBER_DELETED);
-    }
+    Member member = findActiveMemberById(id);
 
     // 관계 상태 조회
     MemberRelationResponseDto relation = friendService.getMemberRelation(id);
@@ -161,10 +159,7 @@ public class MemberService {
   }
 
   public SideBarDto getSideBar(Long id) {
-    Member member =
-        memberRepository
-            .findById(id)
-            .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+    Member member = findActiveMemberById(id);
     List<Diary> diaryList = diaryRepository.findDiariesByMember_IdAndIsDeletedFalse(id);
     return SideBarDto.builder()
         .nickname(member.getNickname())
@@ -176,10 +171,7 @@ public class MemberService {
   }
 
   public StreakDto getStreakByMemberId(Long id) {
-    Member member =
-        memberRepository
-            .findById(id)
-            .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+    Member member = findActiveMemberById(id);
 
     // List<Diary> diaryList = member.getDiaries();
     // 삭제한 다이어리는 스트릭에 반영 X
