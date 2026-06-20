@@ -72,6 +72,8 @@ public class SecurityConfig {
                         "/api-docs/**",
                         "/v3/api-docs/**")
                     .permitAll()
+                    .requestMatchers("/admin/**")
+                    .hasRole("ADMIN")
                     .anyRequest()
                     .authenticated())
         .oauth2Login(
