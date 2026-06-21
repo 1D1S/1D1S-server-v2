@@ -225,6 +225,58 @@ public class ChallengeController {
   }
 
   @Operation(
+      summary = "챌린지 미리보기 조회",
+      description =
+          """
+          비공개 챌린지 참여 전에 필요한 최소 정보를 반환한다. (인증 불필요)
+
+          `GET /challenges/{challengeId}` 에서 403 비공개 챌린지 오류가 발생할 경우,
+          이 API로 goalType을 확인하여 비밀번호 입력 화면의 목표 입력 필드 노출 여부를 결정한다.
+          """)
+  @ApiResponses({
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "200",
+        description = "챌린지 미리보기 조회 성공",
+        content =
+            @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ChallengePreviewResponse.class),
+                examples =
+                    @ExampleObject(
+                        value =
+                            """
+                            {
+                              "message": "챌린지 미리보기 조회 성공했습니다.",
+                              "data": {
+                                "title": "30일 코딩 챌린지",
+                                "goalType": "FLEXIBLE",
+                                "participationType": "GROUP",
+                                "challengeType": "PRIVATE"
+                              }
+                            }
+                            """))),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "404",
+        description = "챌린지를 찾을 수 없음",
+        content =
+            @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class),
+                examples =
+                    @ExampleObject(
+                        value =
+                            """
+                            { "code": "CHALLENGE_001", "message": "챌린지를 찾을 수 없습니다." }
+                            """)))
+  })
+  @GetMapping("/{challengeId}/preview")
+  public ApiResponse<ChallengePreviewResponse> getChallengePreview(
+      @Parameter(description = "챌린지 ID") @PathVariable Long challengeId) {
+    return ApiResponse.success(
+        Message.GET_CHALLENGE_PREVIEW, challengeService.getChallengePreview(challengeId));
+  }
+
+  @Operation(
       summary = "챌린지 상세 조회",
       description =
           """

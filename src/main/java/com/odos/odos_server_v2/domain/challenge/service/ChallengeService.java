@@ -208,6 +208,18 @@ public class ChallengeService {
     return toChallengeSummary(challenge, memberId);
   }
 
+  public ChallengePreviewResponse getChallengePreview(Long challengeId) {
+    Challenge challenge =
+        challengeRepository
+            .findById(challengeId)
+            .orElseThrow(() -> new CustomException(ErrorCode.CHALLENGE_NOT_FOUND));
+    return new ChallengePreviewResponse(
+        challenge.getTitle(),
+        challenge.getGoalType(),
+        challenge.getParticipationType(),
+        challenge.getChallengeType());
+  }
+
   public ChallengeResponse getChallenge(Long challengeId, Long memberId) {
     Challenge challenge =
         challengeRepository
