@@ -67,6 +67,7 @@ public class AdminDiaryService {
     Member admin = requireAdmin();
     String normalizedAuthorNickname =
         authorNickname == null || authorNickname.isBlank() ? null : authorNickname.trim();
+    validateFilter(filterType, normalizedAuthorNickname, challengeId);
     Page<Diary> diaries =
         findAdminDiaries(pageable, filterType, normalizedAuthorNickname, challengeId);
 
@@ -105,22 +106,60 @@ public class AdminDiaryService {
 
   private Page<Diary> findAdminDiaries(
       Pageable pageable, String filterType, String authorNickname, Long challengeId) {
-    if (filterType == null || filterType.equalsIgnoreCase("latest")) {
+    String normalizedFilterType =
+        filterType == null || filterType.isBlank() ? "latest" : filterType.trim().toLowerCase();
+
+    if (normalizedFilterType.equals("latest")) {
       return diaryRepository.findAdminDiariesOrderByLatest(pageable);
     }
-    if (filterType.equalsIgnoreCase("author")) {
+    if (normalizedFilterType.equals("author")) {
       return diaryRepository.findAdminDiariesByAuthorNicknameOrderByLatest(
           authorNickname, pageable);
     }
-    if (filterType.equalsIgnoreCase("challenge")) {
+    if (normalizedFilterType.equals("challenge")) {
       return diaryRepository.findAdminDiariesByChallengeIdOrderByLatest(challengeId, pageable);
     }
-    if (filterType.equalsIgnoreCase("like")
-        || filterType.equalsIgnoreCase("likes")
-        || filterType.equalsIgnoreCase("likeCount")) {
+    if (normalizedFilterType.equals("like")
+        || normalizedFilterType.equals("likes")
+        || normalizedFilterType.equals("likecount")) {
       return diaryRepository.findAdminDiariesOrderByLike(pageable);
     }
-    return diaryRepository.findAdminDiariesOrderByLatest(pageable);
+    throw new CustomException(ErrorCode.INVALID_DIARY_ADMIN_FILTER);
+  }
+
+  private void validateFilter(String filterType, String authorNickname, Long challengeId) {
+    String normalizedFilterType =
+        filterType == null || filterType.isBlank() ? "latest" : filterType.trim().toLowerCase();
+
+    if (normalizedFilterType.equals("latest")) {
+      rejectWhenPresent(authorNickname, challengeId);
+      return;
+    }
+    if (normalizedFilterType.equals("like")
+        || normalizedFilterType.equals("likes")
+        || normalizedFilterType.equals("likecount")) {
+      rejectWhenPresent(authorNickname, challengeId);
+      return;
+    }
+    if (normalizedFilterType.equals("author")) {
+      if (authorNickname == null || challengeId != null) {
+        throw new CustomException(ErrorCode.INVALID_DIARY_ADMIN_FILTER);
+      }
+      return;
+    }
+    if (normalizedFilterType.equals("challenge")) {
+      if (challengeId == null || authorNickname != null) {
+        throw new CustomException(ErrorCode.INVALID_DIARY_ADMIN_FILTER);
+      }
+      return;
+    }
+    throw new CustomException(ErrorCode.INVALID_DIARY_ADMIN_FILTER);
+  }
+
+  private void rejectWhenPresent(String authorNickname, Long challengeId) {
+    if (authorNickname != null || challengeId != null) {
+      throw new CustomException(ErrorCode.INVALID_DIARY_ADMIN_FILTER);
+    }
   }
 
   private DiaryResponse toDiaryResponse(Member admin, Diary diary, long commentCount) {
