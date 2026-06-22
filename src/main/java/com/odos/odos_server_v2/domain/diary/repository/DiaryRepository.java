@@ -96,6 +96,54 @@ public interface DiaryRepository extends JpaRepository<Diary, Long> {
   @EntityGraph(attributePaths = {"member", "challenge"})
   Page<Diary> findAllByChallengeIdAndIsDeletedFalse(Long challengeId, Pageable pageable);
 
+  @Query(
+      """
+      select d
+      from Diary d
+      order by d.createdAt desc, d.id desc
+      """)
+  @EntityGraph(attributePaths = {"member", "challenge"})
+  Page<Diary> findAdminDiariesOrderByLatest(Pageable pageable);
+
+  @Query(
+      """
+      select d
+      from Diary d
+      where d.member.nickname like concat('%', :authorNickname, '%')
+      order by d.createdAt desc, d.id desc
+      """)
+  @EntityGraph(attributePaths = {"member", "challenge"})
+  Page<Diary> findAdminDiariesByAuthorNicknameOrderByLatest(
+      @Param("authorNickname") String authorNickname, Pageable pageable);
+
+  @Query(
+      """
+      select d
+      from Diary d
+      where d.challenge.id = :challengeId
+      order by d.createdAt desc, d.id desc
+      """)
+  @EntityGraph(attributePaths = {"member", "challenge"})
+  Page<Diary> findAdminDiariesByChallengeIdOrderByLatest(
+      @Param("challengeId") Long challengeId, Pageable pageable);
+
+  @Query(
+      value =
+          """
+          select d
+          from Diary d
+          left join d.likes l
+          group by d
+          order by count(l) desc, d.createdAt desc, d.id desc
+          """,
+      countQuery =
+          """
+          select count(d)
+          from Diary d
+          """)
+  @EntityGraph(attributePaths = {"member", "challenge"})
+  Page<Diary> findAdminDiariesOrderByLike(Pageable pageable);
+
   @Query("select d from Diary d where d.completedDate = :completedDate and d.isDeleted = false")
   @EntityGraph(attributePaths = {"member", "challenge"})
   Page<Diary> findDiariesWithCompletedDate(
