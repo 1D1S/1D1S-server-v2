@@ -44,6 +44,7 @@ public class Message {
   public static String GET_MY_CHALLENGE = "내 챌린지 목록 조회 성공했습니다.";
   public static String GET_MY_CHALLENGE_DIARY_WRITTEN = "특정 챌린지의 3일 이내의 일지 작성 날짜 조회 성공했습니다.";
   public static String JOIN_PRIVATE_CHALLENGE = "비공개 챌린지 참여 성공했습니다.";
+  public static String GET_CHALLENGE_PREVIEW = "챌린지 미리보기 조회 성공했습니다.";
   public static String CHALLENGE_POKE = "챌린지원 찌르기 성공했습니다.";
 
   // member
@@ -54,6 +55,7 @@ public class Message {
   public static String UPDATE_PROFILE_IMAGE = "프로필 이미지 변경 성공했습니다.";
   public static String GET_OTHERS_PROFILE = "다른 사람 프로필 조회 성공했습니다.";
   public static String MEMBER_DELETE = "회원 탈퇴 요청 성공했습니다.";
+  public static String MEMBER_GRANT_ADMIN = "관리자 권한 부여 성공했습니다.";
 
   // image
   public static String CREATE_PRESIGNED_URL_SUCCESS = "presigned url 발급 성공했습니다.";

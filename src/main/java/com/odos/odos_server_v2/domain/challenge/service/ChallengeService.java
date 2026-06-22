@@ -32,6 +32,8 @@ import com.odos.odos_server_v2.domain.shared.service.CursorService;
 import com.odos.odos_server_v2.domain.shared.service.ImageService;
 import com.odos.odos_server_v2.exception.CustomException;
 import com.odos.odos_server_v2.exception.ErrorCode;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
@@ -65,6 +67,7 @@ public class ChallengeService {
   private final MemberRepository memberRepository;
   private final CursorService cursorService;
   private final NotificationService notificationService;
+  @PersistenceContext private EntityManager entityManager;
   private final PasswordEncoder passwordEncoder;
 
   @Transactional
@@ -205,6 +208,18 @@ public class ChallengeService {
     return toChallengeSummary(challenge, memberId);
   }
 
+  public ChallengePreviewResponse getChallengePreview(Long challengeId) {
+    Challenge challenge =
+        challengeRepository
+            .findById(challengeId)
+            .orElseThrow(() -> new CustomException(ErrorCode.CHALLENGE_NOT_FOUND));
+    return new ChallengePreviewResponse(
+        challenge.getTitle(),
+        challenge.getGoalType(),
+        challenge.getParticipationType(),
+        challenge.getChallengeType());
+  }
+
   public ChallengeResponse getChallenge(Long challengeId, Long memberId) {
     Challenge challenge =
         challengeRepository
@@ -271,6 +286,9 @@ public class ChallengeService {
     participantRepository.save(participant);
 
     if (challenge.getGoalType().equals(GoalType.FLEXIBLE)) {
+      if (goals == null || goals.isEmpty()) {
+        throw new CustomException(ErrorCode.FLEXIBLE_GOAL_REQUIRED);
+      }
       for (String g : goals) {
         ChallengeGoal goal = ChallengeGoal.builder().content(g).participant(participant).build();
         challengeGoalRepository.save(goal);
@@ -343,6 +361,9 @@ public class ChallengeService {
     participantRepository.save(participant);
 
     if (challenge.getGoalType().equals(GoalType.FLEXIBLE)) {
+      if (goals == null || goals.isEmpty()) {
+        throw new CustomException(ErrorCode.FLEXIBLE_GOAL_REQUIRED);
+      }
       for (String g : goals) {
         challengeGoalRepository.save(
             ChallengeGoal.builder().content(g).participant(participant).build());
@@ -357,6 +378,8 @@ public class ChallengeService {
             ChallengeGoal.builder().participant(participant).content(cg.getContent()).build());
       }
     }
+    entityManager.flush();
+    entityManager.refresh(participant);
     return toChallengeResponse(challenge, member);
   }
 
