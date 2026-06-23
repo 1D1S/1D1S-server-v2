@@ -241,12 +241,18 @@ public class ChallengeService {
   }
 
   public OffsetPagination<ChallengeSummaryResponse> getChallengeListByOffset(
-      Long memberId, int page, int size, String keyword, Category category) {
+      Long memberId,
+      int page,
+      int size,
+      String keyword,
+      Category category,
+      ChallengeType challengeType) {
 
     Pageable pageable = PageRequest.of(page, size);
 
     Page<Challenge> challengePage =
-        challengeRepository.findByFilters(keyword, category, ChallengeType.PRIVATE, pageable);
+        challengeRepository.findByFilters(
+            keyword, category, ChallengeType.PRIVATE, challengeType, pageable);
 
     Page<ChallengeSummaryResponse> responsePage =
         challengePage.map(challenge -> toChallengeSummary(challenge, memberId));
@@ -575,14 +581,15 @@ public class ChallengeService {
   }
 
   public Pagination<ChallengeSummaryResponse> getChallengeList(
-      Long memberId, int limit, String cursor, String keyword) {
+      Long memberId, int limit, String cursor, String keyword, ChallengeType challengeType) {
     String kw = (keyword == null) ? "" : keyword.trim();
     Long cursorId =
         (cursor == null || cursor.isBlank()) ? null : cursorService.decodeCursorToId(cursor);
 
     Pageable pageable = PageRequest.of(0, limit + 1, Sort.by(Sort.Direction.DESC, "id"));
     List<Challenge> rows =
-        challengeRepository.searchPage(cursorId, kw, ChallengeType.PRIVATE, pageable);
+        challengeRepository.searchPage(
+            cursorId, kw, ChallengeType.PRIVATE, challengeType, pageable);
 
     boolean hasNext = rows.size() > limit;
     if (hasNext) {
@@ -833,18 +840,18 @@ public class ChallengeService {
 
   private final ParticipantResponse toParticipant(Participant participant) {
     Member member = participant.getMember();
-    String profileUrl;
-    if (member.getProfileUrl() == null) {
-      profileUrl = "";
-    } else {
-      profileUrl = imageService.getFileUrl(member.getProfileUrl());
-    }
-    return new ParticipantResponse(
-        member.getId(),
-        participant.getId(),
-        member.getNickname(),
-        profileUrl,
-        participant.getStatus());
+    String profileUrl =
+        member.getProfileUrl() == null ? "" : imageService.getFileUrl(member.getProfileUrl());
+    List<ChallengeGoalDto> goals =
+        participant.getChallengeGoals().stream().map(this::toChallengeGoal).toList();
+    return ParticipantResponse.builder()
+        .memberId(member.getId())
+        .participantId(participant.getId())
+        .nickname(member.getNickname())
+        .profileImg(profileUrl)
+        .status(participant.getStatus())
+        .goals(goals)
+        .build();
   }
 
   private long getParticipantCnt(Long challengeId) {

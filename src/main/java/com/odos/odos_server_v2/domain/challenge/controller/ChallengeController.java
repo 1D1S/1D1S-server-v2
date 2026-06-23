@@ -1,6 +1,7 @@
 package com.odos.odos_server_v2.domain.challenge.controller;
 
 import com.odos.odos_server_v2.domain.challenge.dto.*;
+import com.odos.odos_server_v2.domain.challenge.entity.Enum.ChallengeType;
 import com.odos.odos_server_v2.domain.challenge.service.ChallengeService;
 import com.odos.odos_server_v2.domain.diary.dto.DiaryStreakResponse;
 import com.odos.odos_server_v2.domain.member.CurrentUserContext;
@@ -1034,11 +1035,14 @@ public class ChallengeController {
       @Parameter(description = "다음 페이지 커서값") @RequestParam(name = "cursor", required = false)
           String cursor,
       @Parameter(description = "검색 키워드") @RequestParam(name = "keyword", required = false)
-          String keyword) {
+          String keyword,
+      @Parameter(description = "챌린지 종류 필터 (PUBLIC, OFFICIAL). 미입력 시 전체 (PRIVATE 제외)")
+          @RequestParam(name = "challengeType", required = false)
+          ChallengeType challengeType) {
 
     Long memberId = CurrentUserContext.getCurrentMemberIdOrNull();
     Pagination<ChallengeSummaryResponse> page =
-        challengeService.getChallengeList(memberId, limit, cursor, keyword);
+        challengeService.getChallengeList(memberId, limit, cursor, keyword, challengeType);
 
     return ApiResponse.success(Message.GET_CHALLENGE_LIST, page);
   }
@@ -1129,11 +1133,15 @@ public class ChallengeController {
           String keyword,
       @Parameter(description = "카테고리 필터 (예: DEV, HEALTH, STUDY 등)")
           @RequestParam(name = "category", required = false)
-          Category category) {
+          Category category,
+      @Parameter(description = "챌린지 종류 필터 (PUBLIC, OFFICIAL). 미입력 시 전체 (PRIVATE 제외)")
+          @RequestParam(name = "challengeType", required = false)
+          ChallengeType challengeType) {
 
     Long memberId = CurrentUserContext.getCurrentMemberIdOrNull();
     OffsetPagination<ChallengeSummaryResponse> response =
-        challengeService.getChallengeListByOffset(memberId, page, size, keyword, category);
+        challengeService.getChallengeListByOffset(
+            memberId, page, size, keyword, category, challengeType);
 
     return ApiResponse.success(Message.GET_CHALLENGE_LIST, response);
   }

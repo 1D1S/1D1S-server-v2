@@ -47,6 +47,13 @@ public class Message {
   public static String GET_CHALLENGE_PREVIEW = "챌린지 미리보기 조회 성공했습니다.";
   public static String CHALLENGE_POKE = "챌린지원 찌르기 성공했습니다.";
 
+  // official challenge
+  public static String CREATE_OFFICIAL_CHALLENGE = "공식 챌린지 생성 성공했습니다.";
+  public static String EDIT_OFFICIAL_CHALLENGE = "공식 챌린지 수정 성공했습니다.";
+  public static String GET_OFFICIAL_CHALLENGE = "공식 챌린지 상세 조회 성공했습니다.";
+  public static String GET_OFFICIAL_CHALLENGE_LIST = "공식 챌린지 목록 조회 성공했습니다.";
+  public static String DELETE_OFFICIAL_CHALLENGE = "공식 챌린지 삭제 성공했습니다.";
+
   // member
   public static String GET_MYPAGE = "마이페이지 조회 성공했습니다.";
   public static String GET_SIDEBAR = "사이드바 조회 성공했습니다.";

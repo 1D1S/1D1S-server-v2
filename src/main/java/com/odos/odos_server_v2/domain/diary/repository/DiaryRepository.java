@@ -160,4 +160,14 @@ public interface DiaryRepository extends JpaRepository<Diary, Long> {
       """)
   void restoreByChallengeIdAndMemberId(
       @Param("challengeId") Long challengeId, @Param("memberId") Long memberId);
+
+  @Modifying
+  @Query(
+      """
+            update Diary d
+            set d.isDeleted = true
+            where d.challenge.id = :challengeId
+              and d.isDeleted = false
+            """)
+  void softDeleteByChallengeId(@Param("challengeId") Long challengeId);
 }
