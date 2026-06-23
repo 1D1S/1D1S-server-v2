@@ -1,5 +1,6 @@
 package com.odos.odos_server_v2.domain.member.repository;
 
+import com.odos.odos_server_v2.domain.member.entity.Enum.MemberStatus;
 import com.odos.odos_server_v2.domain.member.entity.Enum.SignupRoute;
 import com.odos.odos_server_v2.domain.member.entity.Member;
 import java.time.LocalDateTime;
@@ -12,6 +13,8 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface MemberRepository extends JpaRepository<Member, Long> {
   Optional<Member> findByEmailAndSignupRoute(String email, SignupRoute signupRoute);
+
+  Optional<Member> findByIdAndStatus(Long id, MemberStatus status);
 
   @Query(
       "SELECT m FROM Member m WHERE m.status='WITHDRAWN' and m.deletedAt IS NOT NULL AND m.deletedAt < :threshold")

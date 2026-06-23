@@ -13,10 +13,12 @@ import com.odos.odos_server_v2.domain.diary.repository.DiaryRepository;
 import com.odos.odos_server_v2.domain.diary.service.DiaryService;
 import com.odos.odos_server_v2.domain.friend.dto.MemberRelationResponseDto;
 import com.odos.odos_server_v2.domain.friend.service.FriendService;
+import com.odos.odos_server_v2.domain.member.CurrentUserContext;
 import com.odos.odos_server_v2.domain.member.dto.CalendarStreakDto;
 import com.odos.odos_server_v2.domain.member.dto.MyPageDto;
 import com.odos.odos_server_v2.domain.member.dto.SideBarDto;
 import com.odos.odos_server_v2.domain.member.dto.StreakDto;
+import com.odos.odos_server_v2.domain.member.entity.Enum.MemberRole;
 import com.odos.odos_server_v2.domain.member.entity.Enum.MemberStatus;
 import com.odos.odos_server_v2.domain.member.entity.Member;
 import com.odos.odos_server_v2.domain.member.repository.MemberRepository;
@@ -67,27 +69,32 @@ public class MemberService {
     if (memberRepository.existsByNicknameAndIdNot(nickname, memberId)) {
       throw new CustomException(ErrorCode.NICKNAME_ALREADY_EXISTS);
     }
-    Member member =
-        memberRepository
-            .findById(memberId)
-            .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+    Member member = findActiveMemberById(memberId);
     member.updateNickname(nickname);
   }
 
   @Transactional
   public void editProfileImage(Long memberId, String objectKey) {
-    Member member =
-        memberRepository
-            .findById(memberId)
-            .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+    Member member = findActiveMemberById(memberId);
     member.updateProfileImage(objectKey);
   }
 
+  private Member findActiveMemberById(Long memberId) {
+    Optional<Member> activeMember =
+        memberRepository.findByIdAndStatus(memberId, MemberStatus.ACTIVE);
+    if (activeMember.isPresent()) {
+      return activeMember.get();
+    }
+
+    Optional<Member> member = memberRepository.findById(memberId);
+    if (member.isPresent()) {
+      throw new CustomException(ErrorCode.MEMBER_DELETED);
+    }
+    throw new CustomException(ErrorCode.MEMBER_NOT_FOUND);
+  }
+
   public MyPageDto getMyPage(Long id, Pageable pageable) {
-    Member member =
-        memberRepository
-            .findById(id)
-            .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+    Member member = findActiveMemberById(id);
     return MyPageDto.builder()
         .nickname(member.getNickname())
         .profileUrl(imageService.getFileUrl(member.getProfileUrl()))
@@ -100,14 +107,7 @@ public class MemberService {
   }
 
   public MyPageDto getOtherMyPage(Long id, Pageable pageable) {
-    Member member =
-        memberRepository
-            .findById(id)
-            .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
-
-    if (member.getStatus() == MemberStatus.WITHDRAWN) {
-      throw new CustomException(ErrorCode.MEMBER_DELETED);
-    }
+    Member member = findActiveMemberById(id);
 
     // 관계 상태 조회
     MemberRelationResponseDto relation = friendService.getMemberRelation(id);
@@ -159,10 +159,7 @@ public class MemberService {
   }
 
   public SideBarDto getSideBar(Long id) {
-    Member member =
-        memberRepository
-            .findById(id)
-            .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+    Member member = findActiveMemberById(id);
     List<Diary> diaryList = diaryRepository.findDiariesByMember_IdAndIsDeletedFalse(id);
     return SideBarDto.builder()
         .nickname(member.getNickname())
@@ -174,10 +171,7 @@ public class MemberService {
   }
 
   public StreakDto getStreakByMemberId(Long id) {
-    Member member =
-        memberRepository
-            .findById(id)
-            .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+    Member member = findActiveMemberById(id);
 
     // List<Diary> diaryList = member.getDiaries();
     // 삭제한 다이어리는 스트릭에 반영 X
@@ -411,5 +405,36 @@ public class MemberService {
                   return (double) diaryDays / totalDays >= 0.7;
                 })
             .count();
+  }
+
+  // 관리자 권한 부여
+  @Transactional
+  public void grantAdminAuthority(Long memberId) {
+
+    // 요청자가 관리자인지 검증
+    Long currentMemberId = CurrentUserContext.getCurrentMemberId();
+    Member currentMember =
+        memberRepository
+            .findById(currentMemberId)
+            .orElseThrow(() -> new IllegalArgumentException("회원이 존재하지 않습니다."));
+    if (currentMember.getRole() != MemberRole.ADMIN) {
+      throw new CustomException(ErrorCode.MEMBER_NOT_ADMIN);
+    }
+
+    // 멤버 있는지 검증
+    Member member =
+        memberRepository
+            .findById(memberId)
+            .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+
+    // 삭제 처리된 계정인지 검증
+    if (member.getStatus() != MemberStatus.ACTIVE) {
+      throw new CustomException(ErrorCode.MEMBER_DELETED);
+    }
+    // 이미 관리자 권한 있는지 검증
+    if (member.getRole() == MemberRole.ADMIN) {
+      throw new CustomException(ErrorCode.MEMBER_IS_ADMIN);
+    }
+    member.updateAdminRole();
   }
 }

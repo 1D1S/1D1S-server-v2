@@ -84,9 +84,12 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'
 	implementation 'io.micrometer:micrometer-registry-prometheus'
 
-	// redos
+	// redis
 	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 	implementation 'io.projectreactor:reactor-core'
+
+	// supabase
+	// runtimeOnly 'org.postgresql:postgresql'
 }
 
 tasks.named('test') {

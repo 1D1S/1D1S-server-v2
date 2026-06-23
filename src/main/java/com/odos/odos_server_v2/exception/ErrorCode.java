@@ -29,6 +29,8 @@ public enum ErrorCode {
   MEMBER_PROFILE_PRIVATE(HttpStatus.FORBIDDEN, "USER-005", "비공개 프로필입니다."),
   MEMBER_DELETED(HttpStatus.NOT_FOUND, "USER-006", "삭제 처리된 회원입니다."),
   NICKNAME_ALREADY_EXISTS(HttpStatus.CONFLICT, "USER-007", "이미 사용 중인 닉네임입니다."),
+  MEMBER_IS_ADMIN(HttpStatus.CONFLICT, "USER-008", "이미 관리자인 회원입니다."),
+  MEMBER_NOT_ADMIN(HttpStatus.FORBIDDEN, "USER-009", "관리자 회원만 요청이 가능합니다."),
 
   // diary
   DIARY_NOT_CREATED(HttpStatus.NOT_FOUND, "DIARY-001", "다이어리를 생성하는것에 실패하였습니다."),
@@ -57,8 +59,16 @@ public enum ErrorCode {
   INVALID_CHALLENGE_PASSWORD(HttpStatus.FORBIDDEN, "CHALLENGE_014", "챌린지 비밀번호가 올바르지 않습니다."),
   CHALLENGE_NOT_PRIVATE(HttpStatus.BAD_REQUEST, "CHALLENGE_015", "비공개 챌린지가 아닙니다."),
   PRIVATE_CHALLENGE(HttpStatus.FORBIDDEN, "CHALLENGE_016", "비공개 챌린지 입니다."),
-  CHALLENGE_NOT_OFFICIAL(HttpStatus.BAD_REQUEST, "CHALLENGE_017", "공식 챌린지가 아닙니다."),
-  OFFICIAL_CHALLENGE_NOT_AUTHORIZED(HttpStatus.FORBIDDEN, "CHALLENGE_018", "공식 챌린지 생성 권한이 없습니다."),
+  CHALLENGE_POKE_EMPTY_TARGET(HttpStatus.BAD_REQUEST, "CHALLENGE_017", "찌를 챌린지원을 선택해주세요."),
+  CHALLENGE_POKE_SELF(HttpStatus.BAD_REQUEST, "CHALLENGE_018", "자기 자신은 찌를 수 없습니다."),
+  CHALLENGE_POKE_TARGET_NOT_PARTICIPANT(
+      HttpStatus.FORBIDDEN, "CHALLENGE_019", "같은 챌린지에 참여 중인 회원만 찌를 수 있습니다."),
+  CHALLENGE_POKE_ALREADY_SENT(HttpStatus.CONFLICT, "CHALLENGE_020", "오늘 이미 해당 챌린지원을 찔렀습니다."),
+  CHALLENGE_POKE_TARGET_ALREADY_WRITTEN(
+      HttpStatus.CONFLICT, "CHALLENGE_021", "이미 오늘 일지를 작성한 챌린지원은 찌를 수 없습니다."),
+  FLEXIBLE_GOAL_REQUIRED(HttpStatus.BAD_REQUEST, "CHALLENGE_022", "자유 목표 챌린지는 목표를 입력해야 합니다."),
+  CHALLENGE_NOT_OFFICIAL(HttpStatus.BAD_REQUEST, "CHALLENGE_023", "공식 챌린지가 아닙니다."),
+  OFFICIAL_CHALLENGE_NOT_AUTHORIZED(HttpStatus.FORBIDDEN, "CHALLENGE_024", "공식 챌린지 생성 권한이 없습니다."),
 
   // comment
   COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "COMMENT-001", "존재하지 않는 댓글입니다."),

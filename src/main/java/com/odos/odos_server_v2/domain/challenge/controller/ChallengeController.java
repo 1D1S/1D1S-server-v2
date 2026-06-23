@@ -226,6 +226,58 @@ public class ChallengeController {
   }
 
   @Operation(
+      summary = "챌린지 미리보기 조회",
+      description =
+          """
+          비공개 챌린지 참여 전에 필요한 최소 정보를 반환한다. (인증 불필요)
+
+          `GET /challenges/{challengeId}` 에서 403 비공개 챌린지 오류가 발생할 경우,
+          이 API로 goalType을 확인하여 비밀번호 입력 화면의 목표 입력 필드 노출 여부를 결정한다.
+          """)
+  @ApiResponses({
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "200",
+        description = "챌린지 미리보기 조회 성공",
+        content =
+            @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ChallengePreviewResponse.class),
+                examples =
+                    @ExampleObject(
+                        value =
+                            """
+                            {
+                              "message": "챌린지 미리보기 조회 성공했습니다.",
+                              "data": {
+                                "title": "30일 코딩 챌린지",
+                                "goalType": "FLEXIBLE",
+                                "participationType": "GROUP",
+                                "challengeType": "PRIVATE"
+                              }
+                            }
+                            """))),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "404",
+        description = "챌린지를 찾을 수 없음",
+        content =
+            @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class),
+                examples =
+                    @ExampleObject(
+                        value =
+                            """
+                            { "code": "CHALLENGE_001", "message": "챌린지를 찾을 수 없습니다." }
+                            """)))
+  })
+  @GetMapping("/{challengeId}/preview")
+  public ApiResponse<ChallengePreviewResponse> getChallengePreview(
+      @Parameter(description = "챌린지 ID") @PathVariable Long challengeId) {
+    return ApiResponse.success(
+        Message.GET_CHALLENGE_PREVIEW, challengeService.getChallengePreview(challengeId));
+  }
+
+  @Operation(
       summary = "챌린지 상세 조회",
       description =
           """
@@ -1370,5 +1422,138 @@ public class ChallengeController {
     return ApiResponse.success(
         Message.GET_MY_CHALLENGE_DIARY_WRITTEN,
         challengeService.getChallengeDiaryIn3Day(challengeId, currentMemberId));
+  }
+
+  @Operation(
+      summary = "챌린지원 찌르기",
+      description =
+          "같은 챌린지에 참여 중이고 오늘 일지를 작성하지 않은 챌린지원에게 하루 한 번 찌르기 알림을 보낸다. "
+              + "사전에 알림설정이 pushEnabled와 challengeEnabled이 켜져야 알림이 옵니다."
+              + "알림메시지 example) 목표한 기상시간에 일어나기 챌린지의 자유를떠나서님이 주주님을 콕 찔렀어요.")
+  @ApiResponses({
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "200",
+        description = "챌린지원 찌르기 성공",
+        content =
+            @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ChallengePokeResponse.class),
+                examples =
+                    @ExampleObject(
+                        value =
+                            """
+                            {
+                              "message": "챌린지원 찌르기 성공했습니다.",
+                              "data": {
+                                "pokedMemberIds": [2, 3]
+                              }
+                            }
+                            """))),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "400",
+        description = "잘못된 찌르기 요청",
+        content =
+            @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class),
+                examples = {
+                  @ExampleObject(
+                      name = "대상 없음",
+                      value =
+                          """
+                          {
+                            "code": "CHALLENGE_017",
+                            "message": "찌를 챌린지원을 선택해주세요."
+                          }
+                          """),
+                  @ExampleObject(
+                      name = "자기 자신 찌르기",
+                      value =
+                          """
+                          {
+                            "code": "CHALLENGE_018",
+                            "message": "자기 자신은 찌를 수 없습니다."
+                          }
+                          """)
+                })),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "403",
+        description = "같은 챌린지 참여자가 아님",
+        content =
+            @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class),
+                examples =
+                    @ExampleObject(
+                        value =
+                            """
+                            {
+                              "code": "CHALLENGE_019",
+                              "message": "같은 챌린지에 참여 중인 회원만 찌를 수 있습니다."
+                            }
+                            """))),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "404",
+        description = "챌린지 또는 회원 없음",
+        content =
+            @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class),
+                examples = {
+                  @ExampleObject(
+                      name = "챌린지 없음",
+                      value =
+                          """
+                          {
+                            "code": "CHALLENGE_001",
+                            "message": "챌린지를 찾을 수 없습니다."
+                          }
+                          """),
+                  @ExampleObject(
+                      name = "회원 없음",
+                      value =
+                          """
+                          {
+                            "code": "USER-003",
+                            "message": "회원을 찾을 수 없습니다."
+                          }
+                          """)
+                })),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "409",
+        description = "당일 중복 찌르기 또는 이미 일지 작성",
+        content =
+            @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class),
+                examples = {
+                  @ExampleObject(
+                      name = "이미 찌름",
+                      value =
+                          """
+                          {
+                            "code": "CHALLENGE_020",
+                            "message": "오늘 이미 해당 챌린지원을 찔렀습니다."
+                          }
+                          """),
+                  @ExampleObject(
+                      name = "이미 일지 작성",
+                      value =
+                          """
+                          {
+                            "code": "CHALLENGE_021",
+                            "message": "이미 오늘 일지를 작성한 챌린지원은 찌를 수 없습니다."
+                          }
+                          """)
+                }))
+  })
+  @PostMapping("/{challengeId}/pokes")
+  public ApiResponse<ChallengePokeResponse> pokeChallengeMembers(
+      @Parameter(description = "챌린지 ID") @PathVariable Long challengeId,
+      @RequestBody ChallengePokeRequest request) {
+    Long memberId = CurrentUserContext.getCurrentMemberId();
+    ChallengePokeResponse response =
+        challengeService.pokeChallengeMembers(challengeId, memberId, request);
+    return ApiResponse.success(Message.CHALLENGE_POKE, response);
   }
 }
