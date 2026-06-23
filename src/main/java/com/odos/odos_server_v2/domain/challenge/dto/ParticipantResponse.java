@@ -2,6 +2,7 @@ package com.odos.odos_server_v2.domain.challenge.dto;
 
 import com.odos.odos_server_v2.domain.challenge.entity.Enum.ParticipantStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -29,4 +30,7 @@ public class ParticipantResponse {
           "참여 상태 (PENDING: 대기, PARTICIPANT: 참여, HOST: 호스트, REJECTED: 거절, LEAVE: 탈퇴, NONE: 미참여)",
       example = "PARTICIPANT")
   private ParticipantStatus status;
+
+  @Schema(description = "참여자의 챌린지 목표 목록")
+  private List<ChallengeGoalDto> goals;
 }

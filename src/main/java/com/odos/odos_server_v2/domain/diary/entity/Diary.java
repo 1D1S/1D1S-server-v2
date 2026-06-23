@@ -58,6 +58,8 @@ public class Diary extends BaseTimeEntity {
 
   @Builder.Default @Column private Boolean isDeleted = false;
 
+  @Column private String deletedReason;
+
   @Builder.Default
   @BatchSize(size = 100)
   @OneToMany(mappedBy = "diary", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -118,5 +120,9 @@ public class Diary extends BaseTimeEntity {
 
   public void restore() {
     this.isDeleted = false;
+  }
+
+  public void updateDeletedReason(String reason) {
+    this.deletedReason = reason;
   }
 }

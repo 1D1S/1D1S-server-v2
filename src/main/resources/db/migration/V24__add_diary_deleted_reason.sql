@@ -1,0 +1,2 @@
+ALTER TABLE diary
+  ADD COLUMN deleted_reason VARCHAR(255) NULL;

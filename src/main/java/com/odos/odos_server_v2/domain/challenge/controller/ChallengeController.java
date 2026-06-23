@@ -1,6 +1,7 @@
 package com.odos.odos_server_v2.domain.challenge.controller;
 
 import com.odos.odos_server_v2.domain.challenge.dto.*;
+import com.odos.odos_server_v2.domain.challenge.entity.Enum.ChallengeType;
 import com.odos.odos_server_v2.domain.challenge.service.ChallengeService;
 import com.odos.odos_server_v2.domain.diary.dto.DiaryStreakResponse;
 import com.odos.odos_server_v2.domain.member.CurrentUserContext;
@@ -222,6 +223,58 @@ public class ChallengeController {
     return ApiResponse.success(
         Message.EDIT_CHALLENGE,
         challengeService.editChallenge(challengeId, challengeRequest, memberId));
+  }
+
+  @Operation(
+      summary = "챌린지 미리보기 조회",
+      description =
+          """
+          비공개 챌린지 참여 전에 필요한 최소 정보를 반환한다. (인증 불필요)
+
+          `GET /challenges/{challengeId}` 에서 403 비공개 챌린지 오류가 발생할 경우,
+          이 API로 goalType을 확인하여 비밀번호 입력 화면의 목표 입력 필드 노출 여부를 결정한다.
+          """)
+  @ApiResponses({
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "200",
+        description = "챌린지 미리보기 조회 성공",
+        content =
+            @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ChallengePreviewResponse.class),
+                examples =
+                    @ExampleObject(
+                        value =
+                            """
+                            {
+                              "message": "챌린지 미리보기 조회 성공했습니다.",
+                              "data": {
+                                "title": "30일 코딩 챌린지",
+                                "goalType": "FLEXIBLE",
+                                "participationType": "GROUP",
+                                "challengeType": "PRIVATE"
+                              }
+                            }
+                            """))),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "404",
+        description = "챌린지를 찾을 수 없음",
+        content =
+            @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class),
+                examples =
+                    @ExampleObject(
+                        value =
+                            """
+                            { "code": "CHALLENGE_001", "message": "챌린지를 찾을 수 없습니다." }
+                            """)))
+  })
+  @GetMapping("/{challengeId}/preview")
+  public ApiResponse<ChallengePreviewResponse> getChallengePreview(
+      @Parameter(description = "챌린지 ID") @PathVariable Long challengeId) {
+    return ApiResponse.success(
+        Message.GET_CHALLENGE_PREVIEW, challengeService.getChallengePreview(challengeId));
   }
 
   @Operation(
@@ -982,11 +1035,14 @@ public class ChallengeController {
       @Parameter(description = "다음 페이지 커서값") @RequestParam(name = "cursor", required = false)
           String cursor,
       @Parameter(description = "검색 키워드") @RequestParam(name = "keyword", required = false)
-          String keyword) {
+          String keyword,
+      @Parameter(description = "챌린지 종류 필터 (PUBLIC, OFFICIAL). 미입력 시 전체 (PRIVATE 제외)")
+          @RequestParam(name = "challengeType", required = false)
+          ChallengeType challengeType) {
 
     Long memberId = CurrentUserContext.getCurrentMemberIdOrNull();
     Pagination<ChallengeSummaryResponse> page =
-        challengeService.getChallengeList(memberId, limit, cursor, keyword);
+        challengeService.getChallengeList(memberId, limit, cursor, keyword, challengeType);
 
     return ApiResponse.success(Message.GET_CHALLENGE_LIST, page);
   }
@@ -1077,11 +1133,15 @@ public class ChallengeController {
           String keyword,
       @Parameter(description = "카테고리 필터 (예: DEV, HEALTH, STUDY 등)")
           @RequestParam(name = "category", required = false)
-          Category category) {
+          Category category,
+      @Parameter(description = "챌린지 종류 필터 (PUBLIC, OFFICIAL). 미입력 시 전체 (PRIVATE 제외)")
+          @RequestParam(name = "challengeType", required = false)
+          ChallengeType challengeType) {
 
     Long memberId = CurrentUserContext.getCurrentMemberIdOrNull();
     OffsetPagination<ChallengeSummaryResponse> response =
-        challengeService.getChallengeListByOffset(memberId, page, size, keyword, category);
+        challengeService.getChallengeListByOffset(
+            memberId, page, size, keyword, category, challengeType);
 
     return ApiResponse.success(Message.GET_CHALLENGE_LIST, response);
   }
