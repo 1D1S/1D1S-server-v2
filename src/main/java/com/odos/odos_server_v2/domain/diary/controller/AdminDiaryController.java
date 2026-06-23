@@ -382,26 +382,37 @@ public class AdminDiaryController {
                                         }
                                         """))),
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
-        responseCode = "401",
-        description = "인증되지 않은 접근",
+        responseCode = "400",
+        description = "삭제 사유 누락",
         content =
             @Content(
                 mediaType = "application/json",
-                schema = @Schema(implementation = ErrorResponse.class))),
-    @io.swagger.v3.oas.annotations.responses.ApiResponse(
-        responseCode = "403",
-        description = "관리자 권한 없음 또는 삭제 사유 누락",
-        content =
-            @Content(
-                mediaType = "application/json",
-                schema = @Schema(implementation = ErrorResponse.class))),
+                schema = @Schema(implementation = ErrorResponse.class),
+                examples =
+                    @ExampleObject(
+                        value =
+                            """
+                                          {
+                                            "code": "DIARY-007",
+                                            "message": "일지 삭제 사유를 입력해야 합니다."
+                                          }
+                                          """))),
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
         responseCode = "404",
         description = "존재하지 않는 일지",
         content =
             @Content(
                 mediaType = "application/json",
-                schema = @Schema(implementation = ErrorResponse.class)))
+                schema = @Schema(implementation = ErrorResponse.class),
+                examples =
+                    @ExampleObject(
+                        value =
+                            """
+                                          {
+                                            "code": "DIARY-002",
+                                            "message": "존재하지 않는 다이어리입니다."
+                                          }
+                                          """)))
   })
   @PatchMapping("")
   public ApiResponse<DiaryDeleteAdminResponse> deleteDiary(

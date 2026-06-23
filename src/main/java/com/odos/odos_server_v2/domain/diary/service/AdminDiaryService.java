@@ -91,7 +91,7 @@ public class AdminDiaryService {
       throw new CustomException(ErrorCode.DIARY_NOT_FOUND);
     }
     if (request.getDeleteReason() == null || request.getDeleteReason().isBlank()) {
-      throw new CustomException(ErrorCode.DIARY_NOT_ACCESS);
+      throw new CustomException(ErrorCode.DIARY_DELETED_REASON_NULL);
     }
 
     Diary diary =
@@ -119,9 +119,7 @@ public class AdminDiaryService {
     if (normalizedFilterType.equals("challenge")) {
       return diaryRepository.findAdminDiariesByChallengeIdOrderByLatest(challengeId, pageable);
     }
-    if (normalizedFilterType.equals("like")
-        || normalizedFilterType.equals("likes")
-        || normalizedFilterType.equals("likecount")) {
+    if (normalizedFilterType.equals("likes")) {
       return diaryRepository.findAdminDiariesOrderByLike(pageable);
     }
     throw new CustomException(ErrorCode.INVALID_DIARY_ADMIN_FILTER);

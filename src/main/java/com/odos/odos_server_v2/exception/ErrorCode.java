@@ -39,6 +39,9 @@ public enum ErrorCode {
   DIARYLIKE_NOT_EXISTS(HttpStatus.NOT_FOUND, "DIARY-004", "좋아요 누른 전적이 없습니다. 새로 좋아요를 눌러주세요"),
   DIARY_NOT_ACCESS(HttpStatus.FORBIDDEN, "DIARY-005", "다이어리 작성자가 아니어서 접근 권한이 없습니다"),
 
+  INVALID_DIARY_ADMIN_FILTER(HttpStatus.BAD_REQUEST, "DIARY-006", "관리자 다이어리 필터 요청 형식이 올바르지 않습니다."),
+  DIARY_DELETED_REASON_NULL(HttpStatus.BAD_REQUEST, "DIARY-007", "일지 삭제 사유를 입력해야 합니다"),
+
   // challenge
   CHALLENGE_NOT_FOUND(HttpStatus.NOT_FOUND, "CHALLENGE_001", "챌린지를 찾을 수 없습니다."),
   ALREADY_APPLIED(HttpStatus.CONFLICT, "CHALLENGE_002", "이미 해당 챌린지에 신청한 상태입니다."),
