@@ -12,6 +12,7 @@ import com.odos.odos_server_v2.domain.challenge.repository.ChallengeGoalReposito
 import com.odos.odos_server_v2.domain.challenge.repository.ChallengeRepository;
 import com.odos.odos_server_v2.domain.challenge.repository.ParticipantRepository;
 import com.odos.odos_server_v2.domain.diary.repository.DiaryRepository;
+import com.odos.odos_server_v2.domain.member.entity.Enum.MemberRole;
 import com.odos.odos_server_v2.domain.member.entity.Member;
 import com.odos.odos_server_v2.domain.member.repository.MemberRepository;
 import com.odos.odos_server_v2.domain.notification.service.NotificationService;
@@ -36,13 +37,9 @@ public class OfficialChallengeService {
   private final NotificationService notificationService;
   private final ChallengeService challengeService;
 
-  private void checkOfficialAuthority(String nickname) {
-    String[] strArray = {"노근", "이혁미역", "ODOS"};
-
-    for (String str : strArray) {
-      if (str.equals(nickname)) {
-        return;
-      }
+  private void checkOfficialAuthority(Member member) {
+    if (member.getRole().equals(MemberRole.ADMIN)) {
+      return;
     }
     throw new CustomException(ErrorCode.OFFICIAL_CHALLENGE_NOT_AUTHORIZED);
   }
@@ -56,7 +53,7 @@ public class OfficialChallengeService {
             .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
 
     // TODO: 공식 챌린지 생성 권한 기획 완료 후 아래 임시 닉네임 체크 로직을 권한 시스템으로 교체해야 합니다.
-    checkOfficialAuthority(member.getNickname());
+    checkOfficialAuthority(member);
 
     Challenge challenge =
         Challenge.builder()
@@ -106,8 +103,7 @@ public class OfficialChallengeService {
             .findById(memberId)
             .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
 
-    // TODO: 공식 챌린지 생성 권한 기획 완료 후 아래 임시 닉네임 체크 로직을 권한 시스템으로 교체해야 합니다.
-    checkOfficialAuthority(member.getNickname());
+    checkOfficialAuthority(member);
 
     Challenge challenge =
         challengeRepository
@@ -184,8 +180,7 @@ public class OfficialChallengeService {
             .findById(memberId)
             .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
 
-    // TODO: 공식 챌린지 생성 권한 기획 완료 후 아래 임시 닉네임 체크 로직을 권한 시스템으로 교체해야 합니다.
-    checkOfficialAuthority(member.getNickname());
+    checkOfficialAuthority(member);
 
     Challenge challenge =
         challengeRepository
