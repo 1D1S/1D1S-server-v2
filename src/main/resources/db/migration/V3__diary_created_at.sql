@@ -1,1 +1,1 @@
-ALTER TABLE diary CHANGE created_date created_at DATETIME;
+ALTER TABLE diary RENAME COLUMN created_date TO created_at;

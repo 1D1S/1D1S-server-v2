@@ -61,13 +61,13 @@ dependencies {
 	implementation 'io.jsonwebtoken:jjwt-impl:0.11.5'
 	implementation 'io.jsonwebtoken:jjwt-jackson:0.11.5'
 	compileOnly 'org.projectlombok:lombok'
-	runtimeOnly 'com.mysql:mysql-connector-j'
+	// runtimeOnly 'com.mysql:mysql-connector-j'
 	annotationProcessor 'org.projectlombok:lombok'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.9'
 	implementation 'software.amazon.awssdk:s3:2.25.30'
-    implementation 'org.flywaydb:flyway-mysql'
+    implementation 'org.flywaydb:flyway-database-postgresql'
     implementation 'org.flywaydb:flyway-core'
 	// encoding 문제 send() 개선 위한 거
 	implementation 'nl.martijndwars:web-push:5.1.1'
@@ -89,7 +89,7 @@ dependencies {
 	implementation 'io.projectreactor:reactor-core'
 
 	// supabase
-	// runtimeOnly 'org.postgresql:postgresql'
+	runtimeOnly 'org.postgresql:postgresql'
 }
 
 tasks.named('test') {
