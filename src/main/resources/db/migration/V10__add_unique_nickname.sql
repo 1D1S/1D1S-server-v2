@@ -1,2 +1,2 @@
 ALTER TABLE member
-    ADD UNIQUE KEY `uk_nickname` (`nickname`);
+    ADD CONSTRAINT uk_nickname UNIQUE (nickname);
