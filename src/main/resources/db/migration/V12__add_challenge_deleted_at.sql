@@ -1,2 +1,2 @@
 ALTER TABLE challenge
-    ADD COLUMN deleted_at DATETIME NULL;
+    ADD COLUMN deleted_at TIMESTAMP NULL;
