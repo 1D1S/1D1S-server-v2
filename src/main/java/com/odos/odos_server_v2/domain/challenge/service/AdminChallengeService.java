@@ -58,12 +58,13 @@ public class AdminChallengeService {
     }
 
     LocalDate today = LocalDate.now();
+    String categoryName = category != null ? category.name() : null;
     Page<Challenge> challenges =
         normalizedSortBy.equals("likes")
             ? challengeRepository.findAdminChallengesOrderByLikes(
-                normalizedStatus, category, normalizedNickname, today, pageable)
+                normalizedStatus, categoryName, normalizedNickname, today, pageable)
             : challengeRepository.findAdminChallengesOrderByLatest(
-                normalizedStatus, category, normalizedNickname, today, pageable);
+                normalizedStatus, categoryName, normalizedNickname, today, pageable);
 
     Page<ChallengeSummaryResponse> result =
         challenges.map(c -> challengeService.toChallengeSummary(c, admin.getId()));
