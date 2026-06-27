@@ -65,6 +65,8 @@ public class Challenge {
 
   @Column private LocalDateTime deletedAt;
 
+  @Column private String deletedReason;
+
   @ManyToOne
   @JoinColumn(name = "host_member_id")
   private Member hostMember;
@@ -112,6 +114,10 @@ public class Challenge {
 
   public void setHostMember(Member member) {
     this.hostMember = member;
+  }
+
+  public void updateDeletedReason(String reason) {
+    this.deletedReason = reason;
   }
 
   public void softDelete() {
