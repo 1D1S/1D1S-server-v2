@@ -1,9 +1,7 @@
 package com.odos.odos_server_v2.domain.challenge.repository;
 
 import com.odos.odos_server_v2.domain.challenge.entity.Challenge;
-import com.odos.odos_server_v2.domain.challenge.entity.Enum.ChallengeType;
 import com.odos.odos_server_v2.domain.challenge.entity.Enum.ParticipationType;
-import com.odos.odos_server_v2.domain.shared.Enum.Category;
 import java.time.LocalDate;
 import java.util.List;
 import org.springframework.data.domain.Page;
@@ -23,31 +21,31 @@ public interface ChallengeRepository extends JpaRepository<Challenge, Long> {
        and ( :keyword = ''
              or lower(c.title) like concat('%', lower(:keyword), '%')
              or lower(c.description) like concat('%', lower(:keyword), '%') )
-       and c.challengeType != :excludeType
-       and (:challengeType is null or c.challengeType = :challengeType)
+       and cast(c.challengeType as string) != :excludeTypeName
+       and (:challengeTypeName is null or cast(c.challengeType as string) = :challengeTypeName)
      order by c.id desc
   """)
   List<Challenge> searchPage(
       @Param("cursorId") Long cursorId,
       @Param("keyword") String keyword,
-      @Param("excludeType") ChallengeType excludeType,
-      @Param("challengeType") ChallengeType challengeType,
+      @Param("excludeTypeName") String excludeTypeName,
+      @Param("challengeTypeName") String challengeTypeName,
       Pageable pageable);
 
   @Query(
       """
-        SELECT c FROM Challenge c
-        WHERE (:keyword IS NULL OR c.title LIKE CONCAT('%', :keyword, '%'))
-          AND (:category IS NULL OR c.category = :category)
-          AND c.challengeType != :excludeType
-          AND (:challengeType IS NULL OR c.challengeType = :challengeType)
-        ORDER BY c.id DESC
-        """)
+            SELECT c FROM Challenge c
+            WHERE (:keyword IS NULL OR c.title LIKE CONCAT('%', CAST(:keyword AS string), '%'))
+              AND (:categoryName IS NULL OR CAST(c.category AS string) = :categoryName)
+              AND CAST(c.challengeType AS string) != :excludeTypeName
+              AND (:challengeTypeName IS NULL OR CAST(c.challengeType AS string) = :challengeTypeName)
+            ORDER BY c.id DESC
+            """)
   Page<Challenge> findByFilters(
       @Param("keyword") String keyword,
-      @Param("category") Category category,
-      @Param("excludeType") ChallengeType excludeType,
-      @Param("challengeType") ChallengeType challengeType,
+      @Param("categoryName") String categoryName,
+      @Param("excludeTypeName") String excludeTypeName,
+      @Param("challengeTypeName") String challengeTypeName,
       Pageable pageable);
 
   List<Challenge> findByHostMemberId(Long memberId);
@@ -59,7 +57,7 @@ public interface ChallengeRepository extends JpaRepository<Challenge, Long> {
       """
       SELECT c FROM Challenge c
       WHERE c.deletedAt IS NULL
-        AND (:category IS NULL OR c.category = :category)
+        AND (:categoryName IS NULL OR CAST(c.category AS string) = :categoryName)
         AND (:authorNickname IS NULL OR c.hostMember.nickname LIKE CONCAT('%', :authorNickname, '%'))
         AND (:status IS NULL
              OR (:status = 'ONGOING' AND c.startDate <= :today AND (c.endDate IS NULL OR c.endDate >= :today))
@@ -69,7 +67,7 @@ public interface ChallengeRepository extends JpaRepository<Challenge, Long> {
       """)
   Page<Challenge> findAdminChallengesOrderByLatest(
       @Param("status") String status,
-      @Param("category") Category category,
+      @Param("categoryName") String categoryName,
       @Param("authorNickname") String authorNickname,
       @Param("today") LocalDate today,
       Pageable pageable);
@@ -80,7 +78,7 @@ public interface ChallengeRepository extends JpaRepository<Challenge, Long> {
           SELECT c FROM Challenge c
           LEFT JOIN c.likes l
           WHERE c.deletedAt IS NULL
-            AND (:category IS NULL OR c.category = :category)
+            AND (:categoryName IS NULL OR CAST(c.category AS string) = :categoryName)
             AND (:authorNickname IS NULL OR c.hostMember.nickname LIKE CONCAT('%', :authorNickname, '%'))
             AND (:status IS NULL
                  OR (:status = 'ONGOING' AND c.startDate <= :today AND (c.endDate IS NULL OR c.endDate >= :today))
@@ -93,7 +91,7 @@ public interface ChallengeRepository extends JpaRepository<Challenge, Long> {
           """
           SELECT COUNT(DISTINCT c) FROM Challenge c
           WHERE c.deletedAt IS NULL
-            AND (:category IS NULL OR c.category = :category)
+            AND (:categoryName IS NULL OR CAST(c.category AS string) = :categoryName)
             AND (:authorNickname IS NULL OR c.hostMember.nickname LIKE CONCAT('%', :authorNickname, '%'))
             AND (:status IS NULL
                  OR (:status = 'ONGOING' AND c.startDate <= :today AND (c.endDate IS NULL OR c.endDate >= :today))
@@ -102,7 +100,7 @@ public interface ChallengeRepository extends JpaRepository<Challenge, Long> {
           """)
   Page<Challenge> findAdminChallengesOrderByLikes(
       @Param("status") String status,
-      @Param("category") Category category,
+      @Param("categoryName") String categoryName,
       @Param("authorNickname") String authorNickname,
       @Param("today") LocalDate today,
       Pageable pageable);
