@@ -4,6 +4,7 @@ import com.odos.odos_server_v2.domain.challenge.entity.Challenge;
 import com.odos.odos_server_v2.domain.challenge.entity.Enum.ChallengeType;
 import com.odos.odos_server_v2.domain.challenge.entity.Enum.ParticipationType;
 import com.odos.odos_server_v2.domain.shared.Enum.Category;
+import java.time.LocalDate;
 import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -53,4 +54,56 @@ public interface ChallengeRepository extends JpaRepository<Challenge, Long> {
 
   List<Challenge> findByHostMemberIdAndParticipationTypeAndDeletedAtIsNotNull(
       Long memberId, ParticipationType participationType);
+
+  @Query(
+      """
+      SELECT c FROM Challenge c
+      WHERE c.deletedAt IS NULL
+        AND (:category IS NULL OR c.category = :category)
+        AND (:authorNickname IS NULL OR c.hostMember.nickname LIKE CONCAT('%', :authorNickname, '%'))
+        AND (:status IS NULL
+             OR (:status = 'ONGOING' AND c.startDate <= :today AND (c.endDate IS NULL OR c.endDate >= :today))
+             OR (:status = 'UPCOMING' AND c.startDate > :today)
+             OR (:status = 'ENDED' AND c.endDate IS NOT NULL AND c.endDate < :today))
+      ORDER BY c.createdAt DESC
+      """)
+  Page<Challenge> findAdminChallengesOrderByLatest(
+      @Param("status") String status,
+      @Param("category") Category category,
+      @Param("authorNickname") String authorNickname,
+      @Param("today") LocalDate today,
+      Pageable pageable);
+
+  @Query(
+      value =
+          """
+          SELECT c FROM Challenge c
+          LEFT JOIN c.likes l
+          WHERE c.deletedAt IS NULL
+            AND (:category IS NULL OR c.category = :category)
+            AND (:authorNickname IS NULL OR c.hostMember.nickname LIKE CONCAT('%', :authorNickname, '%'))
+            AND (:status IS NULL
+                 OR (:status = 'ONGOING' AND c.startDate <= :today AND (c.endDate IS NULL OR c.endDate >= :today))
+                 OR (:status = 'UPCOMING' AND c.startDate > :today)
+                 OR (:status = 'ENDED' AND c.endDate IS NOT NULL AND c.endDate < :today))
+          GROUP BY c
+          ORDER BY COUNT(l) DESC, c.createdAt DESC
+          """,
+      countQuery =
+          """
+          SELECT COUNT(DISTINCT c) FROM Challenge c
+          WHERE c.deletedAt IS NULL
+            AND (:category IS NULL OR c.category = :category)
+            AND (:authorNickname IS NULL OR c.hostMember.nickname LIKE CONCAT('%', :authorNickname, '%'))
+            AND (:status IS NULL
+                 OR (:status = 'ONGOING' AND c.startDate <= :today AND (c.endDate IS NULL OR c.endDate >= :today))
+                 OR (:status = 'UPCOMING' AND c.startDate > :today)
+                 OR (:status = 'ENDED' AND c.endDate IS NOT NULL AND c.endDate < :today))
+          """)
+  Page<Challenge> findAdminChallengesOrderByLikes(
+      @Param("status") String status,
+      @Param("category") Category category,
+      @Param("authorNickname") String authorNickname,
+      @Param("today") LocalDate today,
+      Pageable pageable);
 }

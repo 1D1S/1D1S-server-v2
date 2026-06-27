@@ -72,6 +72,9 @@ public enum ErrorCode {
   FLEXIBLE_GOAL_REQUIRED(HttpStatus.BAD_REQUEST, "CHALLENGE_022", "자유 목표 챌린지는 목표를 입력해야 합니다."),
   CHALLENGE_NOT_OFFICIAL(HttpStatus.BAD_REQUEST, "CHALLENGE_023", "공식 챌린지가 아닙니다."),
   OFFICIAL_CHALLENGE_NOT_AUTHORIZED(HttpStatus.FORBIDDEN, "CHALLENGE_024", "공식 챌린지 생성 권한이 없습니다."),
+  CHALLENGE_DELETED_REASON_NULL(HttpStatus.BAD_REQUEST, "CHALLENGE_025", "챌린지 삭제 사유를 입력해야 합니다."),
+  INVALID_CHALLENGE_ADMIN_FILTER(
+      HttpStatus.BAD_REQUEST, "CHALLENGE_026", "관리자 챌린지 필터 요청 형식이 올바르지 않습니다."),
 
   // comment
   COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "COMMENT-001", "존재하지 않는 댓글입니다."),
