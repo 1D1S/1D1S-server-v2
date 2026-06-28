@@ -58,7 +58,7 @@ public interface ChallengeRepository extends JpaRepository<Challenge, Long> {
       SELECT c FROM Challenge c
       WHERE c.deletedAt IS NULL
         AND (:categoryName IS NULL OR CAST(c.category AS string) = :categoryName)
-        AND (:authorNickname IS NULL OR c.hostMember.nickname LIKE CONCAT('%', :authorNickname, '%'))
+        AND (:hostNickname IS NULL OR c.hostMember.nickname LIKE CONCAT('%', CAST(:hostNickname AS string), '%'))
         AND (:status IS NULL
              OR (:status = 'ONGOING' AND c.startDate <= :today AND (c.endDate IS NULL OR c.endDate >= :today))
              OR (:status = 'UPCOMING' AND c.startDate > :today)
@@ -68,7 +68,7 @@ public interface ChallengeRepository extends JpaRepository<Challenge, Long> {
   Page<Challenge> findAdminChallengesOrderByLatest(
       @Param("status") String status,
       @Param("categoryName") String categoryName,
-      @Param("authorNickname") String authorNickname,
+      @Param("hostNickname") String hostNickname,
       @Param("today") LocalDate today,
       Pageable pageable);
 
@@ -79,7 +79,7 @@ public interface ChallengeRepository extends JpaRepository<Challenge, Long> {
           LEFT JOIN c.likes l
           WHERE c.deletedAt IS NULL
             AND (:categoryName IS NULL OR CAST(c.category AS string) = :categoryName)
-            AND (:authorNickname IS NULL OR c.hostMember.nickname LIKE CONCAT('%', :authorNickname, '%'))
+            AND (:hostNickname IS NULL OR c.hostMember.nickname LIKE CONCAT('%', CAST(:hostNickname AS string), '%'))
             AND (:status IS NULL
                  OR (:status = 'ONGOING' AND c.startDate <= :today AND (c.endDate IS NULL OR c.endDate >= :today))
                  OR (:status = 'UPCOMING' AND c.startDate > :today)
@@ -92,7 +92,7 @@ public interface ChallengeRepository extends JpaRepository<Challenge, Long> {
           SELECT COUNT(DISTINCT c) FROM Challenge c
           WHERE c.deletedAt IS NULL
             AND (:categoryName IS NULL OR CAST(c.category AS string) = :categoryName)
-            AND (:authorNickname IS NULL OR c.hostMember.nickname LIKE CONCAT('%', :authorNickname, '%'))
+            AND (:hostNickname IS NULL OR c.hostMember.nickname LIKE CONCAT('%', CAST(:hostNickname AS string), '%'))
             AND (:status IS NULL
                  OR (:status = 'ONGOING' AND c.startDate <= :today AND (c.endDate IS NULL OR c.endDate >= :today))
                  OR (:status = 'UPCOMING' AND c.startDate > :today)
@@ -101,7 +101,7 @@ public interface ChallengeRepository extends JpaRepository<Challenge, Long> {
   Page<Challenge> findAdminChallengesOrderByLikes(
       @Param("status") String status,
       @Param("categoryName") String categoryName,
-      @Param("authorNickname") String authorNickname,
+      @Param("hostNickname") String hostNickname,
       @Param("today") LocalDate today,
       Pageable pageable);
 }

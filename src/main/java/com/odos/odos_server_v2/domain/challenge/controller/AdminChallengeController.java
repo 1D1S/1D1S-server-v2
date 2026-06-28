@@ -130,15 +130,15 @@ public class AdminChallengeController {
           String status,
       @Parameter(description = "카테고리 필터", example = "BOOK") @RequestParam(required = false)
           Category category,
-      @Parameter(description = "작성자 닉네임 검색 (부분 일치)", example = "홍길동")
+      @Parameter(description = "호스트 닉네임 검색 (부분 일치)", example = "홍길동")
           @RequestParam(required = false)
-          String authorNickname,
+          String hostNickname,
       @Parameter(description = "정렬 기준 (latest: 최신순(기본), likes: 좋아요순)", example = "latest")
           @RequestParam(defaultValue = "latest")
           String sortBy) {
     Pageable pageable = PageRequest.of(page, size);
     OffsetPagination<ChallengeSummaryResponse> result =
-        adminChallengeService.getChallenges(status, category, authorNickname, sortBy, pageable);
+        adminChallengeService.getChallenges(status, category, hostNickname, sortBy, pageable);
     return ApiResponse.success(Message.ADMIN_CHALLENGE_GET_ALL_SUCCESS, result);
   }
 

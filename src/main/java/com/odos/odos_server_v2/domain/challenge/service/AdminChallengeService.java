@@ -44,12 +44,12 @@ public class AdminChallengeService {
 
   @Transactional
   public OffsetPagination<ChallengeSummaryResponse> getChallenges(
-      String status, Category category, String authorNickname, String sortBy, Pageable pageable) {
+      String status, Category category, String hostNickname, String sortBy, Pageable pageable) {
     Member admin = requireAdmin();
 
     String normalizedStatus = normalizeStatus(status);
     String normalizedNickname =
-        authorNickname == null || authorNickname.isBlank() ? null : authorNickname.trim();
+        hostNickname == null || hostNickname.isBlank() ? null : hostNickname.trim();
     String normalizedSortBy =
         sortBy == null || sortBy.isBlank() ? "latest" : sortBy.trim().toLowerCase();
 
