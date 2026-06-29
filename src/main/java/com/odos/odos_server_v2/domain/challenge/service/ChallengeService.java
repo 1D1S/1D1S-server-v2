@@ -723,15 +723,37 @@ public class ChallengeService {
   }
 
   public List<ChallengePokeResponse> checkPokedStatus(Long challengeId, Long memberId) {
+    challengeRepository
+        .findById(challengeId)
+        .orElseThrow(() -> new CustomException(ErrorCode.CHALLENGE_NOT_FOUND));
+
+    memberRepository
+        .findById(memberId)
+        .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+
+    if (!isActiveParticipant(challengeId, memberId)) {
+      throw new CustomException(ErrorCode.PARTICIPANT_NOT_FOUND);
+    }
+
     List<Participant> participants =
         participantRepository.findByChallengeIdAndStatusIn(
             challengeId, List.of(ParticipantStatus.PARTICIPANT, ParticipantStatus.HOST));
+
+    Set<Long> pokedReceiverIds =
+        challengePokeRepository
+            .findChallengePokesByChallengeIdAndActorIdAndPokedDate(
+                challengeId, memberId, LocalDate.now())
+            .stream()
+            .map(poke -> poke.getReceiver().getId())
+            .collect(java.util.stream.Collectors.toSet());
+
     List<ChallengePokeResponse> responses = new ArrayList<>();
     for (Participant participant : participants) {
-      boolean isPoked =
-          challengePokeRepository.existsByChallengeIdAndActorIdAndReceiverIdAndPokedDate(
-              challengeId, memberId, participant.getMember().getId(), LocalDate.now());
-      responses.add(new ChallengePokeResponse(participant.getMember().getId(), isPoked));
+      Long receiverId = participant.getMember().getId();
+      if (receiverId.equals(memberId)) {
+        continue;
+      }
+      responses.add(new ChallengePokeResponse(receiverId, pokedReceiverIds.contains(receiverId)));
     }
     return responses;
   }
