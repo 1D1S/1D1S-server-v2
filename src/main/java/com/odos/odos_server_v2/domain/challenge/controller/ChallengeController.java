@@ -1445,7 +1445,8 @@ public class ChallengeController {
                             {
                               "message": "챌린지원 찌르기 성공했습니다.",
                               "data": {
-                                "pokedMemberIds": [2, 3]
+                                "pokedMemberId": 2,
+                                "isPokedToday": true
                               }
                             }
                             """))),
@@ -1555,5 +1556,98 @@ public class ChallengeController {
     List<ChallengePokeResponse> response =
         challengeService.pokeChallengeMembers(challengeId, memberId, request);
     return ApiResponse.success(Message.CHALLENGE_POKE, response);
+  }
+
+  @Operation(
+      summary = "챌린지원 찌르기 조회 여부 확인 API",
+      description = "챌린지원은 하루에 한 번 찌르기 가능하기에 화면이 상태 관리가 필요함")
+  @ApiResponses({
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "200",
+        description = "챌린지원 찌르기 여부 조회 성공",
+        content =
+            @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ChallengePokeResponse.class),
+                examples =
+                    @ExampleObject(
+                        value =
+                            """
+                                            {
+                                              "message": "챌린지원 찌르기 조회 성공하였습니다.",
+                                              "data": {
+                                                "pokedMemberId": 2,
+                                                "isPokedToday": true
+                                              }
+                                            }
+                                            """))),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "400",
+        description = "잘못된 찌르기 조회",
+        content =
+            @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class),
+                examples = {
+                  @ExampleObject(
+                      name = "대상 없음",
+                      value =
+                          """
+                                                    {
+                                                      "code": "CHALLENGE_017",
+                                                      "message": "찌를 챌린지원을 선택해주세요."
+                                                    }
+                                                    """)
+                })),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "403",
+        description = "같은 챌린지 참여자가 아님",
+        content =
+            @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class),
+                examples =
+                    @ExampleObject(
+                        value =
+                            """
+                                            {
+                                              "code": "CHALLENGE_019",
+                                              "message": "같은 챌린지에 참여 중인 회원만 찌를 수 있습니다."
+                                            }
+                                            """))),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "404",
+        description = "챌린지 또는 회원 없음",
+        content =
+            @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class),
+                examples = {
+                  @ExampleObject(
+                      name = "챌린지 없음",
+                      value =
+                          """
+                                                    {
+                                                      "code": "CHALLENGE_001",
+                                                      "message": "챌린지를 찾을 수 없습니다."
+                                                    }
+                                                    """),
+                  @ExampleObject(
+                      name = "회원 없음",
+                      value =
+                          """
+                                                    {
+                                                      "code": "USER-003",
+                                                      "message": "회원을 찾을 수 없습니다."
+                                                    }
+                                                    """)
+                }))
+  })
+  @GetMapping("/{challengeId}/pokes")
+  public ApiResponse<List<ChallengePokeResponse>> getIsPoked(
+      @Parameter(description = "챌린지 ID") @PathVariable Long challengeId) {
+    Long memberId = CurrentUserContext.getCurrentMemberId();
+    List<ChallengePokeResponse> response = challengeService.checkPokedStatus(challengeId, memberId);
+    return ApiResponse.success(Message.CHALLENGE_CHECK_POKE, response);
   }
 }
