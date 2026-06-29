@@ -252,7 +252,11 @@ public class ChallengeService {
 
     Page<Challenge> challengePage =
         challengeRepository.findByFilters(
-            keyword, category, ChallengeType.PRIVATE, challengeType, pageable);
+            keyword,
+            category != null ? category.name() : null,
+            ChallengeType.PRIVATE.name(),
+            challengeType != null ? challengeType.name() : null,
+            pageable);
 
     Page<ChallengeSummaryResponse> responsePage =
         challengePage.map(challenge -> toChallengeSummary(challenge, memberId));
@@ -589,7 +593,11 @@ public class ChallengeService {
     Pageable pageable = PageRequest.of(0, limit + 1, Sort.by(Sort.Direction.DESC, "id"));
     List<Challenge> rows =
         challengeRepository.searchPage(
-            cursorId, kw, ChallengeType.PRIVATE, challengeType, pageable);
+            cursorId,
+            kw,
+            ChallengeType.PRIVATE.name(),
+            challengeType != null ? challengeType.name() : null,
+            pageable);
 
     boolean hasNext = rows.size() > limit;
     if (hasNext) {

@@ -1,9 +1,8 @@
 package com.odos.odos_server_v2.domain.challenge.repository;
 
 import com.odos.odos_server_v2.domain.challenge.entity.Challenge;
-import com.odos.odos_server_v2.domain.challenge.entity.Enum.ChallengeType;
 import com.odos.odos_server_v2.domain.challenge.entity.Enum.ParticipationType;
-import com.odos.odos_server_v2.domain.shared.Enum.Category;
+import java.time.LocalDate;
 import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -22,35 +21,87 @@ public interface ChallengeRepository extends JpaRepository<Challenge, Long> {
        and ( :keyword = ''
              or lower(c.title) like concat('%', lower(:keyword), '%')
              or lower(c.description) like concat('%', lower(:keyword), '%') )
-       and c.challengeType != :excludeType
-       and (:challengeType is null or c.challengeType = :challengeType)
+       and cast(c.challengeType as string) != :excludeTypeName
+       and (:challengeTypeName is null or cast(c.challengeType as string) = :challengeTypeName)
      order by c.id desc
   """)
   List<Challenge> searchPage(
       @Param("cursorId") Long cursorId,
       @Param("keyword") String keyword,
-      @Param("excludeType") ChallengeType excludeType,
-      @Param("challengeType") ChallengeType challengeType,
+      @Param("excludeTypeName") String excludeTypeName,
+      @Param("challengeTypeName") String challengeTypeName,
       Pageable pageable);
 
   @Query(
       """
-        SELECT c FROM Challenge c
-        WHERE (:keyword IS NULL OR c.title LIKE CONCAT('%', :keyword, '%'))
-          AND (:category IS NULL OR c.category = :category)
-          AND c.challengeType != :excludeType
-          AND (:challengeType IS NULL OR c.challengeType = :challengeType)
-        ORDER BY c.id DESC
-        """)
+            SELECT c FROM Challenge c
+            WHERE (:keyword IS NULL OR c.title LIKE CONCAT('%', CAST(:keyword AS string), '%'))
+              AND (:categoryName IS NULL OR CAST(c.category AS string) = :categoryName)
+              AND CAST(c.challengeType AS string) != :excludeTypeName
+              AND (:challengeTypeName IS NULL OR CAST(c.challengeType AS string) = :challengeTypeName)
+            ORDER BY c.id DESC
+            """)
   Page<Challenge> findByFilters(
       @Param("keyword") String keyword,
-      @Param("category") Category category,
-      @Param("excludeType") ChallengeType excludeType,
-      @Param("challengeType") ChallengeType challengeType,
+      @Param("categoryName") String categoryName,
+      @Param("excludeTypeName") String excludeTypeName,
+      @Param("challengeTypeName") String challengeTypeName,
       Pageable pageable);
 
   List<Challenge> findByHostMemberId(Long memberId);
 
   List<Challenge> findByHostMemberIdAndParticipationTypeAndDeletedAtIsNotNull(
       Long memberId, ParticipationType participationType);
+
+  @Query(
+      """
+      SELECT c FROM Challenge c
+      WHERE c.deletedAt IS NULL
+        AND (:categoryName IS NULL OR CAST(c.category AS string) = :categoryName)
+        AND (:hostNickname IS NULL OR c.hostMember.nickname LIKE CONCAT('%', CAST(:hostNickname AS string), '%'))
+        AND (:status IS NULL
+             OR (:status = 'ONGOING' AND c.startDate <= :today AND (c.endDate IS NULL OR c.endDate >= :today))
+             OR (:status = 'UPCOMING' AND c.startDate > :today)
+             OR (:status = 'ENDED' AND c.endDate IS NOT NULL AND c.endDate < :today))
+      ORDER BY c.createdAt DESC
+      """)
+  Page<Challenge> findAdminChallengesOrderByLatest(
+      @Param("status") String status,
+      @Param("categoryName") String categoryName,
+      @Param("hostNickname") String hostNickname,
+      @Param("today") LocalDate today,
+      Pageable pageable);
+
+  @Query(
+      value =
+          """
+          SELECT c FROM Challenge c
+          LEFT JOIN c.likes l
+          WHERE c.deletedAt IS NULL
+            AND (:categoryName IS NULL OR CAST(c.category AS string) = :categoryName)
+            AND (:hostNickname IS NULL OR c.hostMember.nickname LIKE CONCAT('%', CAST(:hostNickname AS string), '%'))
+            AND (:status IS NULL
+                 OR (:status = 'ONGOING' AND c.startDate <= :today AND (c.endDate IS NULL OR c.endDate >= :today))
+                 OR (:status = 'UPCOMING' AND c.startDate > :today)
+                 OR (:status = 'ENDED' AND c.endDate IS NOT NULL AND c.endDate < :today))
+          GROUP BY c
+          ORDER BY COUNT(l) DESC, c.createdAt DESC
+          """,
+      countQuery =
+          """
+          SELECT COUNT(DISTINCT c) FROM Challenge c
+          WHERE c.deletedAt IS NULL
+            AND (:categoryName IS NULL OR CAST(c.category AS string) = :categoryName)
+            AND (:hostNickname IS NULL OR c.hostMember.nickname LIKE CONCAT('%', CAST(:hostNickname AS string), '%'))
+            AND (:status IS NULL
+                 OR (:status = 'ONGOING' AND c.startDate <= :today AND (c.endDate IS NULL OR c.endDate >= :today))
+                 OR (:status = 'UPCOMING' AND c.startDate > :today)
+                 OR (:status = 'ENDED' AND c.endDate IS NOT NULL AND c.endDate < :today))
+          """)
+  Page<Challenge> findAdminChallengesOrderByLikes(
+      @Param("status") String status,
+      @Param("categoryName") String categoryName,
+      @Param("hostNickname") String hostNickname,
+      @Param("today") LocalDate today,
+      Pageable pageable);
 }
