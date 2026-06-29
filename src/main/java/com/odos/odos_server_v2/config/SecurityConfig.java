@@ -112,6 +112,7 @@ public class SecurityConfig {
     config.addAllowedOriginPattern("https://local.admin.1day1streak.com");
     config.addAllowedOriginPattern("https://dev.admin.1day1streak.com");
     config.addAllowedOriginPattern("https://admin.1day1streak.com");
+    config.addAllowedOriginPattern("https://local.dev.admin.1day1streak.com:4433");
 
     config.addAllowedMethod("*");
     config.addAllowedHeader("*");
