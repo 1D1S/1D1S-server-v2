@@ -654,7 +654,7 @@ public class ChallengeService {
   }
 
   @Transactional
-  public ChallengePokeResponse pokeChallengeMembers(
+  public List<ChallengePokeResponse> pokeChallengeMembers(
       Long challengeId, Long actorId, ChallengePokeRequest request) {
     Challenge challenge =
         challengeRepository
@@ -711,7 +711,6 @@ public class ChallengeService {
     }
 
     challengePokeRepository.saveAll(pokes);
-
     for (ChallengePoke poke : pokes) {
       notificationService.notifyChallengePoke(
           actorId,
@@ -720,8 +719,21 @@ public class ChallengeService {
           challenge.getTitle(),
           actor.getNickname());
     }
+    return ChallengePokeResponse.from(pokes, true);
+  }
 
-    return new ChallengePokeResponse(receiverIds.stream().toList());
+  public List<ChallengePokeResponse> checkPokedStatus(Long challengeId, Long memberId) {
+    List<Participant> participants =
+        participantRepository.findByChallengeIdAndStatusIn(
+            challengeId, List.of(ParticipantStatus.PARTICIPANT, ParticipantStatus.HOST));
+    List<ChallengePokeResponse> responses = new ArrayList<>();
+    for (Participant participant : participants) {
+      boolean isPoked =
+          challengePokeRepository.existsByChallengeIdAndActorIdAndReceiverIdAndPokedDate(
+              challengeId, memberId, participant.getMember().getId(), LocalDate.now());
+      responses.add(new ChallengePokeResponse(participant.getMember().getId(), isPoked));
+    }
+    return responses;
   }
 
   public List<ChallengeSummaryResponse> getMemberChallenge(Long currentMemberId, Long memberId) {
