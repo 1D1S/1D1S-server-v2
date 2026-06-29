@@ -1548,11 +1548,11 @@ public class ChallengeController {
                 }))
   })
   @PostMapping("/{challengeId}/pokes")
-  public ApiResponse<ChallengePokeResponse> pokeChallengeMembers(
+  public ApiResponse<List<ChallengePokeResponse>> pokeChallengeMembers(
       @Parameter(description = "챌린지 ID") @PathVariable Long challengeId,
       @RequestBody ChallengePokeRequest request) {
     Long memberId = CurrentUserContext.getCurrentMemberId();
-    ChallengePokeResponse response =
+    List<ChallengePokeResponse> response =
         challengeService.pokeChallengeMembers(challengeId, memberId, request);
     return ApiResponse.success(Message.CHALLENGE_POKE, response);
   }
