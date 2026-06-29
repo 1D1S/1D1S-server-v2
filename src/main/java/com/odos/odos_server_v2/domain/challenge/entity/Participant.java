@@ -3,6 +3,7 @@ package com.odos.odos_server_v2.domain.challenge.entity;
 import com.odos.odos_server_v2.domain.challenge.entity.Enum.ParticipantStatus;
 import com.odos.odos_server_v2.domain.member.entity.Member;
 import jakarta.persistence.*;
+import java.util.ArrayList;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -10,8 +11,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
 @Getter
 @Table(name = "participant")
 @Builder
@@ -33,8 +34,9 @@ public class Participant {
   @JoinColumn(name = "challenge_id")
   private Challenge challenge;
 
+  @Builder.Default
   @OneToMany(mappedBy = "participant", cascade = CascadeType.ALL)
-  private List<ChallengeGoal> challengeGoals;
+  private List<ChallengeGoal> challengeGoals = new ArrayList<>();
 
   public void setStatus(ParticipantStatus status) {
     this.status = status;
