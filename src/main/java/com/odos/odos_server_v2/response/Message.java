@@ -31,6 +31,7 @@ public class Message {
   public static String CREATE_CHALLENGE = "챌린지 생성 성공했습니다.";
   public static String EDIT_CHALLENGE = "챌린지 수정 성공했습니다.";
   public static String GET_CHALLENGE = "챌린지 상세 조회 성공했습니다.";
+  public static String GET_CHALLENGE_PARTICIPANTS = "챌린지 참여자 조회 성공했습니다.";
   public static String APPLY_CHALLENGE = "챌린지 신청 성공했습니다.";
   public static String ACCEPT_PARTICIPANT = "참여자 수락 성공했습니다.";
   public static String REJECT_PARTICIPANT = "참여자 거절 성공했습니다.";

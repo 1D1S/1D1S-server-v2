@@ -417,6 +417,76 @@ public class ChallengeController {
   }
 
   @Operation(
+      summary = "챌린지 참여자 목록 조회",
+      description =
+          """
+          챌린지의 참여자 목록을 조회한다.
+
+          - 호스트 또는 관리자: 참여 신청자(PENDING)와 참여 중인 회원(HOST, PARTICIPANT)을 모두 조회한다.
+          - 그 외 사용자(비로그인 포함): 참여 중인 회원(HOST, PARTICIPANT)만 조회한다.
+          """)
+  @ApiResponses({
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "200",
+        description = "챌린지 참여자 목록 조회 성공",
+        content =
+            @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ParticipantResponse.class),
+                examples =
+                    @ExampleObject(
+                        value =
+                            """
+                            {
+                              "message": "챌린지 참여자 조회 성공했습니다.",
+                              "data": [
+                                {
+                                  "memberId": 1,
+                                  "participantId": 1,
+                                  "nickname": "호스트닉네임",
+                                  "profileImg": "https://example.com/profile.jpg",
+                                  "status": "HOST",
+                                  "goals": [
+                                    { "challengeGoalId": 1, "content": "알고리즘 1문제 풀기" }
+                                  ]
+                                },
+                                {
+                                  "memberId": 2,
+                                  "participantId": 5,
+                                  "nickname": "홍길동",
+                                  "profileImg": "https://example.com/profile2.jpg",
+                                  "status": "PENDING",
+                                  "goals": [
+                                    { "challengeGoalId": 7, "content": "책 10페이지 읽기" }
+                                  ]
+                                }
+                              ]
+                            }
+                            """))),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "404",
+        description = "챌린지를 찾을 수 없음",
+        content =
+            @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class),
+                examples =
+                    @ExampleObject(
+                        value =
+                            """
+                            { "code": "CHALLENGE_001", "message": "챌린지를 찾을 수 없습니다." }
+                            """)))
+  })
+  @GetMapping("/{challengeId}/participants")
+  public ApiResponse<List<ParticipantResponse>> getChallengeParticipants(
+      @Parameter(description = "챌린지 ID") @PathVariable Long challengeId) {
+    Long memberId = CurrentUserContext.getCurrentMemberIdOrNull();
+    return ApiResponse.success(
+        Message.GET_CHALLENGE_PARTICIPANTS,
+        challengeService.getChallengeParticipants(challengeId, memberId));
+  }
+
+  @Operation(
       summary = "비공개 챌린지 참여",
       description =
           """
