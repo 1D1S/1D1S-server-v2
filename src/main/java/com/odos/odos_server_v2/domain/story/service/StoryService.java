@@ -1,18 +1,5 @@
 package com.odos.odos_server_v2.domain.story.service;
 
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import lombok.RequiredArgsConstructor;
-
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import com.odos.odos_server_v2.domain.diary.repository.DiaryImageRepository;
 import com.odos.odos_server_v2.domain.member.CurrentUserContext;
 import com.odos.odos_server_v2.domain.member.repository.MemberRepository;
@@ -26,6 +13,16 @@ import com.odos.odos_server_v2.domain.story.repository.DiaryViewLogRepository;
 import com.odos.odos_server_v2.domain.story.repository.StoryRepository;
 import com.odos.odos_server_v2.exception.CustomException;
 import com.odos.odos_server_v2.exception.ErrorCode;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -50,8 +47,7 @@ public class StoryService {
     }
 
     Set<Long> viewedDiaryIds = findViewedDiaryIds(currentMemberId, diaries);
-    List<StoryGroupDto> storyGroups =
-        createStoryGroups(currentMemberId, diaries, viewedDiaryIds);
+    List<StoryGroupDto> storyGroups = createStoryGroups(currentMemberId, diaries, viewedDiaryIds);
     storyGroups.sort(this::compareStoryGroups);
 
     return StoryResponseDto.builder()
@@ -61,10 +57,7 @@ public class StoryService {
   }
 
   private StoryResponseDto emptyStoryResponse() {
-    return StoryResponseDto.builder()
-        .storyGroups(Collections.emptyList())
-        .unreadCount(0)
-        .build();
+    return StoryResponseDto.builder().storyGroups(Collections.emptyList()).unreadCount(0).build();
   }
 
   private Set<Long> findViewedDiaryIds(
@@ -77,9 +70,7 @@ public class StoryService {
   }
 
   private List<StoryGroupDto> createStoryGroups(
-      Long currentMemberId,
-      List<StoryDiarySummaryProjection> diaries,
-      Set<Long> viewedDiaryIds) {
+      Long currentMemberId, List<StoryDiarySummaryProjection> diaries, Set<Long> viewedDiaryIds) {
     Map<Long, List<StoryDiarySummaryProjection>> diariesByMember =
         diaries.stream().collect(Collectors.groupingBy(StoryDiarySummaryProjection::getMemberId));
 
@@ -102,9 +93,7 @@ public class StoryService {
   }
 
   private List<StoryItemDto> createStoryItems(
-      List<StoryDiarySummaryProjection> diaries,
-      boolean isMyStory,
-      Set<Long> viewedDiaryIds) {
+      List<StoryDiarySummaryProjection> diaries, boolean isMyStory, Set<Long> viewedDiaryIds) {
     return diaries.stream()
         .map(diary -> createStoryItem(diary, isMyStory, viewedDiaryIds))
         .sorted((a, b) -> compareStoryItems(a, b, isMyStory))
@@ -124,8 +113,7 @@ public class StoryService {
 
   private int compareStoryItems(StoryItemDto a, StoryItemDto b, boolean isMyStory) {
     if (!isMyStory) {
-      int unreadComparison =
-          Boolean.compare(b.getHasUnreadJournal(), a.getHasUnreadJournal());
+      int unreadComparison = Boolean.compare(b.getHasUnreadJournal(), a.getHasUnreadJournal());
       if (unreadComparison != 0) {
         return unreadComparison;
       }
@@ -135,7 +123,8 @@ public class StoryService {
 
   private int compareStoryGroups(StoryGroupDto a, StoryGroupDto b) {
     int myStoryComparison =
-        Boolean.compare(Boolean.TRUE.equals(b.getIsMyStory()), Boolean.TRUE.equals(a.getIsMyStory()));
+        Boolean.compare(
+            Boolean.TRUE.equals(b.getIsMyStory()), Boolean.TRUE.equals(a.getIsMyStory()));
     if (myStoryComparison != 0) {
       return myStoryComparison;
     }

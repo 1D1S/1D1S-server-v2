@@ -1,11 +1,9 @@
 package com.odos.odos_server_v2.domain.story.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.List;
-
 import lombok.Builder;
 import lombok.Getter;
-
-import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(description = "스토리 목록 응답")
 @Builder
