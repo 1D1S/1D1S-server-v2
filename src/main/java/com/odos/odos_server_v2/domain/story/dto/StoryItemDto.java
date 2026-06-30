@@ -1,9 +1,11 @@
 package com.odos.odos_server_v2.domain.story.dto;
 
-import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalDateTime;
+
 import lombok.Builder;
 import lombok.Getter;
+
+import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(description = "스토리 항목 응답")
 @Builder
@@ -22,6 +24,6 @@ public class StoryItemDto {
   @Schema(description = "업로드 시간", example = "2024-01-01T12:00:00")
   private LocalDateTime createdAt;
 
-  @Schema(description = "미시청 여부", example = "true")
+  @Schema(description = "현재 사용자의 미시청 여부. 본인 스토리는 항상 false입니다.", example = "true")
   private Boolean hasUnreadJournal;
 }
