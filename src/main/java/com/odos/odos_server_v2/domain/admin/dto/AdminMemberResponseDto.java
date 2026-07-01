@@ -1,12 +1,5 @@
 package com.odos.odos_server_v2.domain.admin.dto;
 
-import java.time.LocalDateTime;
-import java.util.List;
-
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.odos.odos_server_v2.domain.member.entity.Enum.Gender;
 import com.odos.odos_server_v2.domain.member.entity.Enum.Job;
@@ -14,6 +7,11 @@ import com.odos.odos_server_v2.domain.member.entity.Enum.MemberRole;
 import com.odos.odos_server_v2.domain.member.entity.Enum.SignupRoute;
 import com.odos.odos_server_v2.domain.member.entity.Member;
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.time.LocalDateTime;
+import java.util.List;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor

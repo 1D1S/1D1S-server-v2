@@ -1,19 +1,16 @@
 package com.odos.odos_server_v2.domain.security.handler;
 
-import java.io.IOException;
-
-import lombok.RequiredArgsConstructor;
-
-import org.springframework.http.MediaType;
-import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.web.access.AccessDeniedHandler;
-import org.springframework.stereotype.Component;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.odos.odos_server_v2.exception.ErrorCode;
 import com.odos.odos_server_v2.response.ErrorResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.web.access.AccessDeniedHandler;
+import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor

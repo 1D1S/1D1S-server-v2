@@ -1,12 +1,5 @@
 package com.odos.odos_server_v2.domain.admin.controller;
 
-import lombok.RequiredArgsConstructor;
-
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.web.bind.annotation.*;
-
 import com.odos.odos_server_v2.domain.admin.dto.AdminMemberFilterRequest;
 import com.odos.odos_server_v2.domain.admin.dto.AdminMemberResponseDto;
 import com.odos.odos_server_v2.domain.admin.service.AdminService;
@@ -23,6 +16,11 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "관리자", description = "관리자 API")
 @RestController
@@ -147,8 +145,7 @@ public class AdminController {
                 schema = @Schema(implementation = ErrorResponse.class),
                 examples =
                     @ExampleObject(
-                        value =
-                            "{ \"code\": \"USER-009\", \"message\": \"관리자 회원만 요청이 가능합니다.\" }")))
+                        value = "{ \"code\": \"USER-009\", \"message\": \"관리자 회원만 요청이 가능합니다.\" }")))
   })
   @GetMapping("/members")
   public ApiResponse<OffsetPagination<AdminMemberResponseDto>> getMembers(
