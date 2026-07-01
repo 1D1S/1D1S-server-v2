@@ -1,5 +1,6 @@
 package com.odos.odos_server_v2.config;
 
+import com.odos.odos_server_v2.domain.security.handler.MemberNotAdminAccessDeniedHandler;
 import com.odos.odos_server_v2.domain.security.jwt.JwtAuthenticationFilter;
 import com.odos.odos_server_v2.domain.security.jwt.JwtTokenExceptionFilter;
 import com.odos.odos_server_v2.domain.security.oauth2.handler.CustomOAuth2AuthorizationRequestResolver;
@@ -18,6 +19,7 @@ import org.springframework.security.oauth2.client.registration.ClientRegistratio
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestResolver;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -33,6 +35,7 @@ public class SecurityConfig {
   private final JwtAuthenticationFilter jwtAuthenticationFilter;
   private final OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler;
   private final OAuth2LoginFailureHandler oAuth2LoginFailureHandler;
+  private final MemberNotAdminAccessDeniedHandler memberNotAdminAccessDeniedHandler;
   private final LoggingFilter loggingFilter;
 
   @Bean
@@ -42,6 +45,11 @@ public class SecurityConfig {
         .httpBasic(AbstractHttpConfigurer::disable)
         .formLogin(AbstractHttpConfigurer::disable)
         .logout(AbstractHttpConfigurer::disable)
+        .exceptionHandling(
+            exception ->
+                exception.defaultAccessDeniedHandlerFor(
+                    memberNotAdminAccessDeniedHandler,
+                    PathPatternRequestMatcher.withDefaults().matcher("/admin/**")))
         .sessionManagement(
             session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
         .authorizeHttpRequests(
