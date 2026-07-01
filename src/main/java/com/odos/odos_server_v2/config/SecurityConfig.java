@@ -1,13 +1,7 @@
 package com.odos.odos_server_v2.config;
 
-import com.odos.odos_server_v2.domain.security.handler.MemberNotAdminAccessDeniedHandler;
-import com.odos.odos_server_v2.domain.security.jwt.JwtAuthenticationFilter;
-import com.odos.odos_server_v2.domain.security.jwt.JwtTokenExceptionFilter;
-import com.odos.odos_server_v2.domain.security.oauth2.handler.CustomOAuth2AuthorizationRequestResolver;
-import com.odos.odos_server_v2.domain.security.oauth2.handler.OAuth2LoginFailureHandler;
-import com.odos.odos_server_v2.domain.security.oauth2.handler.OAuth2LoginSuccessHandler;
-import com.odos.odos_server_v2.domain.security.oauth2.service.CustomOAuth2UserService;
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -19,10 +13,19 @@ import org.springframework.security.oauth2.client.registration.ClientRegistratio
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestResolver;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
+
+import com.odos.odos_server_v2.domain.security.handler.MemberNotAdminAccessDeniedHandler;
+import com.odos.odos_server_v2.domain.security.jwt.JwtAuthenticationFilter;
+import com.odos.odos_server_v2.domain.security.jwt.JwtTokenExceptionFilter;
+import com.odos.odos_server_v2.domain.security.oauth2.handler.CustomOAuth2AuthorizationRequestResolver;
+import com.odos.odos_server_v2.domain.security.oauth2.handler.OAuth2LoginFailureHandler;
+import com.odos.odos_server_v2.domain.security.oauth2.handler.OAuth2LoginSuccessHandler;
+import com.odos.odos_server_v2.domain.security.oauth2.service.CustomOAuth2UserService;
 
 @Configuration
 @EnableWebSecurity
@@ -45,7 +48,10 @@ public class SecurityConfig {
         .formLogin(AbstractHttpConfigurer::disable)
         .logout(AbstractHttpConfigurer::disable)
         .exceptionHandling(
-            exception -> exception.accessDeniedHandler(memberNotAdminAccessDeniedHandler))
+            exception ->
+                exception.defaultAccessDeniedHandlerFor(
+                    memberNotAdminAccessDeniedHandler,
+                    PathPatternRequestMatcher.withDefaults().matcher("/admin/**")))
         .sessionManagement(
             session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
         .authorizeHttpRequests(
