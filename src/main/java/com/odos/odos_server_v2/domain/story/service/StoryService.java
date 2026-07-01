@@ -16,6 +16,7 @@ import com.odos.odos_server_v2.exception.ErrorCode;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -34,102 +35,118 @@ public class StoryService {
   private final DiaryImageRepository diaryImageRepository;
   private final ImageService imageService;
 
-  /** 실시간 일지(스토리) 목록 조회 - 24시간 이내 친구의 일지 조회 - 인스타그램처럼 친구별로 그룹화하여 반환 - 미시청 스토리가 있는 그룹 우선 배치 */
+  /** 실시간 일지(스토리) 목록 조회 - 24시간 이내 본인과 친구의 일지 조회 - 작성자별 그룹화 - 본인 그룹을 가장 먼저 배치 */
   @Transactional(readOnly = true)
   public StoryResponseDto getStories() {
     Long currentMemberId = getCurrentMemberId();
-    LocalDateTime since = LocalDateTime.now().minusHours(24);
-
-    // 1. 최근 24시간 이내 친구들이 작성한 일지 요약 조회
     List<StoryDiarySummaryProjection> diaries =
-        storyRepository.findFriendDiarySummariesWithin24Hours(currentMemberId, since);
+        storyRepository.findStoryDiarySummariesWithin24Hours(
+            currentMemberId, LocalDateTime.now().minusHours(24));
 
     if (diaries.isEmpty()) {
-      return StoryResponseDto.builder().storyGroups(Collections.emptyList()).unreadCount(0).build();
+      return emptyStoryResponse();
     }
 
-    // 2. 시청 기록 조회
-    List<Long> diaryIds = diaries.stream().map(StoryDiarySummaryProjection::getDiaryId).toList();
-    List<DiaryViewLog> viewLogs =
-        diaryViewLogRepository.findByMemberIdAndDiaryIdIn(currentMemberId, diaryIds);
-    Set<Long> viewedDiaryIds =
-        viewLogs.stream().map(log -> log.getDiary().getId()).collect(Collectors.toSet());
-
-    // 3. 친구별로 일지 그룹화
-    Map<Long, List<StoryDiarySummaryProjection>> diariesByFriend =
-        diaries.stream().collect(Collectors.groupingBy(StoryDiarySummaryProjection::getMemberId));
-
-    // 4. 각 친구 그룹을 StoryGroupDto로 변환 및 정렬
-    List<StoryGroupDto> storyGroups = new ArrayList<>();
-    int totalUnreadCount = 0;
-
-    for (Map.Entry<Long, List<StoryDiarySummaryProjection>> entry : diariesByFriend.entrySet()) {
-      Long friendMemberId = entry.getKey();
-      List<StoryDiarySummaryProjection> friendDiaries = entry.getValue();
-      StoryDiarySummaryProjection firstDiary = friendDiaries.get(0);
-
-      // 그룹 내 스토리 아이템 생성 및 정렬 (미시청 우선, 최신순)
-      List<StoryItemDto> storyItems =
-          friendDiaries.stream()
-              .map(
-                  diary -> {
-                    boolean hasUnread = !viewedDiaryIds.contains(diary.getDiaryId());
-                    String diaryThumbnail =
-                        diaryImageRepository.getDiaryThumbNail(diary.getDiaryId());
-                    return StoryItemDto.builder()
-                        .diaryId(diary.getDiaryId())
-                        .diaryTitle(diary.getDiaryTitle())
-                        .diaryThumbnail(diaryThumbnail)
-                        .createdAt(diary.getCreatedAt())
-                        .hasUnreadJournal(hasUnread)
-                        .build();
-                  })
-              .sorted(
-                  (a, b) -> {
-                    if (a.getHasUnreadJournal() && !b.getHasUnreadJournal()) {
-                      return -1;
-                    }
-                    if (!a.getHasUnreadJournal() && b.getHasUnreadJournal()) {
-                      return 1;
-                    }
-                    return b.getCreatedAt().compareTo(a.getCreatedAt());
-                  })
-              .collect(Collectors.toList());
-
-      int unreadCountInGroup =
-          (int) storyItems.stream().filter(StoryItemDto::getHasUnreadJournal).count();
-      totalUnreadCount += unreadCountInGroup;
-
-      StoryGroupDto group =
-          StoryGroupDto.builder()
-              .userId(friendMemberId)
-              .userName(firstDiary.getMemberNickname())
-              .profileImage(imageService.getFileUrl(firstDiary.getMemberProfileUrl()))
-              .stories(storyItems)
-              .build();
-
-      storyGroups.add(group);
-    }
-
-    // 5. 그룹 정렬: 미시청 스토리가 있는 그룹 우선
-    storyGroups.sort(
-        (a, b) -> {
-          boolean aHasUnread = a.getStories().stream().anyMatch(StoryItemDto::getHasUnreadJournal);
-          boolean bHasUnread = b.getStories().stream().anyMatch(StoryItemDto::getHasUnreadJournal);
-
-          if (aHasUnread && !bHasUnread) {
-            return -1;
-          }
-          if (!aHasUnread && bHasUnread) {
-            return 1;
-          }
-          return 0; // 같은 경우 순서 유지
-        });
+    Set<Long> viewedDiaryIds = findViewedDiaryIds(currentMemberId, diaries);
+    List<StoryGroupDto> storyGroups = createStoryGroups(currentMemberId, diaries, viewedDiaryIds);
+    storyGroups.sort(this::compareStoryGroups);
 
     return StoryResponseDto.builder()
         .storyGroups(storyGroups)
-        .unreadCount(totalUnreadCount)
+        .unreadCount(countUnreadStories(storyGroups))
         .build();
+  }
+
+  private StoryResponseDto emptyStoryResponse() {
+    return StoryResponseDto.builder().storyGroups(Collections.emptyList()).unreadCount(0).build();
+  }
+
+  private Set<Long> findViewedDiaryIds(
+      Long currentMemberId, List<StoryDiarySummaryProjection> diaries) {
+    List<Long> diaryIds = diaries.stream().map(StoryDiarySummaryProjection::getDiaryId).toList();
+
+    return diaryViewLogRepository.findByMemberIdAndDiaryIdIn(currentMemberId, diaryIds).stream()
+        .map(log -> log.getDiary().getId())
+        .collect(Collectors.toSet());
+  }
+
+  private List<StoryGroupDto> createStoryGroups(
+      Long currentMemberId, List<StoryDiarySummaryProjection> diaries, Set<Long> viewedDiaryIds) {
+    Map<Long, List<StoryDiarySummaryProjection>> diariesByMember =
+        diaries.stream()
+            .collect(
+                Collectors.groupingBy(
+                    StoryDiarySummaryProjection::getMemberId,
+                    LinkedHashMap::new,
+                    Collectors.toList()));
+
+    List<StoryGroupDto> storyGroups = new ArrayList<>();
+    for (Map.Entry<Long, List<StoryDiarySummaryProjection>> entry : diariesByMember.entrySet()) {
+      Long storyMemberId = entry.getKey();
+      boolean isMyStory = storyMemberId.equals(currentMemberId);
+      List<StoryDiarySummaryProjection> memberDiaries = entry.getValue();
+
+      storyGroups.add(
+          StoryGroupDto.builder()
+              .userId(storyMemberId)
+              .userName(memberDiaries.get(0).getMemberNickname())
+              .profileImage(imageService.getFileUrl(memberDiaries.get(0).getMemberProfileUrl()))
+              .isMyStory(isMyStory)
+              .stories(createStoryItems(memberDiaries, isMyStory, viewedDiaryIds))
+              .build());
+    }
+    return storyGroups;
+  }
+
+  private List<StoryItemDto> createStoryItems(
+      List<StoryDiarySummaryProjection> diaries, boolean isMyStory, Set<Long> viewedDiaryIds) {
+    return diaries.stream()
+        .map(diary -> createStoryItem(diary, isMyStory, viewedDiaryIds))
+        .sorted((a, b) -> compareStoryItems(a, b, isMyStory))
+        .collect(Collectors.toList());
+  }
+
+  private StoryItemDto createStoryItem(
+      StoryDiarySummaryProjection diary, boolean isMyStory, Set<Long> viewedDiaryIds) {
+    return StoryItemDto.builder()
+        .diaryId(diary.getDiaryId())
+        .diaryTitle(diary.getDiaryTitle())
+        .diaryThumbnail(diaryImageRepository.getDiaryThumbNail(diary.getDiaryId()))
+        .createdAt(diary.getCreatedAt())
+        .hasUnreadJournal(!isMyStory && !viewedDiaryIds.contains(diary.getDiaryId()))
+        .build();
+  }
+
+  private int compareStoryItems(StoryItemDto a, StoryItemDto b, boolean isMyStory) {
+    if (!isMyStory) {
+      int unreadComparison = Boolean.compare(b.getHasUnreadJournal(), a.getHasUnreadJournal());
+      if (unreadComparison != 0) {
+        return unreadComparison;
+      }
+    }
+    return a.getCreatedAt().compareTo(b.getCreatedAt());
+  }
+
+  private int compareStoryGroups(StoryGroupDto a, StoryGroupDto b) {
+    int myStoryComparison =
+        Boolean.compare(
+            Boolean.TRUE.equals(b.getIsMyStory()), Boolean.TRUE.equals(a.getIsMyStory()));
+    if (myStoryComparison != 0) {
+      return myStoryComparison;
+    }
+    return Boolean.compare(hasUnreadStory(b), hasUnreadStory(a));
+  }
+
+  private boolean hasUnreadStory(StoryGroupDto group) {
+    return group.getStories().stream().anyMatch(StoryItemDto::getHasUnreadJournal);
+  }
+
+  private int countUnreadStories(List<StoryGroupDto> storyGroups) {
+    return (int)
+        storyGroups.stream()
+            .flatMap(group -> group.getStories().stream())
+            .filter(StoryItemDto::getHasUnreadJournal)
+            .count();
   }
 
   /** 스토리 시청 (일지 조회 시 자동 기록) */
