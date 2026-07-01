@@ -137,7 +137,18 @@ public class AdminController {
         content =
             @Content(
                 mediaType = "application/json",
-                schema = @Schema(implementation = ErrorResponse.class)))
+                schema = @Schema(implementation = ErrorResponse.class))),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "403",
+        description = "요청자가 관리자가 아님 (ErrorCode: MEMBER_NOT_ADMIN)",
+        content =
+            @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class),
+                examples =
+                    @ExampleObject(
+                        value =
+                            "{ \"code\": \"USER-009\", \"message\": \"관리자 회원만 요청이 가능합니다.\" }")))
   })
   @GetMapping("/members")
   public ApiResponse<OffsetPagination<AdminMemberResponseDto>> getMembers(

@@ -111,7 +111,7 @@ public class AdminMemberResponseDto {
         .createdAt(member.getCreatedAt())
         .job(member.getJob())
         .gender(member.getGender())
-            .isAdmin(isAdmin)
+        .isAdmin(isAdmin)
         .interestCategories(interests)
         .diaryCount((int) diaryCount)
         .createdChallengeCount((int) createdChallengeCount)
