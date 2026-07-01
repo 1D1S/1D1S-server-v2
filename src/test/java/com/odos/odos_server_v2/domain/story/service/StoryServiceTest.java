@@ -1,10 +1,10 @@
 package com.odos.odos_server_v2.domain.story.service;
 
-import java.time.LocalDateTime;
-import java.util.List;
-
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.context.SecurityContextHolder;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import com.odos.odos_server_v2.domain.diary.entity.Diary;
 import com.odos.odos_server_v2.domain.diary.repository.DiaryImageRepository;
@@ -17,16 +17,13 @@ import com.odos.odos_server_v2.domain.story.dto.StoryResponseDto;
 import com.odos.odos_server_v2.domain.story.entity.DiaryViewLog;
 import com.odos.odos_server_v2.domain.story.repository.DiaryViewLogRepository;
 import com.odos.odos_server_v2.domain.story.repository.StoryRepository;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
+import java.time.LocalDateTime;
+import java.util.List;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 class StoryServiceTest {
 
