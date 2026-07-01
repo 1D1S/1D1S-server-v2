@@ -1,5 +1,12 @@
 package com.odos.odos_server_v2.domain.admin.controller;
 
+import lombok.RequiredArgsConstructor;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.web.bind.annotation.*;
+
 import com.odos.odos_server_v2.domain.admin.dto.AdminMemberFilterRequest;
 import com.odos.odos_server_v2.domain.admin.dto.AdminMemberResponseDto;
 import com.odos.odos_server_v2.domain.admin.service.AdminService;
@@ -16,11 +23,6 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "관리자", description = "관리자 API")
 @RestController
@@ -112,6 +114,7 @@ public class AdminController {
                                         "createdAt": "2025-01-15T10:30:00",
                                         "job": "STUDENT",
                                         "gender": "MALE",
+                                        "isAdmin" : true,
                                         "interestCategories": ["DEV", "HEALTH"],
                                         "diaryCount": 42,
                                         "createdChallengeCount": 3,

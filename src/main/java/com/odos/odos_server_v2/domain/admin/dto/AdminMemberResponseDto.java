@@ -1,16 +1,19 @@
 package com.odos.odos_server_v2.domain.admin.dto;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
-import com.odos.odos_server_v2.domain.member.entity.Enum.Gender;
-import com.odos.odos_server_v2.domain.member.entity.Enum.Job;
-import com.odos.odos_server_v2.domain.member.entity.Enum.SignupRoute;
-import com.odos.odos_server_v2.domain.member.entity.Member;
-import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalDateTime;
 import java.util.List;
+
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.odos.odos_server_v2.domain.member.entity.Enum.Gender;
+import com.odos.odos_server_v2.domain.member.entity.Enum.Job;
+import com.odos.odos_server_v2.domain.member.entity.Enum.MemberRole;
+import com.odos.odos_server_v2.domain.member.entity.Enum.SignupRoute;
+import com.odos.odos_server_v2.domain.member.entity.Member;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 @Getter
 @NoArgsConstructor
@@ -39,6 +42,9 @@ public class AdminMemberResponseDto {
   @Schema(description = "성별 (MALE, FEMALE, ETC)", example = "MALE")
   private Gender gender;
 
+  @Schema(description = "관리자 여부", example = "true")
+  private Boolean isAdmin;
+
   @Schema(description = "관심 카테고리 목록", example = "[\"DEV\", \"HEALTH\"]")
   private List<String> interestCategories;
 
@@ -60,6 +66,7 @@ public class AdminMemberResponseDto {
       LocalDateTime createdAt,
       Job job,
       Gender gender,
+      Boolean isAdmin,
       List<String> interestCategories,
       Integer diaryCount,
       Integer createdChallengeCount,
@@ -71,6 +78,7 @@ public class AdminMemberResponseDto {
     this.createdAt = createdAt;
     this.job = job;
     this.gender = gender;
+    this.isAdmin = isAdmin;
     this.interestCategories = interestCategories;
     this.diaryCount = diaryCount;
     this.createdChallengeCount = createdChallengeCount;
@@ -93,6 +101,8 @@ public class AdminMemberResponseDto {
             .filter(p -> p.getChallenge().getDeletedAt() == null)
             .count();
 
+    boolean isAdmin = (member.getRole() == MemberRole.ADMIN);
+
     return AdminMemberResponseDto.builder()
         .memberId(member.getId())
         .nickname(member.getNickname())
@@ -101,6 +111,7 @@ public class AdminMemberResponseDto {
         .createdAt(member.getCreatedAt())
         .job(member.getJob())
         .gender(member.getGender())
+            .isAdmin(isAdmin)
         .interestCategories(interests)
         .diaryCount((int) diaryCount)
         .createdChallengeCount((int) createdChallengeCount)
