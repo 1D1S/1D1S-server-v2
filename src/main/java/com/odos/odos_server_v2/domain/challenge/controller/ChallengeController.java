@@ -1107,6 +1107,9 @@ public class ChallengeController {
           String cursor,
       @Parameter(description = "검색 키워드") @RequestParam(name = "keyword", required = false)
           String keyword,
+      @Parameter(description = "카테고리 필터 (예: DEV, HEALTH, STUDY 등)")
+          @RequestParam(name = "category", required = false)
+          Category category,
       @Parameter(description = "챌린지 종류 필터 (PUBLIC, OFFICIAL). 미입력 시 전체 (PRIVATE 제외)")
           @RequestParam(name = "challengeType", required = false)
           ChallengeType challengeType,
@@ -1118,7 +1121,8 @@ public class ChallengeController {
 
     Long memberId = CurrentUserContext.getCurrentMemberIdOrNull();
     Pagination<ChallengeSummaryResponse> page =
-        challengeService.getChallengeList(memberId, limit, cursor, keyword, challengeType, status);
+        challengeService.getChallengeList(
+            memberId, limit, cursor, keyword, category, challengeType, status);
 
     return ApiResponse.success(Message.GET_CHALLENGE_LIST, page);
   }

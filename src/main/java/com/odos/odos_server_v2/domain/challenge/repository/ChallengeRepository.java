@@ -23,6 +23,7 @@ public interface ChallengeRepository extends JpaRepository<Challenge, Long> {
              or lower(c.description) like concat('%', lower(:keyword), '%') )
        and cast(c.challengeType as string) != :excludeTypeName
        and (:challengeTypeName is null or cast(c.challengeType as string) = :challengeTypeName)
+       and (:categoryName is null or cast(c.category as string) = :categoryName)
        and ( :allStatus = true
              or ('ONGOING' in :statuses and c.startDate <= :today and (c.endDate is null or c.endDate >= :today))
              or ('UPCOMING' in :statuses and c.startDate > :today)
@@ -34,6 +35,7 @@ public interface ChallengeRepository extends JpaRepository<Challenge, Long> {
       @Param("keyword") String keyword,
       @Param("excludeTypeName") String excludeTypeName,
       @Param("challengeTypeName") String challengeTypeName,
+      @Param("categoryName") String categoryName,
       @Param("allStatus") boolean allStatus,
       @Param("statuses") List<String> statuses,
       @Param("today") LocalDate today,

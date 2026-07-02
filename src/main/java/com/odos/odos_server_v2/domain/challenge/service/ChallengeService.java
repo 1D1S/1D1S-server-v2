@@ -648,6 +648,7 @@ public class ChallengeService {
       int limit,
       String cursor,
       String keyword,
+      Category category,
       ChallengeType challengeType,
       List<ChallengeStatus> statuses) {
     String kw = (keyword == null) ? "" : keyword.trim();
@@ -661,6 +662,7 @@ public class ChallengeService {
             kw,
             ChallengeType.PRIVATE.name(),
             challengeType != null ? challengeType.name() : null,
+            category != null ? category.name() : null,
             isAllStatus(statuses),
             toStatusNames(statuses),
             LocalDate.now(),
