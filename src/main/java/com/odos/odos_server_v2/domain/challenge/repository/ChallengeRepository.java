@@ -23,6 +23,10 @@ public interface ChallengeRepository extends JpaRepository<Challenge, Long> {
              or lower(c.description) like concat('%', lower(:keyword), '%') )
        and cast(c.challengeType as string) != :excludeTypeName
        and (:challengeTypeName is null or cast(c.challengeType as string) = :challengeTypeName)
+       and ( :allStatus = true
+             or ('ONGOING' in :statuses and c.startDate <= :today and (c.endDate is null or c.endDate >= :today))
+             or ('UPCOMING' in :statuses and c.startDate > :today)
+             or ('ENDED' in :statuses and c.endDate is not null and c.endDate < :today) )
      order by c.id desc
   """)
   List<Challenge> searchPage(
@@ -30,6 +34,9 @@ public interface ChallengeRepository extends JpaRepository<Challenge, Long> {
       @Param("keyword") String keyword,
       @Param("excludeTypeName") String excludeTypeName,
       @Param("challengeTypeName") String challengeTypeName,
+      @Param("allStatus") boolean allStatus,
+      @Param("statuses") List<String> statuses,
+      @Param("today") LocalDate today,
       Pageable pageable);
 
   @Query(
@@ -39,6 +46,10 @@ public interface ChallengeRepository extends JpaRepository<Challenge, Long> {
               AND (:categoryName IS NULL OR CAST(c.category AS string) = :categoryName)
               AND CAST(c.challengeType AS string) != :excludeTypeName
               AND (:challengeTypeName IS NULL OR CAST(c.challengeType AS string) = :challengeTypeName)
+              AND ( :allStatus = true
+                    OR ('ONGOING' IN :statuses AND c.startDate <= :today AND (c.endDate IS NULL OR c.endDate >= :today))
+                    OR ('UPCOMING' IN :statuses AND c.startDate > :today)
+                    OR ('ENDED' IN :statuses AND c.endDate IS NOT NULL AND c.endDate < :today) )
             ORDER BY c.id DESC
             """)
   Page<Challenge> findByFilters(
@@ -46,6 +57,9 @@ public interface ChallengeRepository extends JpaRepository<Challenge, Long> {
       @Param("categoryName") String categoryName,
       @Param("excludeTypeName") String excludeTypeName,
       @Param("challengeTypeName") String challengeTypeName,
+      @Param("allStatus") boolean allStatus,
+      @Param("statuses") List<String> statuses,
+      @Param("today") LocalDate today,
       Pageable pageable);
 
   List<Challenge> findByHostMemberId(Long memberId);
