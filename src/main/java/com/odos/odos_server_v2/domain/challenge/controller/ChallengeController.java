@@ -1,6 +1,7 @@
 package com.odos.odos_server_v2.domain.challenge.controller;
 
 import com.odos.odos_server_v2.domain.challenge.dto.*;
+import com.odos.odos_server_v2.domain.challenge.entity.Enum.ChallengeStatus;
 import com.odos.odos_server_v2.domain.challenge.entity.Enum.ChallengeType;
 import com.odos.odos_server_v2.domain.challenge.service.ChallengeService;
 import com.odos.odos_server_v2.domain.diary.dto.DiaryStreakResponse;
@@ -414,6 +415,76 @@ public class ChallengeController {
     Long memberId = CurrentUserContext.getCurrentMemberId();
     return ApiResponse.success(
         Message.GET_CHALLENGE, challengeService.getChallenge(challengeId, memberId));
+  }
+
+  @Operation(
+      summary = "챌린지 참여자 목록 조회",
+      description =
+          """
+          챌린지의 참여자 목록을 조회한다.
+
+          - 호스트 또는 관리자: 참여 신청자(PENDING)와 참여 중인 회원(HOST, PARTICIPANT)을 모두 조회한다.
+          - 그 외 사용자(비로그인 포함): 참여 중인 회원(HOST, PARTICIPANT)만 조회한다.
+          """)
+  @ApiResponses({
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "200",
+        description = "챌린지 참여자 목록 조회 성공",
+        content =
+            @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ParticipantResponse.class),
+                examples =
+                    @ExampleObject(
+                        value =
+                            """
+                            {
+                              "message": "챌린지 참여자 조회 성공했습니다.",
+                              "data": [
+                                {
+                                  "memberId": 1,
+                                  "participantId": 1,
+                                  "nickname": "호스트닉네임",
+                                  "profileImg": "https://example.com/profile.jpg",
+                                  "status": "HOST",
+                                  "goals": [
+                                    { "challengeGoalId": 1, "content": "알고리즘 1문제 풀기" }
+                                  ]
+                                },
+                                {
+                                  "memberId": 2,
+                                  "participantId": 5,
+                                  "nickname": "홍길동",
+                                  "profileImg": "https://example.com/profile2.jpg",
+                                  "status": "PENDING",
+                                  "goals": [
+                                    { "challengeGoalId": 7, "content": "책 10페이지 읽기" }
+                                  ]
+                                }
+                              ]
+                            }
+                            """))),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "404",
+        description = "챌린지를 찾을 수 없음",
+        content =
+            @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class),
+                examples =
+                    @ExampleObject(
+                        value =
+                            """
+                            { "code": "CHALLENGE_001", "message": "챌린지를 찾을 수 없습니다." }
+                            """)))
+  })
+  @GetMapping("/{challengeId}/participants")
+  public ApiResponse<List<ParticipantResponse>> getChallengeParticipants(
+      @Parameter(description = "챌린지 ID") @PathVariable Long challengeId) {
+    Long memberId = CurrentUserContext.getCurrentMemberIdOrNull();
+    return ApiResponse.success(
+        Message.GET_CHALLENGE_PARTICIPANTS,
+        challengeService.getChallengeParticipants(challengeId, memberId));
   }
 
   @Operation(
@@ -1036,13 +1107,22 @@ public class ChallengeController {
           String cursor,
       @Parameter(description = "검색 키워드") @RequestParam(name = "keyword", required = false)
           String keyword,
+      @Parameter(description = "카테고리 필터 (예: DEV, HEALTH, STUDY 등)")
+          @RequestParam(name = "category", required = false)
+          Category category,
       @Parameter(description = "챌린지 종류 필터 (PUBLIC, OFFICIAL). 미입력 시 전체 (PRIVATE 제외)")
           @RequestParam(name = "challengeType", required = false)
-          ChallengeType challengeType) {
+          ChallengeType challengeType,
+      @Parameter(
+              description =
+                  "진행 상태 필터 (UPCOMING: 모집중, ONGOING: 진행중, ENDED: 종료). 다중 선택 가능(status=ONGOING&status=UPCOMING), 미입력 시 전체")
+          @RequestParam(name = "status", required = false)
+          List<ChallengeStatus> status) {
 
     Long memberId = CurrentUserContext.getCurrentMemberIdOrNull();
     Pagination<ChallengeSummaryResponse> page =
-        challengeService.getChallengeList(memberId, limit, cursor, keyword, challengeType);
+        challengeService.getChallengeList(
+            memberId, limit, cursor, keyword, category, challengeType, status);
 
     return ApiResponse.success(Message.GET_CHALLENGE_LIST, page);
   }
@@ -1136,12 +1216,17 @@ public class ChallengeController {
           Category category,
       @Parameter(description = "챌린지 종류 필터 (PUBLIC, OFFICIAL). 미입력 시 전체 (PRIVATE 제외)")
           @RequestParam(name = "challengeType", required = false)
-          ChallengeType challengeType) {
+          ChallengeType challengeType,
+      @Parameter(
+              description =
+                  "진행 상태 필터 (UPCOMING: 모집중, ONGOING: 진행중, ENDED: 종료). 다중 선택 가능(status=ONGOING&status=UPCOMING), 미입력 시 전체")
+          @RequestParam(name = "status", required = false)
+          List<ChallengeStatus> status) {
 
     Long memberId = CurrentUserContext.getCurrentMemberIdOrNull();
     OffsetPagination<ChallengeSummaryResponse> response =
         challengeService.getChallengeListByOffset(
-            memberId, page, size, keyword, category, challengeType);
+            memberId, page, size, keyword, category, challengeType, status);
 
     return ApiResponse.success(Message.GET_CHALLENGE_LIST, response);
   }

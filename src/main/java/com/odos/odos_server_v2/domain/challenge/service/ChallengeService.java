@@ -5,6 +5,7 @@ import com.odos.odos_server_v2.domain.challenge.entity.Challenge;
 import com.odos.odos_server_v2.domain.challenge.entity.ChallengeGoal;
 import com.odos.odos_server_v2.domain.challenge.entity.ChallengeLike;
 import com.odos.odos_server_v2.domain.challenge.entity.ChallengePoke;
+import com.odos.odos_server_v2.domain.challenge.entity.Enum.ChallengeStatus;
 import com.odos.odos_server_v2.domain.challenge.entity.Enum.ChallengeType;
 import com.odos.odos_server_v2.domain.challenge.entity.Enum.GoalType;
 import com.odos.odos_server_v2.domain.challenge.entity.Enum.ParticipantStatus;
@@ -19,6 +20,7 @@ import com.odos.odos_server_v2.domain.diary.dto.DiaryStreakResponse;
 import com.odos.odos_server_v2.domain.diary.entity.Diary;
 import com.odos.odos_server_v2.domain.diary.repository.DiaryGoalRepository;
 import com.odos.odos_server_v2.domain.diary.repository.DiaryRepository;
+import com.odos.odos_server_v2.domain.member.entity.Enum.MemberRole;
 import com.odos.odos_server_v2.domain.member.entity.Member;
 import com.odos.odos_server_v2.domain.member.repository.MemberRepository;
 import com.odos.odos_server_v2.domain.notification.service.NotificationService;
@@ -240,13 +242,67 @@ public class ChallengeService {
     return toChallengeResponse(challenge, member);
   }
 
+  public List<ParticipantResponse> getChallengeParticipants(Long challengeId, Long memberId) {
+    Challenge challenge =
+        challengeRepository
+            .findById(challengeId)
+            .orElseThrow(() -> new CustomException(ErrorCode.CHALLENGE_NOT_FOUND));
+
+    List<ParticipantStatus> statuses;
+    if (isHostOrAdmin(challenge, memberId)) {
+      // 호스트/관리자는 참여 신청자(PENDING)와 참여 중인 회원(HOST/PARTICIPANT)을 모두 조회한다.
+      statuses =
+          List.of(ParticipantStatus.HOST, ParticipantStatus.PARTICIPANT, ParticipantStatus.PENDING);
+    } else {
+      // 그 외에는 참여 중인 회원(HOST/PARTICIPANT)만 조회한다.
+      statuses = List.of(ParticipantStatus.HOST, ParticipantStatus.PARTICIPANT);
+    }
+
+    return participantRepository.findByChallengeIdAndStatusIn(challengeId, statuses).stream()
+        .map(this::toParticipant)
+        .toList();
+  }
+
+  private boolean isHostOrAdmin(Challenge challenge, Long memberId) {
+    if (memberId == null) {
+      return false;
+    }
+    if (challenge.getHostMember().getId().equals(memberId)) {
+      return true;
+    }
+    return memberRepository
+        .findById(memberId)
+        .map(member -> member.getRole() == MemberRole.ADMIN)
+        .orElse(false);
+  }
+
+  /** 진행 상태 미선택 여부(=전체 조회). 이 경우 쿼리에서 날짜 조건을 우회한다. */
+  private boolean isAllStatus(List<ChallengeStatus> statuses) {
+    return statuses == null || statuses.isEmpty();
+  }
+
+  /**
+   * 다중 선택 진행 상태를 쿼리용 이름 리스트로 변환. 미선택이면 세 상태 전체를 반환한다(IN 절이 빈 리스트가 되지 않도록 하는 용도이며, 실제 전체 조회는
+   * allStatus 플래그로 처리).
+   */
+  private List<String> toStatusNames(List<ChallengeStatus> statuses) {
+    if (isAllStatus(statuses)) {
+      return List.of(
+          ChallengeStatus.ONGOING.name(),
+          ChallengeStatus.UPCOMING.name(),
+          ChallengeStatus.ENDED.name());
+    }
+    return statuses.stream().distinct().map(ChallengeStatus::name).toList();
+  }
+
   public OffsetPagination<ChallengeSummaryResponse> getChallengeListByOffset(
       Long memberId,
       int page,
       int size,
       String keyword,
       Category category,
-      ChallengeType challengeType) {
+      ChallengeType challengeType,
+      List<ChallengeStatus> statuses) {
 
     Pageable pageable = PageRequest.of(page, size);
 
@@ -256,6 +312,9 @@ public class ChallengeService {
             category != null ? category.name() : null,
             ChallengeType.PRIVATE.name(),
             challengeType != null ? challengeType.name() : null,
+            isAllStatus(statuses),
+            toStatusNames(statuses),
+            LocalDate.now(),
             pageable);
 
     Page<ChallengeSummaryResponse> responsePage =
@@ -585,7 +644,13 @@ public class ChallengeService {
   }
 
   public Pagination<ChallengeSummaryResponse> getChallengeList(
-      Long memberId, int limit, String cursor, String keyword, ChallengeType challengeType) {
+      Long memberId,
+      int limit,
+      String cursor,
+      String keyword,
+      Category category,
+      ChallengeType challengeType,
+      List<ChallengeStatus> statuses) {
     String kw = (keyword == null) ? "" : keyword.trim();
     Long cursorId =
         (cursor == null || cursor.isBlank()) ? null : cursorService.decodeCursorToId(cursor);
@@ -597,6 +662,10 @@ public class ChallengeService {
             kw,
             ChallengeType.PRIVATE.name(),
             challengeType != null ? challengeType.name() : null,
+            category != null ? category.name() : null,
+            isAllStatus(statuses),
+            toStatusNames(statuses),
+            LocalDate.now(),
             pageable);
 
     boolean hasNext = rows.size() > limit;
