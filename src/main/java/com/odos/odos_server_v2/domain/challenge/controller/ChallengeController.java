@@ -1,6 +1,7 @@
 package com.odos.odos_server_v2.domain.challenge.controller;
 
 import com.odos.odos_server_v2.domain.challenge.dto.*;
+import com.odos.odos_server_v2.domain.challenge.entity.Enum.ChallengeStatus;
 import com.odos.odos_server_v2.domain.challenge.entity.Enum.ChallengeType;
 import com.odos.odos_server_v2.domain.challenge.service.ChallengeService;
 import com.odos.odos_server_v2.domain.diary.dto.DiaryStreakResponse;
@@ -1106,13 +1107,22 @@ public class ChallengeController {
           String cursor,
       @Parameter(description = "검색 키워드") @RequestParam(name = "keyword", required = false)
           String keyword,
+      @Parameter(description = "카테고리 필터 (예: DEV, HEALTH, STUDY 등)")
+          @RequestParam(name = "category", required = false)
+          Category category,
       @Parameter(description = "챌린지 종류 필터 (PUBLIC, OFFICIAL). 미입력 시 전체 (PRIVATE 제외)")
           @RequestParam(name = "challengeType", required = false)
-          ChallengeType challengeType) {
+          ChallengeType challengeType,
+      @Parameter(
+              description =
+                  "진행 상태 필터 (UPCOMING: 모집중, ONGOING: 진행중, ENDED: 종료). 다중 선택 가능(status=ONGOING&status=UPCOMING), 미입력 시 전체")
+          @RequestParam(name = "status", required = false)
+          List<ChallengeStatus> status) {
 
     Long memberId = CurrentUserContext.getCurrentMemberIdOrNull();
     Pagination<ChallengeSummaryResponse> page =
-        challengeService.getChallengeList(memberId, limit, cursor, keyword, challengeType);
+        challengeService.getChallengeList(
+            memberId, limit, cursor, keyword, category, challengeType, status);
 
     return ApiResponse.success(Message.GET_CHALLENGE_LIST, page);
   }
@@ -1206,12 +1216,17 @@ public class ChallengeController {
           Category category,
       @Parameter(description = "챌린지 종류 필터 (PUBLIC, OFFICIAL). 미입력 시 전체 (PRIVATE 제외)")
           @RequestParam(name = "challengeType", required = false)
-          ChallengeType challengeType) {
+          ChallengeType challengeType,
+      @Parameter(
+              description =
+                  "진행 상태 필터 (UPCOMING: 모집중, ONGOING: 진행중, ENDED: 종료). 다중 선택 가능(status=ONGOING&status=UPCOMING), 미입력 시 전체")
+          @RequestParam(name = "status", required = false)
+          List<ChallengeStatus> status) {
 
     Long memberId = CurrentUserContext.getCurrentMemberIdOrNull();
     OffsetPagination<ChallengeSummaryResponse> response =
         challengeService.getChallengeListByOffset(
-            memberId, page, size, keyword, category, challengeType);
+            memberId, page, size, keyword, category, challengeType, status);
 
     return ApiResponse.success(Message.GET_CHALLENGE_LIST, response);
   }
