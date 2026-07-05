@@ -40,6 +40,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -295,12 +296,25 @@ public class ChallengeService {
     return statuses.stream().distinct().map(ChallengeStatus::name).toList();
   }
 
+  /** 카테고리 미선택 여부(=전체 조회). 이 경우 쿼리에서 카테고리 조건을 우회한다. */
+  private boolean isAllCategory(List<Category> categories) {
+    return categories == null || categories.isEmpty();
+  }
+
+  /** 다중 선택 카테고리를 쿼리용 이름 리스트로 변환. 미선택이면 전체를 반환한다(IN 절 빈 리스트 방지용, 실제 전체 조회는 allCategory 플래그로 처리). */
+  private List<String> toCategoryNames(List<Category> categories) {
+    if (isAllCategory(categories)) {
+      return Arrays.stream(Category.values()).map(Category::name).toList();
+    }
+    return categories.stream().distinct().map(Category::name).toList();
+  }
+
   public OffsetPagination<ChallengeSummaryResponse> getChallengeListByOffset(
       Long memberId,
       int page,
       int size,
       String keyword,
-      Category category,
+      List<Category> categories,
       ChallengeType challengeType,
       List<ChallengeStatus> statuses) {
 
@@ -309,7 +323,8 @@ public class ChallengeService {
     Page<Challenge> challengePage =
         challengeRepository.findByFilters(
             keyword,
-            category != null ? category.name() : null,
+            isAllCategory(categories),
+            toCategoryNames(categories),
             ChallengeType.PRIVATE.name(),
             challengeType != null ? challengeType.name() : null,
             isAllStatus(statuses),
@@ -648,7 +663,7 @@ public class ChallengeService {
       int limit,
       String cursor,
       String keyword,
-      Category category,
+      List<Category> categories,
       ChallengeType challengeType,
       List<ChallengeStatus> statuses) {
     String kw = (keyword == null) ? "" : keyword.trim();
@@ -662,7 +677,8 @@ public class ChallengeService {
             kw,
             ChallengeType.PRIVATE.name(),
             challengeType != null ? challengeType.name() : null,
-            category != null ? category.name() : null,
+            isAllCategory(categories),
+            toCategoryNames(categories),
             isAllStatus(statuses),
             toStatusNames(statuses),
             LocalDate.now(),
