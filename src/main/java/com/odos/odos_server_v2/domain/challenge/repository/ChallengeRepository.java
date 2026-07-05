@@ -17,7 +17,8 @@ public interface ChallengeRepository extends JpaRepository<Challenge, Long> {
       """
     select c
       from Challenge c
-     where (:cursorId is null or c.id < :cursorId)
+     where c.deletedAt is null
+       and (:cursorId is null or c.id < :cursorId)
        and ( :keyword = ''
              or lower(c.title) like concat('%', lower(:keyword), '%')
              or lower(c.description) like concat('%', lower(:keyword), '%') )
@@ -44,7 +45,8 @@ public interface ChallengeRepository extends JpaRepository<Challenge, Long> {
   @Query(
       """
             SELECT c FROM Challenge c
-            WHERE (:keyword IS NULL OR c.title LIKE CONCAT('%', CAST(:keyword AS string), '%'))
+            WHERE c.deletedAt IS NULL
+              AND (:keyword IS NULL OR c.title LIKE CONCAT('%', CAST(:keyword AS string), '%'))
               AND (:categoryName IS NULL OR CAST(c.category AS string) = :categoryName)
               AND CAST(c.challengeType AS string) != :excludeTypeName
               AND (:challengeTypeName IS NULL OR CAST(c.challengeType AS string) = :challengeTypeName)
