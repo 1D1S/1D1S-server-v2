@@ -7,15 +7,16 @@ import com.odos.odos_server_v2.domain.challenge.entity.Enum.ChallengeType;
 import com.odos.odos_server_v2.domain.challenge.entity.Enum.GoalType;
 import com.odos.odos_server_v2.domain.challenge.entity.Enum.ParticipantStatus;
 import com.odos.odos_server_v2.domain.challenge.entity.Enum.ParticipationType;
+import com.odos.odos_server_v2.domain.challenge.entity.FixedChallengeGoal;
 import com.odos.odos_server_v2.domain.challenge.entity.Participant;
 import com.odos.odos_server_v2.domain.challenge.repository.ChallengeGoalRepository;
 import com.odos.odos_server_v2.domain.challenge.repository.ChallengeRepository;
+import com.odos.odos_server_v2.domain.challenge.repository.FixedChallengeGoalRepository;
 import com.odos.odos_server_v2.domain.challenge.repository.ParticipantRepository;
 import com.odos.odos_server_v2.domain.diary.repository.DiaryRepository;
 import com.odos.odos_server_v2.domain.member.entity.Enum.MemberRole;
 import com.odos.odos_server_v2.domain.member.entity.Member;
 import com.odos.odos_server_v2.domain.member.repository.MemberRepository;
-import com.odos.odos_server_v2.domain.notification.service.NotificationService;
 import com.odos.odos_server_v2.exception.CustomException;
 import com.odos.odos_server_v2.exception.ErrorCode;
 import java.time.LocalDate;
@@ -31,10 +32,10 @@ public class OfficialChallengeService {
 
   private final ChallengeRepository challengeRepository;
   private final ChallengeGoalRepository challengeGoalRepository;
+  private final FixedChallengeGoalRepository fixedChallengeGoalRepository;
   private final ParticipantRepository participantRepository;
   private final DiaryRepository diaryRepository;
   private final MemberRepository memberRepository;
-  private final NotificationService notificationService;
   private final ChallengeService challengeService;
 
   private void checkOfficialAuthority(Member member) {
@@ -74,21 +75,12 @@ public class OfficialChallengeService {
 
     challengeRepository.save(challenge);
 
-    Participant participant =
-        Participant.builder()
-            .member(member)
-            .challenge(challenge)
-            .status(ParticipantStatus.HOST)
-            .build();
-    participantRepository.save(participant);
-
-    notificationService.notifyChallengeApproved(
-        memberId, participant.getMember().getId(), challenge.getId(), challenge.getTitle());
-
-    if (request.getGoals() != null) {
+    // 공식 챌린지: 호스트를 participant 로 등록하지 않는다. (host_member_id 만 생성자로 남긴다.)
+    // 고정목표 챌린지의 목표는 fixed_challenge_goal 에 저장하고, 참여자가 들어올 때 challenge_goal 로 복제된다.
+    if (challenge.getGoalType() == GoalType.FIXED && request.getGoals() != null) {
       for (String g : request.getGoals()) {
-        challengeGoalRepository.save(
-            ChallengeGoal.builder().content(g).participant(participant).build());
+        fixedChallengeGoalRepository.save(
+            FixedChallengeGoal.builder().content(g).challenge(challenge).build());
       }
     }
 
@@ -133,6 +125,24 @@ public class OfficialChallengeService {
           participantRepository.findByChallengeIdAndStatusIn(challengeId, participantStatuses);
 
       challengeGoalRepository.deleteAllByParticipantIn(participants);
+
+      // 고정목표: 챌린지 원본 목표(fixed_challenge_goal)도 함께 갱신한다.
+      if (challenge.getGoalType().equals(GoalType.FIXED)) {
+        fixedChallengeGoalRepository.deleteAllByChallengeId(challengeId);
+        request
+            .getGoals()
+            .ifPresent(
+                goals ->
+                    fixedChallengeGoalRepository.saveAll(
+                        goals.stream()
+                            .map(
+                                goal ->
+                                    FixedChallengeGoal.builder()
+                                        .challenge(challenge)
+                                        .content(goal)
+                                        .build())
+                            .toList()));
+      }
 
       request
           .getGoals()
