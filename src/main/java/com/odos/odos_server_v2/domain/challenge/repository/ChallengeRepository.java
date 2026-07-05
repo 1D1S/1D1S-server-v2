@@ -24,7 +24,7 @@ public interface ChallengeRepository extends JpaRepository<Challenge, Long> {
              or lower(c.description) like concat('%', lower(:keyword), '%') )
        and cast(c.challengeType as string) != :excludeTypeName
        and (:challengeTypeName is null or cast(c.challengeType as string) = :challengeTypeName)
-       and (:categoryName is null or cast(c.category as string) = :categoryName)
+       and (:allCategory = true or cast(c.category as string) in :categoryNames)
        and ( :allStatus = true
              or ('ONGOING' in :statuses and c.startDate <= :today and (c.endDate is null or c.endDate >= :today))
              or ('UPCOMING' in :statuses and c.startDate > :today)
@@ -36,7 +36,8 @@ public interface ChallengeRepository extends JpaRepository<Challenge, Long> {
       @Param("keyword") String keyword,
       @Param("excludeTypeName") String excludeTypeName,
       @Param("challengeTypeName") String challengeTypeName,
-      @Param("categoryName") String categoryName,
+      @Param("allCategory") boolean allCategory,
+      @Param("categoryNames") List<String> categoryNames,
       @Param("allStatus") boolean allStatus,
       @Param("statuses") List<String> statuses,
       @Param("today") LocalDate today,
@@ -47,7 +48,7 @@ public interface ChallengeRepository extends JpaRepository<Challenge, Long> {
             SELECT c FROM Challenge c
             WHERE c.deletedAt IS NULL
               AND (:keyword IS NULL OR c.title LIKE CONCAT('%', CAST(:keyword AS string), '%'))
-              AND (:categoryName IS NULL OR CAST(c.category AS string) = :categoryName)
+              AND (:allCategory = true OR CAST(c.category AS string) IN :categoryNames)
               AND CAST(c.challengeType AS string) != :excludeTypeName
               AND (:challengeTypeName IS NULL OR CAST(c.challengeType AS string) = :challengeTypeName)
               AND ( :allStatus = true
@@ -58,7 +59,8 @@ public interface ChallengeRepository extends JpaRepository<Challenge, Long> {
             """)
   Page<Challenge> findByFilters(
       @Param("keyword") String keyword,
-      @Param("categoryName") String categoryName,
+      @Param("allCategory") boolean allCategory,
+      @Param("categoryNames") List<String> categoryNames,
       @Param("excludeTypeName") String excludeTypeName,
       @Param("challengeTypeName") String challengeTypeName,
       @Param("allStatus") boolean allStatus,
