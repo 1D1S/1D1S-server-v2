@@ -10,11 +10,13 @@ import com.odos.odos_server_v2.domain.challenge.entity.Enum.ChallengeType;
 import com.odos.odos_server_v2.domain.challenge.entity.Enum.GoalType;
 import com.odos.odos_server_v2.domain.challenge.entity.Enum.ParticipantStatus;
 import com.odos.odos_server_v2.domain.challenge.entity.Enum.ParticipationType;
+import com.odos.odos_server_v2.domain.challenge.entity.FixedChallengeGoal;
 import com.odos.odos_server_v2.domain.challenge.entity.Participant;
 import com.odos.odos_server_v2.domain.challenge.repository.ChallengeGoalRepository;
 import com.odos.odos_server_v2.domain.challenge.repository.ChallengeLikeRepository;
 import com.odos.odos_server_v2.domain.challenge.repository.ChallengePokeRepository;
 import com.odos.odos_server_v2.domain.challenge.repository.ChallengeRepository;
+import com.odos.odos_server_v2.domain.challenge.repository.FixedChallengeGoalRepository;
 import com.odos.odos_server_v2.domain.challenge.repository.ParticipantRepository;
 import com.odos.odos_server_v2.domain.diary.dto.DiaryStreakResponse;
 import com.odos.odos_server_v2.domain.diary.entity.Diary;
@@ -62,6 +64,7 @@ public class ChallengeService {
   private final ParticipantRepository participantRepository;
   private final ChallengeLikeRepository challengeLikeRepository;
   private final ChallengeGoalRepository challengeGoalRepository;
+  private final FixedChallengeGoalRepository fixedChallengeGoalRepository;
   private final ChallengePokeRepository challengePokeRepository;
   private final DiaryGoalRepository diaryGoalRepository;
   private final DiaryRepository diaryRepository;
@@ -130,10 +133,19 @@ public class ChallengeService {
     notificationService.notifyChallengeApproved(
         memberId, participant.getMember().getId(), challenge.getId(), challenge.getTitle());
 
-    for (String g : challengeRequest.getGoals()) {
-      ChallengeGoal challengeGoal =
-          ChallengeGoal.builder().content(g).participant(participant).build();
-      challengeGoalRepository.save(challengeGoal);
+    if (challenge.getGoalType() == GoalType.FIXED) {
+      // 고정목표: 챌린지 단위 원본 목표(fixed_challenge_goal) 저장 후, 호스트(첫 참여자)에게 복제한다.
+      for (String g : challengeRequest.getGoals()) {
+        fixedChallengeGoalRepository.save(
+            FixedChallengeGoal.builder().content(g).challenge(challenge).build());
+        challengeGoalRepository.save(
+            ChallengeGoal.builder().content(g).participant(participant).build());
+      }
+    } else {
+      for (String g : challengeRequest.getGoals()) {
+        challengeGoalRepository.save(
+            ChallengeGoal.builder().content(g).participant(participant).build());
+      }
     }
     return toChallengeSummary(challenge, memberId);
   }
@@ -172,6 +184,24 @@ public class ChallengeService {
           participantRepository.findByChallengeIdAndStatusIn(challengeId, participantStatuses);
 
       challengeGoalRepository.deleteAllByParticipantIn(participants);
+
+      // 고정목표: 챌린지 원본 목표(fixed_challenge_goal)도 함께 갱신한다.
+      if (challenge.getGoalType().equals(GoalType.FIXED)) {
+        fixedChallengeGoalRepository.deleteAllByChallengeId(challengeId);
+        challengeEditRequest
+            .getGoals()
+            .ifPresent(
+                goals ->
+                    fixedChallengeGoalRepository.saveAll(
+                        goals.stream()
+                            .map(
+                                goal ->
+                                    FixedChallengeGoal.builder()
+                                        .challenge(challenge)
+                                        .content(goal)
+                                        .build())
+                            .toList()));
+      }
 
       challengeEditRequest
           .getGoals()
@@ -378,14 +408,10 @@ public class ChallengeService {
         challengeGoalRepository.save(goal);
       }
     } else {
-      Participant hostParticipant =
-          participantRepository
-              .findByMemberIdAndChallengeId(challenge.getHostMember().getId(), challengeId)
-              .orElseThrow(() -> new CustomException(ErrorCode.PARTICIPANT_NOT_FOUND));
-      List<ChallengeGoal> challengeGoals = hostParticipant.getChallengeGoals();
-      for (ChallengeGoal cg : challengeGoals) {
+      // 고정목표: 챌린지의 원본 목표(fixed_challenge_goal)를 참여자의 challenge_goal 로 복제한다.
+      for (FixedChallengeGoal fg : fixedChallengeGoalRepository.findByChallengeId(challengeId)) {
         challengeGoalRepository.save(
-            ChallengeGoal.builder().participant(participant).content(cg.getContent()).build());
+            ChallengeGoal.builder().participant(participant).content(fg.getContent()).build());
       }
     }
 
@@ -453,13 +479,10 @@ public class ChallengeService {
             ChallengeGoal.builder().content(g).participant(participant).build());
       }
     } else {
-      Participant hostParticipant =
-          participantRepository
-              .findByMemberIdAndChallengeId(challenge.getHostMember().getId(), challengeId)
-              .orElseThrow(() -> new CustomException(ErrorCode.PARTICIPANT_NOT_FOUND));
-      for (ChallengeGoal cg : hostParticipant.getChallengeGoals()) {
+      // 고정목표: 챌린지의 원본 목표(fixed_challenge_goal)를 참여자의 challenge_goal 로 복제한다.
+      for (FixedChallengeGoal fg : fixedChallengeGoalRepository.findByChallengeId(challengeId)) {
         challengeGoalRepository.save(
-            ChallengeGoal.builder().participant(participant).content(cg.getContent()).build());
+            ChallengeGoal.builder().participant(participant).content(fg.getContent()).build());
       }
     }
     entityManager.flush();
@@ -853,24 +876,26 @@ public class ChallengeService {
     Long challengeId = challenge.getId();
     Long memberId = member.getId();
     // 챌린지 목표
-    List<ChallengeGoal> challengeGoals;
-    if (challenge.getGoalType() == GoalType.FIXED) {
+    // 참여자(HOST/PARTICIPANT)는 본인의 challenge_goal(일지와 연결되는 목표)을 보고,
+    // 참여 전(NONE 등)에는 고정목표 챌린지의 원본 목표(fixed_challenge_goal)를 미리보기로 노출한다.
+    List<ChallengeGoalDto> challengeGoals;
+    ParticipantStatus status = getMemberStatus(challengeId, memberId);
+    if ((status == ParticipantStatus.HOST) || (status == ParticipantStatus.PARTICIPANT)) {
       challengeGoals =
           participantRepository
-              .findByMemberIdAndChallengeId(challenge.getHostMember().getId(), challengeId)
+              .findByMemberIdAndChallengeId(memberId, challengeId)
               .orElseThrow(() -> new CustomException(ErrorCode.PARTICIPANT_NOT_FOUND))
-              .getChallengeGoals();
+              .getChallengeGoals()
+              .stream()
+              .map(this::toChallengeGoal)
+              .toList();
+    } else if (challenge.getGoalType() == GoalType.FIXED) {
+      challengeGoals =
+          fixedChallengeGoalRepository.findByChallengeId(challengeId).stream()
+              .map(this::toChallengeGoal)
+              .toList();
     } else {
-      ParticipantStatus status = getMemberStatus(challengeId, memberId);
-      if ((status == ParticipantStatus.HOST) || (status == ParticipantStatus.PARTICIPANT)) {
-        challengeGoals =
-            participantRepository
-                .findByMemberIdAndChallengeId(memberId, challengeId)
-                .orElseThrow(() -> new CustomException(ErrorCode.PARTICIPANT_NOT_FOUND))
-                .getChallengeGoals();
-      } else {
-        challengeGoals = Collections.emptyList();
-      }
+      challengeGoals = Collections.emptyList();
     }
     // 참여자
     List<ParticipantStatus> participantStatuses;
@@ -885,7 +910,7 @@ public class ChallengeService {
     return new ChallengeResponse(
         toChallengeSummary(challenge, memberId),
         toChallengeDetail(challenge, memberId),
-        challengeGoals.stream().map(this::toChallengeGoal).toList(),
+        challengeGoals,
         participants.stream().map(this::toParticipant).toList());
   }
 
@@ -929,6 +954,10 @@ public class ChallengeService {
 
   private final ChallengeGoalDto toChallengeGoal(ChallengeGoal challengeGoal) {
     return new ChallengeGoalDto(challengeGoal.getId(), challengeGoal.getContent());
+  }
+
+  private final ChallengeGoalDto toChallengeGoal(FixedChallengeGoal fixedChallengeGoal) {
+    return new ChallengeGoalDto(fixedChallengeGoal.getId(), fixedChallengeGoal.getContent());
   }
 
   private final ParticipantResponse toParticipant(Participant participant) {
@@ -1016,12 +1045,8 @@ public class ChallengeService {
       days = ChronoUnit.DAYS.between(startDate, endDate) + 1; // 종료일 포함
     }
     if (days == 0) return 0;
-    // 목표의 개수
-    Participant participant =
-        participantRepository
-            .findByMemberIdAndChallengeId(challenge.getHostMember().getId(), challengeId)
-            .orElseThrow(() -> new CustomException(ErrorCode.PARTICIPANT_NOT_FOUND));
-    long goalCnt = challengeGoalRepository.countByParticipantId(participant.getId());
+    // 목표의 개수 (고정목표 챌린지의 원본 목표 기준)
+    long goalCnt = fixedChallengeGoalRepository.countByChallengeId(challengeId);
     if (goalCnt <= 0) return 0;
 
     return completedGoalCnt / ((double) participantCnt * (double) days * (double) goalCnt) * 100.0;

@@ -3,10 +3,8 @@ package com.odos.odos_server_v2.domain.diary.service;
 import com.odos.odos_server_v2.domain.challenge.dto.ChallengeSummaryResponse;
 import com.odos.odos_server_v2.domain.challenge.entity.Challenge;
 import com.odos.odos_server_v2.domain.challenge.entity.ChallengeGoal;
-import com.odos.odos_server_v2.domain.challenge.entity.Enum.GoalType;
 import com.odos.odos_server_v2.domain.challenge.entity.Enum.ParticipantStatus;
 import com.odos.odos_server_v2.domain.challenge.entity.Participant;
-import com.odos.odos_server_v2.domain.challenge.repository.ChallengeGoalRepository;
 import com.odos.odos_server_v2.domain.challenge.repository.ChallengeRepository;
 import com.odos.odos_server_v2.domain.challenge.repository.ParticipantRepository;
 import com.odos.odos_server_v2.domain.challenge.service.ChallengeService;
@@ -56,7 +54,6 @@ public class DiaryService {
   private final ParticipantRepository participantRepository;
   private final ImageService imageService;
   private final DiaryImageRepository diaryImageRepository;
-  private final ChallengeGoalRepository challengeGoalRepository;
   private final CommentRepository commentRepository;
   private final NotificationService notificationService;
   private final FriendRepository friendRepository;
@@ -97,14 +94,9 @@ public class DiaryService {
     Diary newDiary = diaryRepository.save(diary);
 
     // 챌린지 타입별 목표를 기반으로 다이어리 목표달성 생성 및 저장
-    List<ChallengeGoal> challengeGoals;
-    if (challenge.getGoalType().equals(GoalType.FIXED)) {
-      challengeGoals =
-          challengeGoalRepository.getFixedGoals(
-              challenge.getHostMember().getId(), challenge.getId());
-    } else {
-      challengeGoals = participant.getChallengeGoals();
-    }
+    // FIXED/FLEXIBLE 모두 참여자 본인의 challenge_goal 을 기준으로 일지 목표를 생성한다.
+    // (고정목표 챌린지도 참여 시 fixed_challenge_goal 이 참여자의 challenge_goal 로 복제되어 있다.)
+    List<ChallengeGoal> challengeGoals = participant.getChallengeGoals();
     List<DiaryGoal> diaryGoals = new ArrayList<>();
     List<Long> achievedGoalIds =
         request.getAchievedGoalIds() != null ? request.getAchievedGoalIds() : new ArrayList<>();
@@ -184,14 +176,9 @@ public class DiaryService {
             .findByMemberIdAndChallengeId(memberId, challenge.getId())
             .orElseThrow(() -> new CustomException(ErrorCode.PARTICIPANT_NOT_FOUND));
 
-    List<ChallengeGoal> challengeGoals;
-    if (challenge.getGoalType().equals(GoalType.FIXED)) {
-      challengeGoals =
-          challengeGoalRepository.getFixedGoals(
-              challenge.getHostMember().getId(), challenge.getId());
-    } else {
-      challengeGoals = participant.getChallengeGoals();
-    }
+    // FIXED/FLEXIBLE 모두 참여자 본인의 challenge_goal 을 기준으로 일지 목표를 생성한다.
+    // (고정목표 챌린지도 참여 시 fixed_challenge_goal 이 참여자의 challenge_goal 로 복제되어 있다.)
+    List<ChallengeGoal> challengeGoals = participant.getChallengeGoals();
 
     List<DiaryGoal> diaryGoals = new ArrayList<>();
     List<Long> achievedGoalIds =
