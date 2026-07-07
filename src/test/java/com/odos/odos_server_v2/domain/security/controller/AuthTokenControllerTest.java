@@ -2,7 +2,6 @@ package com.odos.odos_server_v2.domain.security.controller;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -34,25 +33,27 @@ class AuthTokenControllerTest {
   @InjectMocks private AuthTokenController authTokenController;
 
   @Test
-  void reissueAccessToken_validatesStoredRefreshTokenAndReissuesOnlyAccessToken() {
-    String refreshToken = "valid-refresh-token";
+  void reissueAccessToken_rotatesRefreshTokenAndReissuesBothTokens() {
+    String oldRefreshToken = "valid-refresh-token";
+    String newRefreshToken = "new-refresh-token";
     String accessToken = "new-access-token";
-    LocalDateTime expiresAt = LocalDateTime.now().plusDays(14);
+    LocalDateTime newExpiresAt = LocalDateTime.now().plusDays(14);
     Member member = Member.builder().id(1L).build();
 
-    when(jwtTokenProvider.extractRefreshToken(request)).thenReturn(Optional.of(refreshToken));
-    when(jwtTokenProvider.isValidToken(refreshToken)).thenReturn(true);
-    when(jwtTokenProvider.isExpired(refreshToken)).thenReturn(false);
-    when(jwtTokenProvider.extractMemberId(refreshToken)).thenReturn(Optional.of("1"));
+    when(jwtTokenProvider.extractRefreshToken(request)).thenReturn(Optional.of(oldRefreshToken));
+    when(jwtTokenProvider.isValidToken(oldRefreshToken)).thenReturn(true);
+    when(jwtTokenProvider.isExpired(oldRefreshToken)).thenReturn(false);
+    when(jwtTokenProvider.extractMemberId(oldRefreshToken)).thenReturn(Optional.of("1"));
     when(memberRepository.findById(1L)).thenReturn(Optional.of(member));
-    when(jwtTokenProvider.extractExpiration(refreshToken)).thenReturn(Optional.of(expiresAt));
     when(jwtTokenProvider.createAccessToken(member)).thenReturn(accessToken);
+    when(jwtTokenProvider.createRefreshToken(member)).thenReturn(newRefreshToken);
+    when(jwtTokenProvider.extractExpiration(newRefreshToken)).thenReturn(Optional.of(newExpiresAt));
 
     authTokenController.reissueAccessToken(request, response);
 
-    verify(refreshTokenService).validateOrRegisterMigrationToken(member, refreshToken, expiresAt);
+    verify(refreshTokenService).rotate(member, oldRefreshToken, newRefreshToken, newExpiresAt);
     verify(jwtTokenProvider).addAccessTokenCookie(response, accessToken);
-    verify(jwtTokenProvider, never()).createRefreshToken(member);
+    verify(jwtTokenProvider).addRefreshTokenCookie(response, newRefreshToken);
   }
 
   @Test

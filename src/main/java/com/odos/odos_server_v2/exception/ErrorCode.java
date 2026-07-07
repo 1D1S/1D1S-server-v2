@@ -19,6 +19,8 @@ public enum ErrorCode {
   EXPIRED_ACCESS_TOKEN(HttpStatus.UNAUTHORIZED, "AUTH-009", "Access Token이 만료되었습니다."),
   INVALID_JWT(HttpStatus.UNAUTHORIZED, "AUTH-010", "유효하지 않은 JWT입니다."),
   INVALID_OAUTH_EMAIL(HttpStatus.BAD_REQUEST, "AUTH-011", "소셜 로그인에서 이메일을 가져올 수 없습니다."),
+  REFRESH_TOKEN_REUSE_DETECTED(
+      HttpStatus.UNAUTHORIZED, "AUTH-012", "재사용된 RefreshToken이 감지되어 세션이 무효화되었습니다."),
 
   // member
   CATEGORY_EMPTY(HttpStatus.BAD_REQUEST, "USER-001", "관심 카테고리는 최소 1개 이상 선택해야 합니다."),
