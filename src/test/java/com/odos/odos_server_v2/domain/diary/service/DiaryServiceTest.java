@@ -69,14 +69,15 @@ class DiaryServiceTest {
     Participant guestParticipant =
         participantRepository.save(createParticipant(guest, fixedChallenge));
 
-    ChallengeGoal hostGoal1 =
-        challengeGoalRepository.save(createChallengeGoal("물 2L 마시기", hostParticipant));
-    ChallengeGoal hostGoal2 =
-        challengeGoalRepository.save(createChallengeGoal("운동 30분 하기", hostParticipant));
+    // 호스트도 fixed_challenge_goal 로부터 복제된 본인의 challenge_goal 을 가진다.
+    challengeGoalRepository.save(createChallengeGoal("물 2L 마시기", hostParticipant));
+    challengeGoalRepository.save(createChallengeGoal("운동 30분 하기", hostParticipant));
 
-    // 게스트의 추가적인 개인챌린지 목표 추가 (로직상 잘 돌아가는지 체크)
-    ChallengeGoal guestGoal =
-        challengeGoalRepository.save(createChallengeGoal("게스트 개인 목표", guestParticipant));
+    // 게스트도 참여 시 fixed_challenge_goal 로부터 본인의 challenge_goal 로 복제받은 상태.
+    ChallengeGoal guestGoal1 =
+        challengeGoalRepository.save(createChallengeGoal("물 2L 마시기", guestParticipant));
+    ChallengeGoal guestGoal2 =
+        challengeGoalRepository.save(createChallengeGoal("운동 30분 하기", guestParticipant));
 
     when(imageService.getFileUrl(any())).thenReturn("https://test.com/profile.png");
 
@@ -91,32 +92,22 @@ class DiaryServiceTest {
     request.setFeeling(Feeling.HAPPY);
     request.setIsPublic(true);
 
-    // host goal 2개 중 1개만 체크했다고 가정
-    request.setAchievedGoalIds(List.of(hostGoal1.getId()));
+    // guest 본인 목표 2개 중 1개만 체크했다고 가정
+    request.setAchievedGoalIds(List.of(guestGoal1.getId()));
 
     // when
     DiaryResponse response = diaryService.createDiary(guest.getId(), request);
 
-    // then 1) host가 만든 fixed goal 목록 조회
-    List<Long> expectedHostGoalIds =
-        challengeGoalRepository.getFixedGoals(host.getId(), fixedChallenge.getId()).stream()
-            .map(ChallengeGoal::getId)
-            .toList();
-    System.out.println("host의 목표");
-    System.out.println(expectedHostGoalIds);
+    // then 1) FIXED 챌린지의 일지는 호스트가 아닌 guest 본인의 challenge_goal 에 연결되어야 한다.
+    Set<Long> expectedGuestGoalIds = Set.of(guestGoal1.getId(), guestGoal2.getId());
 
     // then 2) 실제 저장된 DiaryGoal 조회
     List<DiaryGoal> savedDiaryGoals = diaryGoalRepository.findAll();
 
-    // 목표 1개 수행한 다이어리
-    List<Long> actualDiaryGoalChallengeGoalIds =
-        savedDiaryGoals.stream().map(dg -> dg.getChallengeGoal().getId()).toList();
+    Set<Long> actualDiaryGoalChallengeGoalIds =
+        savedDiaryGoals.stream().map(dg -> dg.getChallengeGoal().getId()).collect(toSet());
 
-    assertEquals(expectedHostGoalIds.size(), actualDiaryGoalChallengeGoalIds.size());
-
-    assertEquals(
-        expectedHostGoalIds.stream().collect(toSet()),
-        actualDiaryGoalChallengeGoalIds.stream().collect(toSet()));
+    assertEquals(expectedGuestGoalIds, actualDiaryGoalChallengeGoalIds);
 
     Set<Long> completedGoalIds =
         savedDiaryGoals.stream()
@@ -124,22 +115,19 @@ class DiaryServiceTest {
             .map(dg -> dg.getChallengeGoal().getId())
             .collect(toSet());
 
-    assertEquals(Set.of(hostGoal1.getId()), completedGoalIds);
-    System.out.println("실제 만들어진 다이어리목표 확인");
-    System.out.println(completedGoalIds);
+    assertEquals(Set.of(guestGoal1.getId()), completedGoalIds);
 
-    // then 4) 생성된 diary의 작성자는 guest여야 함
+    // then 3) 생성된 diary의 작성자는 guest여야 함
     assertTrue(
         savedDiaryGoals.stream()
             .allMatch(dg -> dg.getDiary().getMember().getId().equals(guest.getId())));
 
-    // response도 추가 검증
+    // response도 guest 본인 목표 기준으로 내려가야 한다.
     Set<Long> responseGoalIds =
         response.getDiaryInfo().getDiaryGoal().stream()
             .map(DiaryGoalDto::getChallengeGoalId)
             .collect(toSet());
-    System.out.println("생성된 일지목표 list");
-    System.out.println(responseGoalIds);
+    assertEquals(expectedGuestGoalIds, responseGoalIds);
   }
 
   private Member createMember(String email, String nickname) {

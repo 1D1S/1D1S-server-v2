@@ -1107,9 +1107,11 @@ public class ChallengeController {
           String cursor,
       @Parameter(description = "검색 키워드") @RequestParam(name = "keyword", required = false)
           String keyword,
-      @Parameter(description = "카테고리 필터 (예: DEV, HEALTH, STUDY 등)")
+      @Parameter(
+              description =
+                  "카테고리 필터 (DEV, EXERCISE, BOOK, MUSIC, STUDY, LEISURE, ECONOMY). 다중 선택 가능(category=DEV&category=BOOK), 미입력 시 전체")
           @RequestParam(name = "category", required = false)
-          Category category,
+          List<Category> categories,
       @Parameter(description = "챌린지 종류 필터 (PUBLIC, OFFICIAL). 미입력 시 전체 (PRIVATE 제외)")
           @RequestParam(name = "challengeType", required = false)
           ChallengeType challengeType,
@@ -1122,7 +1124,7 @@ public class ChallengeController {
     Long memberId = CurrentUserContext.getCurrentMemberIdOrNull();
     Pagination<ChallengeSummaryResponse> page =
         challengeService.getChallengeList(
-            memberId, limit, cursor, keyword, category, challengeType, status);
+            memberId, limit, cursor, keyword, categories, challengeType, status);
 
     return ApiResponse.success(Message.GET_CHALLENGE_LIST, page);
   }
@@ -1211,9 +1213,11 @@ public class ChallengeController {
           int size,
       @Parameter(description = "검색 키워드") @RequestParam(name = "keyword", required = false)
           String keyword,
-      @Parameter(description = "카테고리 필터 (예: DEV, HEALTH, STUDY 등)")
+      @Parameter(
+              description =
+                  "카테고리 필터 (DEV, EXERCISE, BOOK, MUSIC, STUDY, LEISURE, ECONOMY). 다중 선택 가능(category=DEV&category=BOOK), 미입력 시 전체")
           @RequestParam(name = "category", required = false)
-          Category category,
+          List<Category> categories,
       @Parameter(description = "챌린지 종류 필터 (PUBLIC, OFFICIAL). 미입력 시 전체 (PRIVATE 제외)")
           @RequestParam(name = "challengeType", required = false)
           ChallengeType challengeType,
@@ -1226,7 +1230,7 @@ public class ChallengeController {
     Long memberId = CurrentUserContext.getCurrentMemberIdOrNull();
     OffsetPagination<ChallengeSummaryResponse> response =
         challengeService.getChallengeListByOffset(
-            memberId, page, size, keyword, category, challengeType, status);
+            memberId, page, size, keyword, categories, challengeType, status);
 
     return ApiResponse.success(Message.GET_CHALLENGE_LIST, response);
   }
