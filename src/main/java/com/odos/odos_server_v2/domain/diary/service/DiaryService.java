@@ -93,6 +93,10 @@ public class DiaryService {
             .build();
     Diary newDiary = diaryRepository.save(diary);
 
+    // presigned로 업로드된 이미지 URL을 세팅 (cascade로 함께 저장됨)
+    validateImageUrls(request.getImageUrls());
+    newDiary.replaceImages(request.getImageUrls());
+
     // 챌린지 타입별 목표를 기반으로 다이어리 목표달성 생성 및 저장
     // FIXED/FLEXIBLE 모두 참여자 본인의 challenge_goal 을 기준으로 일지 목표를 생성한다.
     // (고정목표 챌린지도 참여 시 fixed_challenge_goal 이 참여자의 challenge_goal 로 복제되어 있다.)
@@ -215,6 +219,11 @@ public class DiaryService {
     }
 
     diary.updateDiary(request, challenge, diaryGoals);
+
+    // 이미지 전체 교체(clear-and-replace): 기존 DiaryImage 제거 후 imageUrls로 재구성
+    validateImageUrls(request.getImageUrls());
+    diary.replaceImages(request.getImageUrls());
+
     diaryRepository.save(diary);
     return DiaryResponse.from(
         member,
@@ -408,6 +417,19 @@ public class DiaryService {
     Page<DiaryResponse> diaryResponsePage = toDiaryResponsePage(member, memberId, diaries);
 
     return OffsetPagination.from(diaryResponsePage);
+  }
+
+  // imageUrls는 반드시 우리 스토리지에서 발급한 presigned fileUrl이어야 한다. (임의 외부 URL 저장 방지)
+  private void validateImageUrls(List<String> imageUrls) {
+    if (imageUrls == null || imageUrls.isEmpty()) {
+      return;
+    }
+    String allowedPrefix = imageService.getFileUrl("");
+    for (String url : imageUrls) {
+      if (url == null || !url.startsWith(allowedPrefix)) {
+        throw new CustomException(ErrorCode.DIARY_INVALID_IMAGE_URL);
+      }
+    }
   }
 
   @Transactional

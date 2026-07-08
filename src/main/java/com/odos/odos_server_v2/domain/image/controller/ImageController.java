@@ -2,6 +2,7 @@ package com.odos.odos_server_v2.domain.image.controller;
 
 import com.odos.odos_server_v2.domain.challenge.dto.ChallengeSummaryResponse;
 import com.odos.odos_server_v2.domain.image.dto.ImageUploadRequest;
+import com.odos.odos_server_v2.domain.image.dto.PresignedUploadResponse;
 import com.odos.odos_server_v2.domain.image.dto.PresignedUrlResponse;
 import com.odos.odos_server_v2.domain.shared.service.ImageService;
 import com.odos.odos_server_v2.response.ApiResponse;
@@ -13,6 +14,7 @@ import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -101,5 +103,24 @@ public class ImageController {
         Message.CREATE_PRESIGNED_URL_SUCCESS,
         imageService.createPresignedUrl(
             imageUploadRequest.getFileName(), imageUploadRequest.getFileType()));
+  }
+
+  @Operation(
+      summary = "presigned url 여러 개 발급 (일지 이미지용)",
+      description =
+          """
+          일지 이미지 여러 장을 위한 presigned url을 한 번에 발급한다.
+
+          1. 업로드할 파일 목록(fileName, fileType)을 배열로 보내 이 API 호출
+          2. 응답 각 항목의 uploadUrl 로 파일을 직접 PUT 업로드
+             - PUT 요청 헤더에 반드시 `Content-Type: <요청한 fileType>` 을 포함해야 한다.
+          3. 응답 각 항목의 fileUrl 배열을 모아 일지 생성/수정 API(POST/PATCH /diaries)의 imageUrls 필드에 넣어 호출
+          """)
+  @PostMapping("/presigned-urls")
+  public ApiResponse<List<PresignedUploadResponse>> generatePresignedUploadUrls(
+      @RequestBody List<ImageUploadRequest> imageUploadRequests) {
+    return ApiResponse.success(
+        Message.CREATE_PRESIGNED_URL_SUCCESS,
+        imageService.createPresignedUploadUrls(imageUploadRequests));
   }
 }

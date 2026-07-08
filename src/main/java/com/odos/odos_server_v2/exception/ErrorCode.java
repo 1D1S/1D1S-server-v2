@@ -41,6 +41,8 @@ public enum ErrorCode {
 
   INVALID_DIARY_ADMIN_FILTER(HttpStatus.BAD_REQUEST, "DIARY-006", "관리자 다이어리 필터 요청 형식이 올바르지 않습니다."),
   DIARY_DELETED_REASON_NULL(HttpStatus.BAD_REQUEST, "DIARY-007", "일지 삭제 사유를 입력해야 합니다"),
+  DIARY_INVALID_IMAGE_URL(
+      HttpStatus.BAD_REQUEST, "DIARY-008", "허용되지 않은 이미지 URL입니다. presigned 발급으로 받은 fileUrl만 사용할 수 있습니다."),
 
   // challenge
   CHALLENGE_NOT_FOUND(HttpStatus.NOT_FOUND, "CHALLENGE_001", "챌린지를 찾을 수 없습니다."),

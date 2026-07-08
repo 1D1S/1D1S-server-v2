@@ -1,5 +1,7 @@
 package com.odos.odos_server_v2.domain.shared.service;
 
+import com.odos.odos_server_v2.domain.image.dto.ImageUploadRequest;
+import com.odos.odos_server_v2.domain.image.dto.PresignedUploadResponse;
 import com.odos.odos_server_v2.domain.image.dto.PresignedUrlResponse;
 import java.io.IOException;
 import java.time.Duration;
@@ -66,6 +68,31 @@ public class ImageService {
   // 이미지 URL 생성 (여러장)
   public List<String> getFileUrls(List<String> fileNames) {
     return fileNames.stream().map(this::getFileUrl).toList();
+  }
+
+  // presigned url 발급 (여러 장) - 업로드 URL과 최종 접근 URL을 함께 반환
+  public List<PresignedUploadResponse> createPresignedUploadUrls(List<ImageUploadRequest> files) {
+    return files.stream()
+        .map(
+            file -> {
+              String objectKey = UUID.randomUUID() + "_" + file.getFileName();
+              PutObjectRequest objectRequest =
+                  PutObjectRequest.builder()
+                      .bucket(bucket)
+                      .key(objectKey)
+                      .contentType(file.getFileType())
+                      .build();
+              PresignedPutObjectRequest presignedRequest =
+                  s3Presigner.presignPutObject(
+                      r ->
+                          r.signatureDuration(Duration.ofMinutes(10))
+                              .putObjectRequest(objectRequest));
+              return PresignedUploadResponse.builder()
+                  .uploadUrl(presignedRequest.url().toString())
+                  .fileUrl(getFileUrl(objectKey))
+                  .build();
+            })
+        .toList();
   }
 
   // presigned url 발급
