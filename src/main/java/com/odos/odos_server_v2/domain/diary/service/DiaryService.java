@@ -442,11 +442,11 @@ public class DiaryService {
   }
 
   // 대표 썸네일 결정. imageUrls는 non-null 가정(호출부에서 보장), 요소는 이미 validateImageUrls 통과.
+  // - thumbnailUrl null 이면 대표 미선택 -> null (이미지가 있어도 자동 지정하지 않음)
   // - thumbnailUrl 지정 시 imageUrls에 포함돼야 함(아니면 DIARY-009, 빈 배열도 여기서 걸림)
-  // - thumbnailUrl null 이면 imageUrls 첫 요소, 빈 배열이면 null
   private String resolveThumbnailUrl(List<String> imageUrls, String thumbnailUrl) {
     if (thumbnailUrl == null) {
-      return imageUrls.isEmpty() ? null : imageUrls.get(0);
+      return null;
     }
     if (!imageUrls.contains(thumbnailUrl)) {
       throw new CustomException(ErrorCode.DIARY_INVALID_THUMBNAIL_URL);

@@ -138,18 +138,18 @@ class DiaryServiceTest {
   private static final String STORAGE_PREFIX = "https://test.com/";
 
   @Test
-  void createDiary_setsImagesAndDefaultsThumbnailToFirst() {
+  void createDiary_setsImagesButLeavesThumbnailNullWhenNotSelected() {
     long guestId = setUpGuestFixture();
     stubImageService();
 
     DiaryRequest request = baseImageRequest();
     request.setImageUrls(List.of(STORAGE_PREFIX + "a.jpg", STORAGE_PREFIX + "b.jpg"));
-    // thumbnailUrl 미지정 -> 첫 번째가 대표 썸네일
+    // thumbnailUrl 미지정 -> 대표 미선택, 이미지가 있어도 null 유지
 
     DiaryResponse response = diaryService.createDiary(guestId, request);
 
     assertEquals(List.of(STORAGE_PREFIX + "a.jpg", STORAGE_PREFIX + "b.jpg"), response.getImgUrl());
-    assertEquals(STORAGE_PREFIX + "a.jpg", response.getThumbnailUrl());
+    assertNull(response.getThumbnailUrl());
   }
 
   @Test

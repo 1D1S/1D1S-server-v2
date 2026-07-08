@@ -56,7 +56,7 @@ public class DiaryRequest {
   @Schema(
       description =
           "대표 썸네일로 지정할 이미지 URL. 반드시 imageUrls 안에 포함된 값이어야 한다. "
-              + "생략(null)하면 imageUrls의 첫 번째 값이 자동 지정되고, imageUrls가 비어 있으면 null이 된다.",
+              + "생략(null)하면 대표 미선택으로 처리되어 thumbnailUrl은 null이 된다(이미지가 있어도 자동 지정하지 않음).",
       example = "https://odos-bucket.s3.ap-northeast-2.amazonaws.com/uuid_test.jpeg")
   private String thumbnailUrl;
 }
