@@ -37,6 +37,9 @@ public class Diary extends BaseTimeEntity {
 
   @Column private String title;
 
+  // 대표 썸네일. images(DiaryImage.url) 중 하나의 값이며, 없으면 null.
+  @Column private String thumbnailUrl;
+
   @Column private LocalDate completedDate;
 
   @Column
@@ -120,6 +123,10 @@ public class Diary extends BaseTimeEntity {
     for (String url : imageUrls) {
       this.images.add(DiaryImage.builder().diary(this).url(url).build());
     }
+  }
+
+  public void updateThumbnailUrl(String thumbnailUrl) {
+    this.thumbnailUrl = thumbnailUrl;
   }
 
   public void updateIsAllGoalsCompleted(Boolean isChecked) {

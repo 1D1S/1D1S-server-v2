@@ -95,7 +95,11 @@ public class DiaryService {
 
     // presigned로 업로드된 이미지 URL을 세팅 (cascade로 함께 저장됨)
     validateImageUrls(request.getImageUrls());
-    newDiary.replaceImages(request.getImageUrls());
+    if (request.getImageUrls() != null) {
+      newDiary.replaceImages(request.getImageUrls());
+      newDiary.updateThumbnailUrl(
+          resolveThumbnailUrl(request.getImageUrls(), request.getThumbnailUrl()));
+    }
 
     // 챌린지 타입별 목표를 기반으로 다이어리 목표달성 생성 및 저장
     // FIXED/FLEXIBLE 모두 참여자 본인의 challenge_goal 을 기준으로 일지 목표를 생성한다.
@@ -221,8 +225,13 @@ public class DiaryService {
     diary.updateDiary(request, challenge, diaryGoals);
 
     // 이미지 전체 교체(clear-and-replace): 기존 DiaryImage 제거 후 imageUrls로 재구성
+    // imageUrls가 null이면 이미지/썸네일 모두 그대로 유지, 값이 있으면 썸네일도 새 배열 기준으로 재설정
     validateImageUrls(request.getImageUrls());
-    diary.replaceImages(request.getImageUrls());
+    if (request.getImageUrls() != null) {
+      diary.replaceImages(request.getImageUrls());
+      diary.updateThumbnailUrl(
+          resolveThumbnailUrl(request.getImageUrls(), request.getThumbnailUrl()));
+    }
 
     diaryRepository.save(diary);
     return DiaryResponse.from(
@@ -430,6 +439,19 @@ public class DiaryService {
         throw new CustomException(ErrorCode.DIARY_INVALID_IMAGE_URL);
       }
     }
+  }
+
+  // 대표 썸네일 결정. imageUrls는 non-null 가정(호출부에서 보장), 요소는 이미 validateImageUrls 통과.
+  // - thumbnailUrl 지정 시 imageUrls에 포함돼야 함(아니면 DIARY-009, 빈 배열도 여기서 걸림)
+  // - thumbnailUrl null 이면 imageUrls 첫 요소, 빈 배열이면 null
+  private String resolveThumbnailUrl(List<String> imageUrls, String thumbnailUrl) {
+    if (thumbnailUrl == null) {
+      return imageUrls.isEmpty() ? null : imageUrls.get(0);
+    }
+    if (!imageUrls.contains(thumbnailUrl)) {
+      throw new CustomException(ErrorCode.DIARY_INVALID_THUMBNAIL_URL);
+    }
+    return thumbnailUrl;
   }
 
   @Transactional
