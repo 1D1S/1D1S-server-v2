@@ -37,6 +37,9 @@ public class Diary extends BaseTimeEntity {
 
   @Column private String title;
 
+  // 대표 썸네일. images(DiaryImage.url) 중 하나의 값이며, 없으면 null.
+  @Column private String thumbnailUrl;
+
   @Column private LocalDate completedDate;
 
   @Column
@@ -67,7 +70,7 @@ public class Diary extends BaseTimeEntity {
 
   @Builder.Default
   @BatchSize(size = 100)
-  @OneToMany(mappedBy = "diary", cascade = CascadeType.ALL)
+  @OneToMany(mappedBy = "diary", cascade = CascadeType.ALL, orphanRemoval = true)
   private List<DiaryImage> images = new ArrayList<>();
 
   @Builder.Default
@@ -108,6 +111,22 @@ public class Diary extends BaseTimeEntity {
 
   public void addDiaryImage(DiaryImage diaryImage) {
     this.images.add(diaryImage);
+  }
+
+  // imageUrls로 이미지를 전체 교체(clear-and-replace).
+  // null = 변경 안 함(기존 이미지 유지), 빈 배열 = 전부 삭제.
+  public void replaceImages(List<String> imageUrls) {
+    if (imageUrls == null) {
+      return;
+    }
+    this.images.clear();
+    for (String url : imageUrls) {
+      this.images.add(DiaryImage.builder().diary(this).url(url).build());
+    }
+  }
+
+  public void updateThumbnailUrl(String thumbnailUrl) {
+    this.thumbnailUrl = thumbnailUrl;
   }
 
   public void updateIsAllGoalsCompleted(Boolean isChecked) {
