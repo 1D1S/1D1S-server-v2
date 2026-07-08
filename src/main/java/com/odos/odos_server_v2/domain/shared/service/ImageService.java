@@ -26,6 +26,10 @@ public class ImageService {
   @Value("${cloud.aws.s3.bucket}")
   private String bucket;
 
+  // UUID 고정 오브젝트 URL이라 내용이 안 바뀜 → 1년 immutable 캐싱.
+  // presign 시 signed header가 되므로 프론트가 PUT에 동일 값을 실어야 함.
+  private static final String CACHE_CONTROL = "public, max-age=31536000, immutable";
+
   // 이미지 업로드 (1장)
   public String uploadFile(MultipartFile file) throws IOException {
     String fileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
@@ -81,6 +85,7 @@ public class ImageService {
                       .bucket(bucket)
                       .key(objectKey)
                       .contentType(file.getFileType())
+                      .cacheControl(CACHE_CONTROL)
                       .build();
               PresignedPutObjectRequest presignedRequest =
                   s3Presigner.presignPutObject(
@@ -100,7 +105,7 @@ public class ImageService {
     String objectKey = UUID.randomUUID().toString();
 
     PutObjectRequest objectRequest =
-        PutObjectRequest.builder().bucket(bucket).key(objectKey).build();
+        PutObjectRequest.builder().bucket(bucket).key(objectKey).cacheControl(CACHE_CONTROL).build();
 
     PresignedPutObjectRequest presignedRequest =
         s3Presigner.presignPutObject(
