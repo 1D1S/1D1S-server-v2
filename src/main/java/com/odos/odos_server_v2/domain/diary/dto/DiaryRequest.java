@@ -44,4 +44,19 @@ public class DiaryRequest {
   @Schema(description = "목표 달성 날짜 (yyyy-MM-dd 형식)", example = "2026-02-24")
   @JsonFormat(pattern = "yyyy-MM-dd")
   private LocalDate achievedDate;
+
+  @Schema(
+      description =
+          "일지 이미지 URL 목록. presigned 발급(POST /image/presigned-urls)으로 받은 fileUrl 값을 넣는다. "
+              + "수정 시 여기 담긴 목록으로 기존 이미지를 전체 교체(clear-and-replace)한다. "
+              + "생략하거나 빈 배열이면 이미지가 없는 것으로 처리된다.",
+      example = "[\"https://odos-bucket.s3.ap-northeast-2.amazonaws.com/uuid_test.jpeg\"]")
+  private List<String> imageUrls;
+
+  @Schema(
+      description =
+          "대표 썸네일로 지정할 이미지 URL. 반드시 imageUrls 안에 포함된 값이어야 한다. "
+              + "생략(null)하면 imageUrls의 첫 번째 값이 자동 지정되고, imageUrls가 비어 있으면 null이 된다.",
+      example = "https://odos-bucket.s3.ap-northeast-2.amazonaws.com/uuid_test.jpeg")
+  private String thumbnailUrl;
 }

@@ -1085,9 +1085,13 @@ public class DiaryController {
   }
 
   @Operation(
-      summary = "일지에 이미지 1장만 올리기",
+      deprecated = true,
+      summary = "[DEPRECATED] 일지에 이미지 1장만 올리기",
       description =
           """
+                [DEPRECATED] presigned 업로드(POST /image/presigned-urls) + 일지 생성/수정의 imageUrls 필드 사용으로 대체됨.
+                기존 append 방식이며 clear-and-replace가 아니다. 신규 연동에는 사용하지 말 것.
+
                 일지 내용과 이미지를 분리 업로드하기 위한 API.
                 특정 diaryId의 일지에 이미지 1장을 업로드한다.
 
@@ -1155,9 +1159,13 @@ public class DiaryController {
   }
 
   @Operation(
-      summary = "일지 이미지 여러장 업로드",
+      deprecated = true,
+      summary = "[DEPRECATED] 일지 이미지 여러장 업로드",
       description =
           """
+                [DEPRECATED] presigned 업로드(POST /image/presigned-urls) + 일지 생성/수정의 imageUrls 필드 사용으로 대체됨.
+                기존 append 방식이며 clear-and-replace가 아니다. 신규 연동에는 사용하지 말 것.
+
                 일지 내용과 이미지를 분리 업로드하기 위한 API.
                 특정 diaryId의 일지에 이미지 여러 장을 업로드한다.
 

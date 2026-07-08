@@ -8,6 +8,8 @@ public interface StoryDiarySummaryProjection {
 
   String getDiaryTitle();
 
+  String getThumbnailUrl();
+
   LocalDateTime getCreatedAt();
 
   Long getMemberId();
