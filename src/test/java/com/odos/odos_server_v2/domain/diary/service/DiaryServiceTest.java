@@ -2,6 +2,8 @@ package com.odos.odos_server_v2.domain.diary.service;
 
 import static java.util.stream.Collectors.toSet;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -28,6 +30,8 @@ import com.odos.odos_server_v2.domain.member.entity.Member;
 import com.odos.odos_server_v2.domain.member.repository.MemberRepository;
 import com.odos.odos_server_v2.domain.shared.Enum.Category;
 import com.odos.odos_server_v2.domain.shared.service.ImageService;
+import com.odos.odos_server_v2.exception.CustomException;
+import com.odos.odos_server_v2.exception.ErrorCode;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -128,6 +132,133 @@ class DiaryServiceTest {
             .map(DiaryGoalDto::getChallengeGoalId)
             .collect(toSet());
     assertEquals(expectedGuestGoalIds, responseGoalIds);
+  }
+
+  // presigned fileUrl 프리픽스. validateImageUrls 는 imageService.getFileUrl("") 를 허용 프리픽스로 쓴다.
+  private static final String STORAGE_PREFIX = "https://test.com/";
+
+  @Test
+  void createDiary_setsImagesAndDefaultsThumbnailToFirst() {
+    long guestId = setUpGuestFixture();
+    stubImageService();
+
+    DiaryRequest request = baseImageRequest();
+    request.setImageUrls(List.of(STORAGE_PREFIX + "a.jpg", STORAGE_PREFIX + "b.jpg"));
+    // thumbnailUrl 미지정 -> 첫 번째가 대표 썸네일
+
+    DiaryResponse response = diaryService.createDiary(guestId, request);
+
+    assertEquals(List.of(STORAGE_PREFIX + "a.jpg", STORAGE_PREFIX + "b.jpg"), response.getImgUrl());
+    assertEquals(STORAGE_PREFIX + "a.jpg", response.getThumbnailUrl());
+  }
+
+  @Test
+  void createDiary_usesExplicitThumbnailWhenInList() {
+    long guestId = setUpGuestFixture();
+    stubImageService();
+
+    DiaryRequest request = baseImageRequest();
+    request.setImageUrls(List.of(STORAGE_PREFIX + "a.jpg", STORAGE_PREFIX + "b.jpg"));
+    request.setThumbnailUrl(STORAGE_PREFIX + "b.jpg");
+
+    DiaryResponse response = diaryService.createDiary(guestId, request);
+
+    assertEquals(STORAGE_PREFIX + "b.jpg", response.getThumbnailUrl());
+  }
+
+  @Test
+  void createDiary_throwsWhenThumbnailNotInImageUrls() {
+    long guestId = setUpGuestFixture();
+    stubImageService();
+
+    DiaryRequest request = baseImageRequest();
+    request.setImageUrls(List.of(STORAGE_PREFIX + "a.jpg"));
+    request.setThumbnailUrl(STORAGE_PREFIX + "other.jpg");
+
+    CustomException ex =
+        assertThrows(CustomException.class, () -> diaryService.createDiary(guestId, request));
+    assertEquals(ErrorCode.DIARY_INVALID_THUMBNAIL_URL, ex.getErrorCode());
+  }
+
+  @Test
+  void createDiary_throwsWhenImageUrlNotFromOurStorage() {
+    long guestId = setUpGuestFixture();
+    stubImageService();
+
+    DiaryRequest request = baseImageRequest();
+    request.setImageUrls(List.of("https://evil.com/x.jpg"));
+
+    CustomException ex =
+        assertThrows(CustomException.class, () -> diaryService.createDiary(guestId, request));
+    assertEquals(ErrorCode.DIARY_INVALID_IMAGE_URL, ex.getErrorCode());
+  }
+
+  @Test
+  void updateDiary_nullImageUrlsKeepsExistingImages() {
+    long guestId = setUpGuestFixture();
+    stubImageService();
+
+    DiaryRequest createRequest = baseImageRequest();
+    createRequest.setImageUrls(List.of(STORAGE_PREFIX + "a.jpg"));
+    Long diaryId = diaryService.createDiary(guestId, createRequest).getId();
+
+    // imageUrls == null -> 이미지/썸네일 유지
+    DiaryRequest updateRequest = baseImageRequest();
+    updateRequest.setTitle("수정됨");
+    DiaryResponse response = diaryService.updateDiary(guestId, diaryId, updateRequest);
+
+    assertEquals(List.of(STORAGE_PREFIX + "a.jpg"), response.getImgUrl());
+    assertEquals(STORAGE_PREFIX + "a.jpg", response.getThumbnailUrl());
+  }
+
+  @Test
+  void updateDiary_emptyImageUrlsClearsImagesAndThumbnail() {
+    long guestId = setUpGuestFixture();
+    stubImageService();
+
+    DiaryRequest createRequest = baseImageRequest();
+    createRequest.setImageUrls(List.of(STORAGE_PREFIX + "a.jpg"));
+    Long diaryId = diaryService.createDiary(guestId, createRequest).getId();
+
+    // imageUrls == [] -> 전부 삭제, 썸네일 null
+    DiaryRequest updateRequest = baseImageRequest();
+    updateRequest.setImageUrls(List.of());
+    DiaryResponse response = diaryService.updateDiary(guestId, diaryId, updateRequest);
+
+    assertTrue(response.getImgUrl().isEmpty());
+    assertNull(response.getThumbnailUrl());
+  }
+
+  // getFileUrl("") -> 허용 프리픽스, 그 외 인자 -> 프로필 URL 로 스텁.
+  // "" 스텁을 any() 뒤에 선언해 "" 인자에 대해서는 프리픽스가 우선하도록 한다.
+  private void stubImageService() {
+    when(imageService.getFileUrl(any())).thenReturn("https://test.com/profile.png");
+    when(imageService.getFileUrl("")).thenReturn(STORAGE_PREFIX);
+  }
+
+  // host/guest/고정챌린지/참여자/목표 1개 세팅 후 guestId 반환. challengeId 는 필드에 보관.
+  private long setUpGuestFixture() {
+    Member host = memberRepository.save(createMember("host@test.com", "host"));
+    Member guest = memberRepository.save(createMember("guest@test.com", "guest"));
+    Challenge fixedChallenge = challengeRepository.save(createFixedChallenge(host));
+    Participant guestParticipant =
+        participantRepository.save(createParticipant(guest, fixedChallenge));
+    challengeGoalRepository.save(createChallengeGoal("물 2L 마시기", guestParticipant));
+    this.fixtureChallengeId = fixedChallenge.getId();
+    return guest.getId();
+  }
+
+  private Long fixtureChallengeId;
+
+  private DiaryRequest baseImageRequest() {
+    DiaryRequest request = new DiaryRequest();
+    request.setChallengeId(fixtureChallengeId);
+    request.setAchievedDate(LocalDate.of(2026, 3, 19));
+    request.setTitle("일지");
+    request.setContent("내용");
+    request.setFeeling(Feeling.HAPPY);
+    request.setIsPublic(true);
+    return request;
   }
 
   private Member createMember(String email, String nickname) {
