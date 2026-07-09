@@ -73,7 +73,8 @@ public class ChallengeRankingService {
     entries.sort(
         Comparator.comparingInt((Entry e) -> e.streak)
             .reversed() // 스트릭 desc
-            .thenComparing(Comparator.comparingLong((Entry e) -> e.goals).reversed()) // 완료 목표 수 desc
+            .thenComparing(
+                Comparator.comparingLong((Entry e) -> e.goals).reversed()) // 완료 목표 수 desc
             .thenComparing(e -> e.participantId)); // 동점 내 결정성: participantId asc
 
     // 4) 경쟁 순위 부여(동점 같은 등수, 다음 등수 건너뛰기)

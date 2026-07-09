@@ -315,9 +315,7 @@ public class ChallengeService {
     int from = (int) Math.min((long) Math.max(page, 0) * safeSize, total);
     int to = Math.min(from + safeSize, total);
     List<ParticipantResponse> items =
-        sorted.subList(from, to).stream()
-            .map(p -> toParticipant(p, ranks.get(p.getId())))
-            .toList();
+        sorted.subList(from, to).stream().map(p -> toParticipant(p, ranks.get(p.getId()))).toList();
     int totalPages = (int) Math.ceil((double) total / safeSize);
     return new OffsetPagination<>(
         items, new OffsetPagination.PageInfo(page, size, total, totalPages, to < total));
