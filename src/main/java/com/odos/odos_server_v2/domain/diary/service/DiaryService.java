@@ -72,6 +72,9 @@ public class DiaryService {
     ChallengeSummaryResponse challengeSummary =
         challengeService.toChallengeSummary(challenge, memberId);
 
+    // 인증샷 필수 챌린지면 이미지가 최소 1장 있어야 한다.
+    validatePhotoRequired(challenge, hasImage(request.getImageUrls()));
+
     Participant participant =
         participantRepository
             .findByMemberIdAndChallengeId(memberId, challenge.getId())
@@ -178,6 +181,14 @@ public class DiaryService {
             .orElseThrow(() -> new CustomException(ErrorCode.CHALLENGE_NOT_FOUND));
     ChallengeSummaryResponse challengeSummary =
         challengeService.toChallengeSummary(challenge, memberId);
+
+    // 인증샷 필수 챌린지면 수정 후 최종 이미지가 최소 1장 있어야 한다.
+    // imageUrls를 보내면 그 목록이 최종, 생략(null)하면 기존 이미지가 유지된다.
+    boolean finalHasImage =
+        request.getImageUrls() != null
+            ? hasImage(request.getImageUrls())
+            : !diary.getImages().isEmpty();
+    validatePhotoRequired(challenge, finalHasImage);
 
     Participant participant =
         participantRepository
@@ -438,6 +449,17 @@ public class DiaryService {
       if (url == null || !url.startsWith(allowedPrefix)) {
         throw new CustomException(ErrorCode.DIARY_INVALID_IMAGE_URL);
       }
+    }
+  }
+
+  private boolean hasImage(List<String> imageUrls) {
+    return imageUrls != null && !imageUrls.isEmpty();
+  }
+
+  // 인증샷 필수 챌린지인데 최종 이미지가 없으면 막는다.
+  private void validatePhotoRequired(Challenge challenge, boolean hasImage) {
+    if (challenge.isPhotoRequired() && !hasImage) {
+      throw new CustomException(ErrorCode.DIARY_PHOTO_REQUIRED);
     }
   }
 

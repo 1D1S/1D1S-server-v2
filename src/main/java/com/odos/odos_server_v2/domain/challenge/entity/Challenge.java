@@ -41,6 +41,10 @@ public class Challenge {
 
   @Column private boolean allowMidJoin;
 
+  // 인증샷(사진) 필수 여부. true면 일지 작성 시 이미지 1장 이상 필수.
+  @Column(nullable = false)
+  private boolean photoRequired;
+
   @Column private Long maxParticipantsCnt;
 
   @Column
