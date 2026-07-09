@@ -37,7 +37,7 @@ public class RefreshTokenService {
   public void rotate(Member member, String oldToken, String newToken, LocalDateTime newExpiresAt) {
     String familyId =
         refreshTokenRepository
-            .findByRefreshToken(oldToken)
+            .findByRefreshTokenForUpdate(oldToken)
             .map(token -> rotateExistingToken(token, member.getId()))
             .orElseGet(this::newFamilyId);
 
