@@ -1,5 +1,7 @@
 package com.odos.odos_server_v2.domain.shared.service;
 
+import com.odos.odos_server_v2.domain.image.dto.ImageUploadRequest;
+import com.odos.odos_server_v2.domain.image.dto.PresignedUploadResponse;
 import com.odos.odos_server_v2.domain.image.dto.PresignedUrlResponse;
 import java.io.IOException;
 import java.time.Duration;
@@ -23,6 +25,10 @@ public class ImageService {
 
   @Value("${cloud.aws.s3.bucket}")
   private String bucket;
+
+  // UUID 고정 오브젝트 URL이라 내용이 안 바뀜 → 1년 immutable 캐싱.
+  // presign 시 signed header가 되므로 프론트가 PUT에 동일 값을 실어야 함.
+  private static final String CACHE_CONTROL = "public, max-age=31536000, immutable";
 
   // 이미지 업로드 (1장)
   public String uploadFile(MultipartFile file) throws IOException {
@@ -68,12 +74,38 @@ public class ImageService {
     return fileNames.stream().map(this::getFileUrl).toList();
   }
 
+  // presigned url 발급 (여러 장) - 업로드 URL과 최종 접근 URL을 함께 반환
+  public List<PresignedUploadResponse> createPresignedUploadUrls(List<ImageUploadRequest> files) {
+    return files.stream()
+        .map(
+            file -> {
+              String objectKey = UUID.randomUUID() + "_" + file.getFileName();
+              PutObjectRequest objectRequest =
+                  PutObjectRequest.builder()
+                      .bucket(bucket)
+                      .key(objectKey)
+                      .contentType(file.getFileType())
+                      .cacheControl(CACHE_CONTROL)
+                      .build();
+              PresignedPutObjectRequest presignedRequest =
+                  s3Presigner.presignPutObject(
+                      r ->
+                          r.signatureDuration(Duration.ofMinutes(10))
+                              .putObjectRequest(objectRequest));
+              return PresignedUploadResponse.builder()
+                  .uploadUrl(presignedRequest.url().toString())
+                  .fileUrl(getFileUrl(objectKey))
+                  .build();
+            })
+        .toList();
+  }
+
   // presigned url 발급
   public PresignedUrlResponse createPresignedUrl(String fileName, String fileType) {
     String objectKey = UUID.randomUUID().toString();
 
     PutObjectRequest objectRequest =
-        PutObjectRequest.builder().bucket(bucket).key(objectKey).build();
+        PutObjectRequest.builder().bucket(bucket).key(objectKey).cacheControl(CACHE_CONTROL).build();
 
     PresignedPutObjectRequest presignedRequest =
         s3Presigner.presignPutObject(

@@ -22,6 +22,7 @@ public class DiaryResponse {
   private String title;
   private String content;
   private List<String> imgUrl;
+  private String thumbnailUrl;
   private Boolean isPublic;
   private LikeDto likeInfo;
   private long commentCount;
@@ -93,6 +94,7 @@ public class DiaryResponse {
         .diaryInfo(info)
         .likeInfo(like)
         .imgUrl(imgUrl)
+        .thumbnailUrl(diary.getThumbnailUrl())
         .commentCount(commentCount)
         .build();
   }

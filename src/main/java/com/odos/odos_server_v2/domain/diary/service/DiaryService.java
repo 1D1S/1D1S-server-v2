@@ -93,6 +93,14 @@ public class DiaryService {
             .build();
     Diary newDiary = diaryRepository.save(diary);
 
+    // presigned로 업로드된 이미지 URL을 세팅 (cascade로 함께 저장됨)
+    validateImageUrls(request.getImageUrls());
+    if (request.getImageUrls() != null) {
+      newDiary.replaceImages(request.getImageUrls());
+      newDiary.updateThumbnailUrl(
+          resolveThumbnailUrl(request.getImageUrls(), request.getThumbnailUrl()));
+    }
+
     // 챌린지 타입별 목표를 기반으로 다이어리 목표달성 생성 및 저장
     // FIXED/FLEXIBLE 모두 참여자 본인의 challenge_goal 을 기준으로 일지 목표를 생성한다.
     // (고정목표 챌린지도 참여 시 fixed_challenge_goal 이 참여자의 challenge_goal 로 복제되어 있다.)
@@ -215,6 +223,16 @@ public class DiaryService {
     }
 
     diary.updateDiary(request, challenge, diaryGoals);
+
+    // 이미지 전체 교체(clear-and-replace): 기존 DiaryImage 제거 후 imageUrls로 재구성
+    // imageUrls가 null이면 이미지/썸네일 모두 그대로 유지, 값이 있으면 썸네일도 새 배열 기준으로 재설정
+    validateImageUrls(request.getImageUrls());
+    if (request.getImageUrls() != null) {
+      diary.replaceImages(request.getImageUrls());
+      diary.updateThumbnailUrl(
+          resolveThumbnailUrl(request.getImageUrls(), request.getThumbnailUrl()));
+    }
+
     diaryRepository.save(diary);
     return DiaryResponse.from(
         member,
@@ -408,6 +426,32 @@ public class DiaryService {
     Page<DiaryResponse> diaryResponsePage = toDiaryResponsePage(member, memberId, diaries);
 
     return OffsetPagination.from(diaryResponsePage);
+  }
+
+  // imageUrls는 반드시 우리 스토리지에서 발급한 presigned fileUrl이어야 한다. (임의 외부 URL 저장 방지)
+  private void validateImageUrls(List<String> imageUrls) {
+    if (imageUrls == null || imageUrls.isEmpty()) {
+      return;
+    }
+    String allowedPrefix = imageService.getFileUrl("");
+    for (String url : imageUrls) {
+      if (url == null || !url.startsWith(allowedPrefix)) {
+        throw new CustomException(ErrorCode.DIARY_INVALID_IMAGE_URL);
+      }
+    }
+  }
+
+  // 대표 썸네일 결정. imageUrls는 non-null 가정(호출부에서 보장), 요소는 이미 validateImageUrls 통과.
+  // - thumbnailUrl null 이면 대표 미선택 -> null (이미지가 있어도 자동 지정하지 않음)
+  // - thumbnailUrl 지정 시 imageUrls에 포함돼야 함(아니면 DIARY-009, 빈 배열도 여기서 걸림)
+  private String resolveThumbnailUrl(List<String> imageUrls, String thumbnailUrl) {
+    if (thumbnailUrl == null) {
+      return null;
+    }
+    if (!imageUrls.contains(thumbnailUrl)) {
+      throw new CustomException(ErrorCode.DIARY_INVALID_THUMBNAIL_URL);
+    }
+    return thumbnailUrl;
   }
 
   @Transactional
