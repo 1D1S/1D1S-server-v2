@@ -105,7 +105,11 @@ public class ImageService {
     String objectKey = UUID.randomUUID().toString();
 
     PutObjectRequest objectRequest =
-        PutObjectRequest.builder().bucket(bucket).key(objectKey).cacheControl(CACHE_CONTROL).build();
+        PutObjectRequest.builder()
+            .bucket(bucket)
+            .key(objectKey)
+            .cacheControl(CACHE_CONTROL)
+            .build();
 
     PresignedPutObjectRequest presignedRequest =
         s3Presigner.presignPutObject(

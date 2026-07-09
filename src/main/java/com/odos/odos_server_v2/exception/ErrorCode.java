@@ -47,6 +47,7 @@ public enum ErrorCode {
       "허용되지 않은 이미지 URL입니다. presigned 발급으로 받은 fileUrl만 사용할 수 있습니다."),
   DIARY_INVALID_THUMBNAIL_URL(
       HttpStatus.BAD_REQUEST, "DIARY-009", "썸네일 URL은 imageUrls에 포함된 값이어야 합니다."),
+  DIARY_PHOTO_REQUIRED(HttpStatus.BAD_REQUEST, "DIARY-010", "인증샷이 필수인 챌린지입니다."),
 
   // challenge
   CHALLENGE_NOT_FOUND(HttpStatus.NOT_FOUND, "CHALLENGE_001", "챌린지를 찾을 수 없습니다."),

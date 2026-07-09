@@ -60,4 +60,7 @@ public class ChallengeSummaryResponse {
 
   @Schema(description = "챌린지원 랜덤 3명 정보")
   private List<MemberInfo> randomParticipants;
+
+  @Schema(description = "인증샷(사진) 필수 여부", example = "false")
+  private boolean photoRequired;
 }
