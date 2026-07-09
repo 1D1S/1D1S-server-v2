@@ -26,8 +26,9 @@ public class ChallengeDiaryReminderScheduler {
             List.of(ParticipantStatus.HOST, ParticipantStatus.PARTICIPANT), today);
 
     for (Participant target : targets) {
+      // 대상 쿼리에서 이미 join fetch 로 로드한 member 를 그대로 전달(서비스에서 재조회 방지).
       notificationService.notifyChallengeDiaryReminder(
-          target.getMember().getId(),
+          target.getMember(),
           target.getChallenge().getId(),
           target.getChallenge().getTitle(),
           today);

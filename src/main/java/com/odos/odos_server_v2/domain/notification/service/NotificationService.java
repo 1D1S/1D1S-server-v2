@@ -329,9 +329,14 @@ public class NotificationService {
 
   @Transactional
   public boolean notifyChallengeDiaryReminder(
-      Long receiverId, Long challengeId, String challengeName, LocalDate reminderDate) {
-    Member receiver = getMember(receiverId);
-    LocalDateTime from = reminderDate.atStartOfDay();
+      Member receiver, Long challengeId, String challengeName, LocalDate reminderDate) {
+    // 멱등 경계: reminderDate(서울 기준 오늘)의 자정 시각을 createdAt 저장 존(JVM 기본 존)의 벽시계로 변환해
+    // 존이 서로 달라도 "같은 날 이미 발송" 판정이 흔들리지 않게 한다.
+    LocalDateTime from =
+        reminderDate
+            .atStartOfDay(SEOUL_ZONE)
+            .withZoneSameInstant(ZoneId.systemDefault())
+            .toLocalDateTime();
 
     if (notificationRepository.existsByReceiverAndTypeAndTargetIdAndCreatedAtGreaterThanEqual(
         receiver, NotificationType.CHALLENGE_DIARY_REMINDER, challengeId, from)) {
