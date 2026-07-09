@@ -18,6 +18,9 @@ public class ChallengeDetailDto {
   @Schema(description = "중도 참여 허용 여부", example = "true")
   private boolean allowMidJoin;
 
+  @Schema(description = "인증샷(사진) 필수 여부", example = "false")
+  private boolean photoRequired;
+
   @Schema(
       description =
           "현재 로그인한 사용자의 참여 상태 (PENDING: 대기, PARTICIPANT: 참여, HOST: 호스트, REJECTED: 거절, LEAVE: 탈퇴, NONE: 미참여)",

@@ -1,5 +1,6 @@
 package com.odos.odos_server_v2.domain.diary.repository;
 
+import com.odos.odos_server_v2.domain.challenge.dto.MemberDiaryDateProjection;
 import com.odos.odos_server_v2.domain.diary.entity.Diary;
 import java.time.LocalDate;
 import java.util.Collection;
@@ -30,6 +31,16 @@ public interface DiaryRepository extends JpaRepository<Diary, Long> {
   List<Diary> findDiariesByMember_IdAndIsDeletedFalse(Long memberId);
 
   long countByChallengeIdAndIsAllGoalsCompletedTrueAndIsDeletedFalse(Long challengeId);
+
+  /** 챌린지 랭킹용: 챌린지 내 멤버별 일지 작성 날짜를 한 번에 조회(스트릭 계산용, 참여자당 반복 조회 방지). */
+  @Query(
+      """
+      select d.member.id as memberId, d.completedDate as completedDate
+      from Diary d
+      where d.challenge.id = :challengeId and d.isDeleted = false
+      """)
+  List<MemberDiaryDateProjection> findMemberDiaryDatesForChallenge(
+      @Param("challengeId") Long challengeId);
 
   @Query(
       """

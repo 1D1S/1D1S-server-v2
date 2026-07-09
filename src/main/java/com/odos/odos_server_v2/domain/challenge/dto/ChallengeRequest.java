@@ -38,6 +38,9 @@ public class ChallengeRequest {
   @Schema(description = "중도 참여 허용 여부", example = "true")
   private Boolean allowMidJoin;
 
+  @Schema(description = "인증샷(사진) 필수 여부 (기본 false)", example = "false")
+  private Boolean photoRequired;
+
   @Schema(description = "챌린지 형태 (INDIVIDUAL: 개인, GROUP: 단체)", example = "GROUP")
   private ParticipationType participationType;
 
