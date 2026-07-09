@@ -129,8 +129,8 @@ public interface ChallengeRepository extends JpaRepository<Challenge, Long> {
       Pageable pageable);
 
   /**
-   * 진행중(삭제/종료되지 않은)이면서 마지막 활동이 비활성 기준일 이전인 챌린지 id 목록. 활동 = 삭제되지 않은 일지의 작성일(createdAt) 중 최신. 일지가 하나도 없으면
-   * 챌린지 시작일(startDate)을 기준으로 판정. 공식(OFFICIAL) 챌린지는 대상에서 제외한다.
+   * 진행중(삭제/종료되지 않은)이면서 마지막 활동이 비활성 기준일 이전인 챌린지 id 목록. 활동 = 삭제되지 않은 일지의 작성일(createdAt) 중 최신. 일지가 하나도
+   * 없으면 챌린지 시작일(startDate)을 기준으로 판정. 공식(OFFICIAL) 챌린지는 대상에서 제외한다.
    */
   @Query(
       """
