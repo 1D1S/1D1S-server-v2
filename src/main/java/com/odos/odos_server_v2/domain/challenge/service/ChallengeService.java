@@ -8,6 +8,7 @@ import com.odos.odos_server_v2.domain.challenge.entity.ChallengePoke;
 import com.odos.odos_server_v2.domain.challenge.entity.Enum.ChallengeStatus;
 import com.odos.odos_server_v2.domain.challenge.entity.Enum.ChallengeType;
 import com.odos.odos_server_v2.domain.challenge.entity.Enum.GoalType;
+import com.odos.odos_server_v2.domain.challenge.entity.Enum.ParticipantSortType;
 import com.odos.odos_server_v2.domain.challenge.entity.Enum.ParticipantStatus;
 import com.odos.odos_server_v2.domain.challenge.entity.Enum.ParticipationType;
 import com.odos.odos_server_v2.domain.challenge.entity.FixedChallengeGoal;
@@ -44,8 +45,10 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
@@ -73,6 +76,7 @@ public class ChallengeService {
   private final MemberRepository memberRepository;
   private final CursorService cursorService;
   private final NotificationService notificationService;
+  private final ChallengeRankingService challengeRankingService;
   @PersistenceContext private EntityManager entityManager;
   private final PasswordEncoder passwordEncoder;
 
@@ -273,7 +277,8 @@ public class ChallengeService {
     return toChallengeResponse(challenge, member);
   }
 
-  public List<ParticipantResponse> getChallengeParticipants(Long challengeId, Long memberId) {
+  public OffsetPagination<ParticipantResponse> getChallengeParticipants(
+      Long challengeId, Long memberId, ParticipantSortType sort, int page, int size) {
     Challenge challenge =
         challengeRepository
             .findById(challengeId)
@@ -289,9 +294,33 @@ public class ChallengeService {
       statuses = List.of(ParticipantStatus.HOST, ParticipantStatus.PARTICIPANT);
     }
 
-    return participantRepository.findByChallengeIdAndStatusIn(challengeId, statuses).stream()
-        .map(this::toParticipant)
-        .toList();
+    List<Participant> participants =
+        participantRepository.findByChallengeIdAndStatusIn(challengeId, statuses);
+    // 등수는 두 정렬 옵션 모두에서 응답에 포함되므로 항상 전체 참여자 기준으로 한 번 계산한다.
+    Map<Long, ChallengeRankingService.RankInfo> ranks =
+        challengeRankingService.computeRanks(challengeId, participants);
+
+    Comparator<Participant> order;
+    if (sort == ParticipantSortType.RANK) {
+      order =
+          Comparator.comparingInt((Participant p) -> ranks.get(p.getId()).rank())
+              .thenComparing(Participant::getId);
+    } else {
+      order = Comparator.comparing(Participant::getId); // 참여순(참여자 id 오름차순)
+    }
+    List<Participant> sorted = participants.stream().sorted(order).toList();
+
+    int total = sorted.size();
+    int safeSize = Math.max(size, 1);
+    int from = (int) Math.min((long) Math.max(page, 0) * safeSize, total);
+    int to = Math.min(from + safeSize, total);
+    List<ParticipantResponse> items =
+        sorted.subList(from, to).stream()
+            .map(p -> toParticipant(p, ranks.get(p.getId())))
+            .toList();
+    int totalPages = (int) Math.ceil((double) total / safeSize);
+    return new OffsetPagination<>(
+        items, new OffsetPagination.PageInfo(page, size, total, totalPages, to < total));
   }
 
   private boolean isHostOrAdmin(Challenge challenge, Long memberId) {
@@ -907,11 +936,22 @@ public class ChallengeService {
     }
     List<Participant> participants =
         participantRepository.findByChallengeIdAndStatusIn(challengeId, participantStatuses);
+    // 챌린지 상세에는 등수순 상위 5명만 노출한다(전체는 GET /challenges/{id}/participants 로 페이징 조회).
+    Map<Long, ChallengeRankingService.RankInfo> ranks =
+        challengeRankingService.computeRanks(challengeId, participants);
+    List<ParticipantResponse> topParticipants =
+        participants.stream()
+            .sorted(
+                Comparator.comparingInt((Participant p) -> ranks.get(p.getId()).rank())
+                    .thenComparing(Participant::getId))
+            .limit(5)
+            .map(p -> toParticipant(p, ranks.get(p.getId())))
+            .toList();
     return new ChallengeResponse(
         toChallengeSummary(challenge, memberId),
         toChallengeDetail(challenge, memberId),
         challengeGoals,
-        participants.stream().map(this::toParticipant).toList());
+        topParticipants);
   }
 
   public ChallengeSummaryResponse toChallengeSummary(Challenge challenge, Long memberId) {
@@ -961,6 +1001,11 @@ public class ChallengeService {
   }
 
   private final ParticipantResponse toParticipant(Participant participant) {
+    return toParticipant(participant, null);
+  }
+
+  private ParticipantResponse toParticipant(
+      Participant participant, ChallengeRankingService.RankInfo rankInfo) {
     Member member = participant.getMember();
     String profileUrl =
         member.getProfileUrl() == null ? "" : imageService.getFileUrl(member.getProfileUrl());
@@ -973,6 +1018,9 @@ public class ChallengeService {
         .profileImg(profileUrl)
         .status(participant.getStatus())
         .goals(goals)
+        .rank(rankInfo != null ? rankInfo.rank() : null)
+        .streak(rankInfo != null ? rankInfo.streak() : null)
+        .completedGoalCount(rankInfo != null ? (int) rankInfo.completedGoalCount() : null)
         .build();
   }
 
