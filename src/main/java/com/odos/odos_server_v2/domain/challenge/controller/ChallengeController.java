@@ -4,6 +4,7 @@ import com.odos.odos_server_v2.domain.challenge.dto.*;
 import com.odos.odos_server_v2.domain.challenge.entity.Enum.ChallengeStatus;
 import com.odos.odos_server_v2.domain.challenge.entity.Enum.ChallengeType;
 import com.odos.odos_server_v2.domain.challenge.entity.Enum.ParticipantSortType;
+import com.odos.odos_server_v2.domain.challenge.entity.Enum.ParticipantStatus;
 import com.odos.odos_server_v2.domain.challenge.service.ChallengeService;
 import com.odos.odos_server_v2.domain.diary.dto.DiaryStreakResponse;
 import com.odos.odos_server_v2.domain.member.CurrentUserContext;
@@ -482,6 +483,11 @@ public class ChallengeController {
   @GetMapping("/{challengeId}/participants")
   public ApiResponse<OffsetPagination<ParticipantResponse>> getChallengeParticipants(
       @Parameter(description = "챌린지 ID") @PathVariable Long challengeId,
+      @Parameter(
+              description =
+                  "참여 상태 필터 (HOST, PARTICIPANT, PENDING). 다중 선택 가능(status=HOST&status=PARTICIPANT), 미입력 시 조회 권한 내 전체. PENDING(신청자)은 호스트/관리자만 조회 가능하며 권한 밖 status는 조용히 제외된다.")
+          @RequestParam(name = "status", required = false)
+          List<ParticipantStatus> status,
       @Parameter(description = "정렬 옵션 (PARTICIPATION: 참여순, RANK: 등수순). 기본 PARTICIPATION")
           @RequestParam(name = "sort", defaultValue = "PARTICIPATION")
           ParticipantSortType sort,
@@ -494,7 +500,7 @@ public class ChallengeController {
     Long memberId = CurrentUserContext.getCurrentMemberIdOrNull();
     return ApiResponse.success(
         Message.GET_CHALLENGE_PARTICIPANTS,
-        challengeService.getChallengeParticipants(challengeId, memberId, sort, page, size));
+        challengeService.getChallengeParticipants(challengeId, memberId, status, sort, page, size));
   }
 
   @Operation(

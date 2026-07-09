@@ -278,30 +278,52 @@ public class ChallengeService {
   }
 
   public OffsetPagination<ParticipantResponse> getChallengeParticipants(
-      Long challengeId, Long memberId, ParticipantSortType sort, int page, int size) {
+      Long challengeId,
+      Long memberId,
+      List<ParticipantStatus> statusFilter,
+      ParticipantSortType sort,
+      int page,
+      int size) {
     Challenge challenge =
         challengeRepository
             .findById(challengeId)
             .orElseThrow(() -> new CustomException(ErrorCode.CHALLENGE_NOT_FOUND));
 
-    List<ParticipantStatus> statuses;
+    // 조회 가능한 status 화이트리스트: 호스트/관리자만 참여 신청자(PENDING)까지 볼 수 있다.
+    List<ParticipantStatus> allowed;
     if (isHostOrAdmin(challenge, memberId)) {
-      // 호스트/관리자는 참여 신청자(PENDING)와 참여 중인 회원(HOST/PARTICIPANT)을 모두 조회한다.
-      statuses =
+      allowed =
           List.of(ParticipantStatus.HOST, ParticipantStatus.PARTICIPANT, ParticipantStatus.PENDING);
     } else {
-      // 그 외에는 참여 중인 회원(HOST/PARTICIPANT)만 조회한다.
-      statuses = List.of(ParticipantStatus.HOST, ParticipantStatus.PARTICIPANT);
+      allowed = List.of(ParticipantStatus.HOST, ParticipantStatus.PARTICIPANT);
+    }
+
+    // status 미지정이면 기존 동작(화이트리스트 전체), 지정이면 화이트리스트와 교집합(권한 밖 status는 조용히 제외).
+    List<ParticipantStatus> effective;
+    if (statusFilter == null || statusFilter.isEmpty()) {
+      effective = allowed;
+    } else {
+      effective = statusFilter.stream().distinct().filter(allowed::contains).toList();
+    }
+    if (effective.isEmpty()) {
+      // 요청한 status가 전부 권한 밖(예: 비호스트가 status=PENDING) → 빈 페이지
+      return new OffsetPagination<>(
+          List.of(), new OffsetPagination.PageInfo(page, size, 0, 0, false));
     }
 
     List<Participant> participants =
-        participantRepository.findByChallengeIdAndStatusIn(challengeId, statuses);
-    // 등수는 두 정렬 옵션 모두에서 응답에 포함되므로 항상 전체 참여자 기준으로 한 번 계산한다.
+        participantRepository.findByChallengeIdAndStatusIn(challengeId, effective);
+
+    // 등수는 승인된 참여자(HOST/PARTICIPANT)에만 의미가 있다.
+    // PENDING 단독 조회면 랭킹 계산을 건너뛰고(성능) 참여순으로 고정하며 rank는 null.
+    boolean rankable =
+        effective.contains(ParticipantStatus.HOST)
+            || effective.contains(ParticipantStatus.PARTICIPANT);
     Map<Long, ChallengeRankingService.RankInfo> ranks =
-        challengeRankingService.computeRanks(challengeId, participants);
+        rankable ? challengeRankingService.computeRanks(challengeId, participants) : Map.of();
 
     Comparator<Participant> order;
-    if (sort == ParticipantSortType.RANK) {
+    if (rankable && sort == ParticipantSortType.RANK) {
       order =
           Comparator.comparingInt((Participant p) -> ranks.get(p.getId()).rank())
               .thenComparing(Participant::getId);
