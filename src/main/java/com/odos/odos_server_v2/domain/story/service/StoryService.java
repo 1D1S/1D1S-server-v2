@@ -111,7 +111,10 @@ public class StoryService {
     return StoryItemDto.builder()
         .diaryId(diary.getDiaryId())
         .diaryTitle(diary.getDiaryTitle())
-        .diaryThumbnail(diaryImageRepository.getDiaryThumbNail(diary.getDiaryId()))
+        .diaryThumbnail(
+            diary.getThumbnailUrl() != null
+                ? diary.getThumbnailUrl()
+                : diaryImageRepository.getDiaryThumbNail(diary.getDiaryId()))
         .createdAt(diary.getCreatedAt())
         .hasUnreadJournal(!isMyStory && !viewedDiaryIds.contains(diary.getDiaryId()))
         .build();

@@ -18,6 +18,7 @@ public interface StoryRepository extends JpaRepository<Diary, Long> {
         SELECT
           d.id AS diaryId,
           d.title AS diaryTitle,
+          d.thumbnailUrl AS thumbnailUrl,
           d.createdAt AS createdAt,
           d.member.id AS memberId,
           d.member.nickname AS memberNickname,
