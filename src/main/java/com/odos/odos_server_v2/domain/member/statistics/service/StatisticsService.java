@@ -99,9 +99,7 @@ public class StatisticsService {
     daily.forEach((date, count) -> byBucket.merge(bucketStart(unit, date), count, Long::sum));
 
     List<TrendPoint> points =
-        byBucket.entrySet().stream()
-            .map(e -> new TrendPoint(e.getKey(), e.getValue()))
-            .toList();
+        byBucket.entrySet().stream().map(e -> new TrendPoint(e.getKey(), e.getValue())).toList();
     return new DiaryTrendResponse(unit, effectiveFrom, effectiveTo, points);
   }
 
@@ -242,9 +240,7 @@ public class StatisticsService {
     int rank =
         1
             + (int)
-                memberIds.stream()
-                    .filter(id -> diaryCounts.getOrDefault(id, 0L) > myDiary)
-                    .count();
+                memberIds.stream().filter(id -> diaryCounts.getOrDefault(id, 0L) > myDiary).count();
 
     return new FriendComparisonResponse(
         period,

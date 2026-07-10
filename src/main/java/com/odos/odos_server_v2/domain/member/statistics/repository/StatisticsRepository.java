@@ -28,9 +28,7 @@ public interface StatisticsRepository extends JpaRepository<Diary, Long> {
       group by d.completedDate
       """)
   List<DailyCount> aggregateDailyCounts(
-      @Param("memberId") Long memberId,
-      @Param("from") LocalDate from,
-      @Param("to") LocalDate to);
+      @Param("memberId") Long memberId, @Param("from") LocalDate from, @Param("to") LocalDate to);
 
   /** 감정별 일지 수 집계. challengeId/기간은 선택(null 이면 전체). feeling 이 null 인 행은 미선택으로 앱에서 병합. */
   @Query(
@@ -61,9 +59,7 @@ public interface StatisticsRepository extends JpaRepository<Diary, Long> {
         and g.diary.completedDate between :from and :to
       """)
   long countCompletedGoals(
-      @Param("memberId") Long memberId,
-      @Param("from") LocalDate from,
-      @Param("to") LocalDate to);
+      @Param("memberId") Long memberId, @Param("from") LocalDate from, @Param("to") LocalDate to);
 
   /** 기간 내 전체 목표 수(완료율 분모). */
   @Query(
@@ -75,9 +71,7 @@ public interface StatisticsRepository extends JpaRepository<Diary, Long> {
         and g.diary.completedDate between :from and :to
       """)
   long countTotalGoals(
-      @Param("memberId") Long memberId,
-      @Param("from") LocalDate from,
-      @Param("to") LocalDate to);
+      @Param("memberId") Long memberId, @Param("from") LocalDate from, @Param("to") LocalDate to);
 
   /** 친구 비교용: 회원 IN 목록에 대한 일지 수 배치 집계(N+1 방지). */
   @Query(

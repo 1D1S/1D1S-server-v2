@@ -28,9 +28,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
       @Index(
           name = "idx_diary_member_created_at_is_deleted",
           columnList = "member_id, created_at, is_deleted"),
-      @Index(
-          name = "idx_diary_member_completed_date",
-          columnList = "member_id, completed_date")
+      @Index(name = "idx_diary_member_completed_date", columnList = "member_id, completed_date")
     })
 public class Diary extends BaseTimeEntity {
 
