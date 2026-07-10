@@ -59,7 +59,7 @@ public class StatisticsService {
     }
     List<FeelingCount> rows =
         statisticsRepository.aggregateFeelings(memberId, from, to, challengeId);
-    long total = rows.stream().mapToLong(FeelingCount::getCount).sum();
+    long total = rows.stream().mapToLong(FeelingCount::getCnt).sum();
     return new FeelingDistributionResponse(total, buildFeelingSlices(rows, total));
   }
 
@@ -155,7 +155,7 @@ public class StatisticsService {
 
     List<FeelingCount> feelingRows =
         statisticsRepository.aggregateFeelings(memberId, start, end, null);
-    long feelingTotal = feelingRows.stream().mapToLong(FeelingCount::getCount).sum();
+    long feelingTotal = feelingRows.stream().mapToLong(FeelingCount::getCnt).sum();
     List<FeelingSlice> feelingBreakdown = buildFeelingSlices(feelingRows, feelingTotal);
 
     // 하위 버킷: 주/월 -> 일, 연 -> 월
@@ -267,13 +267,13 @@ public class StatisticsService {
 
   private Map<LocalDate, Long> dailyCountMap(Long memberId, LocalDate from, LocalDate to) {
     return statisticsRepository.aggregateDailyCounts(memberId, from, to).stream()
-        .collect(Collectors.toMap(DailyCount::getBucket, DailyCount::getCount));
+        .collect(Collectors.toMap(DailyCount::getBucket, DailyCount::getCnt));
   }
 
   private Map<Long, Long> toMemberCountMap(List<MemberCount> rows) {
     Map<Long, Long> map = new LinkedHashMap<>();
     for (MemberCount r : rows) {
-      map.put(r.getMemberId(), r.getCount());
+      map.put(r.getMemberId(), r.getCnt());
     }
     return map;
   }
@@ -296,9 +296,9 @@ public class StatisticsService {
     for (FeelingCount row : rows) {
       Feeling f = row.getFeeling();
       if (f == null || f == Feeling.NONE) {
-        noneCount += row.getCount();
+        noneCount += row.getCnt();
       } else {
-        byName.merge(f.name(), row.getCount(), Long::sum);
+        byName.merge(f.name(), row.getCnt(), Long::sum);
       }
     }
     List<FeelingSlice> slices = new ArrayList<>();

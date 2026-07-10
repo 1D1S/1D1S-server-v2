@@ -20,7 +20,7 @@ public interface StatisticsRepository extends JpaRepository<Diary, Long> {
   /** 회원별 일자별 일지 수 집계. 기간이 범위로 제한되므로 결과는 활성 일자 수(최대 기간 길이)만큼만 반환된다. */
   @Query(
       """
-      select d.completedDate as bucket, count(d) as count
+      select d.completedDate as bucket, count(d) as cnt
       from Diary d
       where d.member.id = :memberId
         and d.isDeleted = false
@@ -33,7 +33,7 @@ public interface StatisticsRepository extends JpaRepository<Diary, Long> {
   /** 감정별 일지 수 집계. challengeId/기간은 선택(null 이면 전체). feeling 이 null 인 행은 미선택으로 앱에서 병합. */
   @Query(
       """
-      select d.feeling as feeling, count(d) as count
+      select d.feeling as feeling, count(d) as cnt
       from Diary d
       where d.member.id = :memberId
         and d.isDeleted = false
@@ -76,7 +76,7 @@ public interface StatisticsRepository extends JpaRepository<Diary, Long> {
   /** 친구 비교용: 회원 IN 목록에 대한 일지 수 배치 집계(N+1 방지). */
   @Query(
       """
-      select d.member.id as memberId, count(d) as count
+      select d.member.id as memberId, count(d) as cnt
       from Diary d
       where d.member.id in :memberIds
         and d.isDeleted = false
@@ -91,7 +91,7 @@ public interface StatisticsRepository extends JpaRepository<Diary, Long> {
   /** 친구 비교용: 회원 IN 목록에 대한 완료 목표 수 배치 집계(N+1 방지). */
   @Query(
       """
-      select g.diary.member.id as memberId, count(g) as count
+      select g.diary.member.id as memberId, count(g) as cnt
       from DiaryGoal g
       where g.diary.member.id in :memberIds
         and g.diary.isDeleted = false
@@ -108,20 +108,20 @@ public interface StatisticsRepository extends JpaRepository<Diary, Long> {
   interface DailyCount {
     LocalDate getBucket();
 
-    long getCount();
+    long getCnt();
   }
 
   /** 감정별 일지 수 집계 결과. feeling 은 null(미선택) 가능. */
   interface FeelingCount {
     Feeling getFeeling();
 
-    long getCount();
+    long getCnt();
   }
 
   /** 회원별 수 집계 결과(일지 수/완료 목표 수 공용). */
   interface MemberCount {
     Long getMemberId();
 
-    long getCount();
+    long getCnt();
   }
 }
