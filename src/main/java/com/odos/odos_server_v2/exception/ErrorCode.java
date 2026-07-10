@@ -106,7 +106,11 @@ public enum ErrorCode {
   FRIEND_NOT_EXISTS(HttpStatus.NOT_FOUND, "FRIEND-007", "친구 관계가 없습니다."),
   FRIEND_BLOCKED(HttpStatus.FORBIDDEN, "FRIEND-008", "차단당한 회원이므로 친구 신청을 할 수 없습니다."),
   FRIEND_ALREADY_BLOCKED(HttpStatus.CONFLICT, "FRIEND-009", "이미 차단한 회원입니다."),
-  FRIEND_NOT_BLOCKED(HttpStatus.NOT_FOUND, "FRIEND-010", "차단한 회원이 아닙니다.");
+  FRIEND_NOT_BLOCKED(HttpStatus.NOT_FOUND, "FRIEND-010", "차단한 회원이 아닙니다."),
+
+  // statistics
+  INVALID_STATISTICS_PERIOD(
+      HttpStatus.BAD_REQUEST, "STAT-001", "요청한 통계 기간이 올바르지 않습니다. (형식/가입 이전/미래 범위 확인)");
 
   private final HttpStatus status;
   private final String code;
