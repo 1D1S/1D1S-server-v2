@@ -109,4 +109,11 @@ public class Message {
   // story
   public static String GET_STORY_LIST = "스토리 목록 조회 성공했습니다.";
   public static String STORY_VIEW = "스토리를 시청했습니다.";
+
+  // statistics
+  public static String GET_STAT_FEELINGS = "감정 분포 통계 조회 성공했습니다.";
+  public static String GET_STAT_DIARY_TREND = "기간별 일지 추이 통계 조회 성공했습니다.";
+  public static String GET_STAT_PERIODS = "통계 기간 목록 조회 성공했습니다.";
+  public static String GET_STAT_SUMMARY = "기간 요약 통계 조회 성공했습니다.";
+  public static String GET_STAT_FRIEND_COMPARISON = "친구 대비 비교 통계 조회 성공했습니다.";
 }

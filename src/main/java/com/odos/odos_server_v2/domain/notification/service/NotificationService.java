@@ -31,7 +31,9 @@ import com.odos.odos_server_v2.domain.shared.service.ImageService;
 import com.odos.odos_server_v2.exception.CustomException;
 import com.odos.odos_server_v2.exception.ErrorCode;
 import jakarta.transaction.Transactional;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -47,6 +49,7 @@ public class NotificationService {
   private static final int MAX_NOTIFICATIONS_PER_USER = 100;
   private static final int RETENTION_DAYS = 30;
   private static final int COMMENT_GROUPING_WINDOW_MINUTES = 5;
+  private static final ZoneId SEOUL_ZONE = ZoneId.of("Asia/Seoul");
 
   private final NotificationRepository notificationRepository;
   private final NotificationEventRepository notificationEventRepository;
@@ -325,6 +328,34 @@ public class NotificationService {
   }
 
   @Transactional
+  public boolean notifyChallengeDiaryReminder(
+      Member receiver, Long challengeId, String challengeName, LocalDate reminderDate) {
+    // 멱등 경계: reminderDate(서울 기준 오늘)의 자정 시각을 createdAt 저장 존(JVM 기본 존)의 벽시계로 변환해
+    // 존이 서로 달라도 "같은 날 이미 발송" 판정이 흔들리지 않게 한다.
+    LocalDateTime from =
+        reminderDate
+            .atStartOfDay(SEOUL_ZONE)
+            .withZoneSameInstant(ZoneId.systemDefault())
+            .toLocalDateTime();
+
+    if (notificationRepository.existsByReceiverAndTypeAndTargetIdAndCreatedAtGreaterThanEqual(
+        receiver, NotificationType.CHALLENGE_DIARY_REMINDER, challengeId, from)) {
+      return false;
+    }
+
+    createNotification(
+        receiver,
+        null,
+        NotificationCategory.CHALLENGE,
+        NotificationType.CHALLENGE_DIARY_REMINDER,
+        String.format("%s 챌린지 오늘의 기록을 남겨보세요!", challengeName),
+        NotificationTargetType.CHALLENGE_DETAIL,
+        challengeId,
+        null);
+    return true;
+  }
+
+  @Transactional
   public boolean notifyDiaryLikeMilestone(Long diaryId, int currentLikeCount) {
     Diary diary =
         diaryRepository
@@ -463,6 +494,10 @@ public class NotificationService {
   @Transactional
   public void deleteExpiredNotifications() {
     notificationRepository.deleteByExpiresAtBefore(LocalDateTime.now());
+  }
+
+  public LocalDate todayInSeoul() {
+    return LocalDate.now(SEOUL_ZONE);
   }
 
   private boolean isAllowed(NotificationPreference preference, NotificationCategory category) {

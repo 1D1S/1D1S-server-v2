@@ -19,6 +19,8 @@ public enum ErrorCode {
   EXPIRED_ACCESS_TOKEN(HttpStatus.UNAUTHORIZED, "AUTH-009", "Access Token이 만료되었습니다."),
   INVALID_JWT(HttpStatus.UNAUTHORIZED, "AUTH-010", "유효하지 않은 JWT입니다."),
   INVALID_OAUTH_EMAIL(HttpStatus.BAD_REQUEST, "AUTH-011", "소셜 로그인에서 이메일을 가져올 수 없습니다."),
+  REFRESH_TOKEN_REUSE_DETECTED(
+      HttpStatus.UNAUTHORIZED, "AUTH-012", "재사용된 RefreshToken이 감지되어 세션이 무효화되었습니다."),
 
   // member
   CATEGORY_EMPTY(HttpStatus.BAD_REQUEST, "USER-001", "관심 카테고리는 최소 1개 이상 선택해야 합니다."),
@@ -106,7 +108,11 @@ public enum ErrorCode {
   FRIEND_NOT_EXISTS(HttpStatus.NOT_FOUND, "FRIEND-007", "친구 관계가 없습니다."),
   FRIEND_BLOCKED(HttpStatus.FORBIDDEN, "FRIEND-008", "차단당한 회원이므로 친구 신청을 할 수 없습니다."),
   FRIEND_ALREADY_BLOCKED(HttpStatus.CONFLICT, "FRIEND-009", "이미 차단한 회원입니다."),
-  FRIEND_NOT_BLOCKED(HttpStatus.NOT_FOUND, "FRIEND-010", "차단한 회원이 아닙니다.");
+  FRIEND_NOT_BLOCKED(HttpStatus.NOT_FOUND, "FRIEND-010", "차단한 회원이 아닙니다."),
+
+  // statistics
+  INVALID_STATISTICS_PERIOD(
+      HttpStatus.BAD_REQUEST, "STAT-001", "요청한 통계 기간이 올바르지 않습니다. (형식/가입 이전/미래 범위 확인)");
 
   private final HttpStatus status;
   private final String code;

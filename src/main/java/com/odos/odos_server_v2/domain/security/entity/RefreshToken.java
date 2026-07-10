@@ -37,6 +37,9 @@ public class RefreshToken extends BaseTimeEntity {
   @Column(name = "refresh_token", nullable = false, unique = true, length = 512)
   private String refreshToken;
 
+  @Column(name = "family_id", nullable = false, length = 36)
+  private String familyId;
+
   @Column(nullable = false)
   private boolean revoked;
 
@@ -45,10 +48,12 @@ public class RefreshToken extends BaseTimeEntity {
   @Column(nullable = false)
   private LocalDateTime expiresAt;
 
-  public static RefreshToken active(Member member, String refreshToken, LocalDateTime expiresAt) {
+  public static RefreshToken active(
+      Member member, String refreshToken, LocalDateTime expiresAt, String familyId) {
     return RefreshToken.builder()
         .member(member)
         .refreshToken(refreshToken)
+        .familyId(familyId)
         .revoked(false)
         .expiresAt(expiresAt)
         .build();

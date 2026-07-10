@@ -45,14 +45,17 @@ public class AuthTokenController {
         findMemberByRefreshTokenMemberId(refreshToken)
             .orElseThrow(() -> new CustomException(ErrorCode.REFRESH_TOKEN_NOT_FOUND));
 
-    LocalDateTime expiresAt =
-        jwtTokenProvider
-            .extractExpiration(refreshToken)
-            .orElseThrow(() -> new CustomException(ErrorCode.INVALID_REFRESH_TOKEN));
-    refreshTokenService.validateOrRegisterMigrationToken(member, refreshToken, expiresAt);
-
     String newAccessToken = jwtTokenProvider.createAccessToken(member);
+    String newRefreshToken = jwtTokenProvider.createRefreshToken(member);
+    LocalDateTime newExpiresAt =
+        jwtTokenProvider
+            .extractExpiration(newRefreshToken)
+            .orElseThrow(() -> new CustomException(ErrorCode.INVALID_REFRESH_TOKEN));
+
+    refreshTokenService.rotate(member, refreshToken, newRefreshToken, newExpiresAt);
+
     jwtTokenProvider.addAccessTokenCookie(response, newAccessToken);
+    jwtTokenProvider.addRefreshTokenCookie(response, newRefreshToken);
 
     return success(TOKEN_REFRESH);
   }
