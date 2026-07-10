@@ -32,4 +32,7 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
   Optional<Notification>
       findFirstByReceiverAndTypeAndTargetIdAndCreatedAtGreaterThanEqualOrderByCreatedAtDesc(
           Member receiver, NotificationType type, Long targetId, LocalDateTime from);
+
+  boolean existsByReceiverAndTypeAndTargetIdAndCreatedAtGreaterThanEqual(
+      Member receiver, NotificationType type, Long targetId, LocalDateTime from);
 }
