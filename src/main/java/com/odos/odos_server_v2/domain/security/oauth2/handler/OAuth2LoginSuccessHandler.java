@@ -57,16 +57,8 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
 
     jwtTokenProvider.sendAccessAndRefreshToken(response, accessToken, refreshToken);
 
-    boolean isProfileComplete =
-        member.getNickname() != null
-            // && member.getMemberProfileImageUrl() != null
-            && member.getJob() != null
-            && member.getBirth() != null
-            && member.getGender() != null
-            && member.getIsPublic() != null;
-
     OAuth2LoginResponse dto =
-        OAuth2LoginResponse.builder().isProfileComplete(isProfileComplete).build();
+        OAuth2LoginResponse.builder().isProfileComplete(member.isProfileComplete()).build();
 
     response.setContentType("application/json;charset=UTF-8");
     ApiResponse<OAuth2LoginResponse> apiResponse = ApiResponse.success(LOGIN_SUCCESS, dto);

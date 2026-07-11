@@ -1,9 +1,7 @@
 package com.odos.odos_server_v2.domain.security.oauth2.service;
 
-import com.odos.odos_server_v2.domain.member.entity.Enum.MemberRole;
 import com.odos.odos_server_v2.domain.member.entity.Enum.SignupRoute;
 import com.odos.odos_server_v2.domain.member.entity.Member;
-import com.odos.odos_server_v2.domain.member.repository.MemberRepository;
 import com.odos.odos_server_v2.domain.security.jwt.MemberPrincipal;
 import com.odos.odos_server_v2.domain.security.oauth2.info.OAuth2UserInfo;
 import com.odos.odos_server_v2.domain.security.oauth2.info.OAuth2UserInfoFactory;
@@ -24,7 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 @Service
 public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequest, OAuth2User> {
-  private final MemberRepository memberRepository;
+  private final SocialMemberService socialMemberService;
 
   @Transactional
   @Override
@@ -43,35 +41,9 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
       throw new CustomException(ErrorCode.INVALID_OAUTH_EMAIL);
     }
 
-    Member member =
-        memberRepository
-            .findByEmailAndSignupRoute(email, signupRoute)
-            .orElseGet(() -> createMember(email, signupRoute, userInfo.getId()));
-
-    //    log.debug(">>> OAuth2 attributes: {}", attributes);
-    //    log.info(
-    //        "OAuth2UserService provider = {}",
-    // userRequest.getClientRegistration().getRegistrationId());
+    Member member = socialMemberService.findOrCreate(email, signupRoute, userInfo.getId());
 
     return new MemberPrincipal(
         member.getId(), member.getEmail(), member.getRole().name(), member.getSignupRoute());
-  }
-
-  private Member createMember(String email, SignupRoute signupRoute, String socialId) {
-    Member newMember =
-        Member.builder()
-            .email(email)
-            .signupRoute(signupRoute)
-            .socialId(socialId)
-            .role(MemberRole.GUEST)
-            .build();
-
-    Member saved = memberRepository.save(newMember);
-    //    log.info(
-    //        "new member saved : id={}, email={}, provider={}",
-    //        saved.getId(),
-    //        saved.getEmail(),
-    //        saved.getSignupRoute());
-    return saved;
   }
 }
