@@ -1133,7 +1133,7 @@ public class ChallengeService {
     LocalDate startDate = challenge.getStartDate();
     LocalDate endDate = challenge.getEndDate();
     LocalDate today = LocalDate.now();
-    if (today.isBefore(startDate)) return -1;
+    if (startDate == null || today.isBefore(startDate)) return -1; // 시작일 없음/시작 전
 
     Long challengeId = challenge.getId();
     long allGoalsCompletedDiaryCnt =
@@ -1142,13 +1142,10 @@ public class ChallengeService {
     long participantCnt = getParticipantCnt(challengeId);
     if (participantCnt == 0) return 0;
 
-    long days;
-    if (today.isBefore(endDate)) {
-      days = ChronoUnit.DAYS.between(startDate, today) + 1; // 오늘 포함
-    } else {
-      days = ChronoUnit.DAYS.between(startDate, endDate) + 1; // 종료일 포함
-    }
-    if (days == 0) return 0;
+    // 경과일: 무기한(endDate==null)이거나 아직 종료 전이면 오늘까지, 종료됐으면 종료일까지. (endDate null 시 NPE 방지)
+    LocalDate effectiveEnd = (endDate == null || today.isBefore(endDate)) ? today : endDate;
+    long days = ChronoUnit.DAYS.between(startDate, effectiveEnd) + 1;
+    if (days <= 0) return 0;
 
     return (double) allGoalsCompletedDiaryCnt / ((double) participantCnt * (double) days) * 100;
   }
@@ -1158,7 +1155,7 @@ public class ChallengeService {
     LocalDate startDate = challenge.getStartDate();
     LocalDate endDate = challenge.getEndDate();
     LocalDate today = LocalDate.now();
-    if (today.isBefore(startDate)) return -1;
+    if (startDate == null || today.isBefore(startDate)) return -1; // 시작일 없음/시작 전
 
     Long challengeId = challenge.getId();
 
@@ -1168,14 +1165,11 @@ public class ChallengeService {
             challengeId);
     // 전체 참여자
     long participantCnt = getParticipantCnt(challengeId);
-    // 진행된 일 수
-    long days;
-    if (today.isBefore(endDate)) {
-      days = ChronoUnit.DAYS.between(startDate, today) + 1; // 오늘 포함
-    } else {
-      days = ChronoUnit.DAYS.between(startDate, endDate) + 1; // 종료일 포함
-    }
-    if (days == 0) return 0;
+    if (participantCnt == 0) return 0; // 0 나눗셈(NaN) 방지
+    // 진행된 일 수: 무기한/종료 전이면 오늘까지, 종료됐으면 종료일까지. (endDate null 시 NPE 방지)
+    LocalDate effectiveEnd = (endDate == null || today.isBefore(endDate)) ? today : endDate;
+    long days = ChronoUnit.DAYS.between(startDate, effectiveEnd) + 1;
+    if (days <= 0) return 0;
     // 목표의 개수 (고정목표 챌린지의 원본 목표 기준)
     long goalCnt = fixedChallengeGoalRepository.countByChallengeId(challengeId);
     if (goalCnt <= 0) return 0;
