@@ -121,6 +121,7 @@ public class ChallengeService {
             .hostMember(member)
             .allowMidJoin(challengeRequest.getAllowMidJoin())
             .photoRequired(Boolean.TRUE.equals(challengeRequest.getPhotoRequired()))
+            .postEndWriteAllowed(Boolean.TRUE.equals(challengeRequest.getPostEndWriteAllowed()))
             .participationType(challengeRequest.getParticipationType())
             .challengeType(challengeType)
             .password(encodedPassword)
@@ -1002,7 +1003,8 @@ public class ChallengeService {
         likeInfo,
         challenge.getDeletedAt() != null,
         pickRandomParticipants(challengeId, 3),
-        challenge.isPhotoRequired());
+        challenge.isPhotoRequired(),
+        challenge.isPostEndWriteAllowed());
   }
 
   private ChallengeDetailDto toChallengeDetail(Challenge challenge, Long memberId) {
@@ -1010,6 +1012,7 @@ public class ChallengeService {
         challenge.getDescription(),
         challenge.isAllowMidJoin(),
         challenge.isPhotoRequired(),
+        challenge.isPostEndWriteAllowed(),
         getMemberStatus(challenge.getId(), memberId),
         getParticipationRate(challenge),
         getGoalCompletionRate(challenge));

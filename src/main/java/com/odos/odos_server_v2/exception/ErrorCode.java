@@ -50,6 +50,7 @@ public enum ErrorCode {
   DIARY_INVALID_THUMBNAIL_URL(
       HttpStatus.BAD_REQUEST, "DIARY-009", "썸네일 URL은 imageUrls에 포함된 값이어야 합니다."),
   DIARY_PHOTO_REQUIRED(HttpStatus.BAD_REQUEST, "DIARY-010", "인증샷이 필수인 챌린지입니다."),
+  DIARY_WRITE_PERIOD_CLOSED(HttpStatus.BAD_REQUEST, "DIARY-011", "챌린지 종료 후 일지 작성 가능 기간이 지났습니다."),
 
   // challenge
   CHALLENGE_NOT_FOUND(HttpStatus.NOT_FOUND, "CHALLENGE_001", "챌린지를 찾을 수 없습니다."),

@@ -45,6 +45,10 @@ public class Challenge {
   @Column(nullable = false)
   private boolean photoRequired;
 
+  // 챌린지 종료 후 유예 기간(종료일+2일, KST) 내 일지 작성 허용 여부. false면 종료 즉시 작성 불가.
+  @Column(nullable = false)
+  private boolean postEndWriteAllowed;
+
   @Column private Long maxParticipantsCnt;
 
   @Column

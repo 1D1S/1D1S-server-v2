@@ -1,0 +1,113 @@
+package com.odos.odos_server_v2.domain.diary.service;
+
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+import com.odos.odos_server_v2.domain.challenge.entity.Challenge;
+import com.odos.odos_server_v2.domain.challenge.repository.ChallengeRepository;
+import com.odos.odos_server_v2.domain.challenge.repository.ParticipantRepository;
+import com.odos.odos_server_v2.domain.challenge.service.ChallengeService;
+import com.odos.odos_server_v2.domain.diary.dto.DiaryRequest;
+import com.odos.odos_server_v2.domain.member.entity.Member;
+import com.odos.odos_server_v2.domain.member.repository.MemberRepository;
+import com.odos.odos_server_v2.exception.CustomException;
+import com.odos.odos_server_v2.exception.ErrorCode;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.Optional;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+/**
+ * 일지 작성 가능 창구 검증 단위 테스트.
+ *
+ * <p>규칙: 허용 = endDate==null OR today(KST)<=endDate OR (postEndWriteAllowed AND today<=endDate+2).
+ * 가드는 참여자 조회보다 먼저 실행되므로, 차단이면 DIARY-011 을, 허용이면 이후 단계의 PARTICIPANT_NOT_FOUND 를 던진다. 이 차이로 가드의 허용/차단
+ * 결정을 가볍게 검증한다. (DB 불필요)
+ */
+@ExtendWith(MockitoExtension.class)
+class DiaryServiceWriteWindowTest {
+
+  private static final ZoneId KST = ZoneId.of("Asia/Seoul");
+
+  @Mock MemberRepository memberRepository;
+  @Mock ChallengeRepository challengeRepository;
+  @Mock ChallengeService challengeService;
+  @Mock ParticipantRepository participantRepository;
+  @InjectMocks DiaryService diaryService;
+
+  private void stub(LocalDate endDate, boolean postEndWriteAllowed) {
+    when(memberRepository.findById(anyLong())).thenReturn(Optional.of(mock(Member.class)));
+    when(challengeRepository.findById(1L))
+        .thenReturn(
+            Optional.of(
+                Challenge.builder()
+                    .endDate(endDate)
+                    .postEndWriteAllowed(postEndWriteAllowed)
+                    .build()));
+  }
+
+  private DiaryRequest request() {
+    DiaryRequest r = new DiaryRequest();
+    r.setChallengeId(1L);
+    return r;
+  }
+
+  private void assertBlocked(LocalDate endDate, boolean postEndWriteAllowed) {
+    stub(endDate, postEndWriteAllowed);
+    assertThatThrownBy(() -> diaryService.createDiary(1L, request()))
+        .isInstanceOf(CustomException.class)
+        .extracting(e -> ((CustomException) e).getErrorCode())
+        .isEqualTo(ErrorCode.DIARY_WRITE_PERIOD_CLOSED);
+  }
+
+  private void assertAllowed(LocalDate endDate, boolean postEndWriteAllowed) {
+    // 가드 통과 시 이후 참여자 조회에서 PARTICIPANT_NOT_FOUND 로 떨어진다(= 창구는 열려 있음).
+    stub(endDate, postEndWriteAllowed);
+    assertThatThrownBy(() -> diaryService.createDiary(1L, request()))
+        .isInstanceOf(CustomException.class)
+        .extracting(e -> ((CustomException) e).getErrorCode())
+        .isEqualTo(ErrorCode.PARTICIPANT_NOT_FOUND);
+  }
+
+  // --- 무기한: 옵션 무관 항상 허용 ---
+  @Test
+  void unlimited_allowed_regardlessOfOption() {
+    assertAllowed(null, false);
+    assertAllowed(null, true);
+  }
+
+  // --- 진행중/시작 전(today <= endDate): 옵션 무관 허용 ---
+  @Test
+  void ongoing_allowed_regardlessOfOption() {
+    LocalDate today = LocalDate.now(KST);
+    assertAllowed(today, false); // 종료 당일
+    assertAllowed(today.plusDays(5), true); // 진행중
+  }
+
+  // --- 종료됨 + 옵션 OFF: 종료 다음날부터 차단 ---
+  @Test
+  void endedWithoutOption_blocked() {
+    LocalDate today = LocalDate.now(KST);
+    assertBlocked(today.minusDays(1), false); // 어제 종료 → 차단
+    assertBlocked(today.minusDays(1), false);
+  }
+
+  // --- 종료됨 + 옵션 ON: 종료일+2일까지 허용, 이후 차단 ---
+  @Test
+  void endedWithOption_allowedWithinGrace() {
+    LocalDate today = LocalDate.now(KST);
+    assertAllowed(today.minusDays(1), true); // 종료+1일 → 허용
+    assertAllowed(today.minusDays(2), true); // 종료+2일(경계) → 허용
+  }
+
+  @Test
+  void endedWithOption_blockedAfterGrace() {
+    assertBlocked(LocalDate.now(KST).minusDays(3), true); // 종료+3일 → 차단
+  }
+}
