@@ -472,19 +472,25 @@ public class DiaryService {
     }
   }
 
-  // 일지 작성 가능 기간 검증.
-  // - 무기한 챌린지(endDate == null): 종료 개념이 없어 항상 허용.
-  // - 그 외: 오늘(KST) <= endDate + 유예일 이면 허용, 지나면 DIARY-011 로 차단.
-  //   (진행중/시작 전은 today <= endDate 이므로 자연히 허용된다.)
+  // 일지 작성 가능 기간 검증. 허용 조건:
+  //   endDate == null(무기한) OR today <= endDate(진행중/시작 전)
+  //   OR (유예 옵션 ON AND today <= endDate + 유예일)
+  // 그 외(종료됐고 옵션 OFF 이거나 유예도 지남)는 DIARY-011 로 차단.
   private void validateDiaryWritable(Challenge challenge) {
     LocalDate endDate = challenge.getEndDate();
     if (endDate == null) {
+      return; // 무기한: 종료 개념 없음
+    }
+    LocalDate today = LocalDate.now(KST);
+    if (!today.isAfter(endDate)) {
+      return; // 진행중/시작 전
+    }
+    // 종료됨: 옵션 ON 이고 유예 기간(종료일 + 2일) 이내면 허용
+    if (challenge.isPostEndWriteAllowed()
+        && !today.isAfter(endDate.plusDays(POST_END_WRITE_GRACE_DAYS))) {
       return;
     }
-    LocalDate lastWritableDate = endDate.plusDays(POST_END_WRITE_GRACE_DAYS);
-    if (LocalDate.now(KST).isAfter(lastWritableDate)) {
-      throw new CustomException(ErrorCode.DIARY_WRITE_PERIOD_CLOSED);
-    }
+    throw new CustomException(ErrorCode.DIARY_WRITE_PERIOD_CLOSED);
   }
 
   // 대표 썸네일 결정. imageUrls는 non-null 가정(호출부에서 보장), 요소는 이미 validateImageUrls 통과.
