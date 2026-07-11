@@ -608,9 +608,14 @@ public class ChallengeService {
   }
 
   public List<ChallengeSummaryResponse> getRandomChallenges(Long memberId, int size) {
+    // "오늘 시작해볼 챌린지": 비공개/삭제/종료 챌린지는 제외하고 진행중·예정만 노출한다.
+    // (종료 판정 = endDate < today. 무기한(endDate==null)은 종료가 아니므로 포함.)
+    LocalDate today = LocalDate.now();
     List<Challenge> all =
         challengeRepository.findAll().stream()
             .filter(c -> c.getChallengeType() != ChallengeType.PRIVATE)
+            .filter(c -> c.getDeletedAt() == null)
+            .filter(c -> c.getEndDate() == null || !c.getEndDate().isBefore(today))
             .collect(java.util.stream.Collectors.toList());
     Collections.shuffle(all);
     return all.stream().limit(size).map(ch -> toChallengeSummary(ch, memberId)).toList();
