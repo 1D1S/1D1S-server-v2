@@ -41,6 +41,9 @@ public class ChallengeRequest {
   @Schema(description = "인증샷(사진) 필수 여부 (기본 false)", example = "false")
   private Boolean photoRequired;
 
+  @Schema(description = "챌린지 종료 후 유예 기간(종료일+2일) 내 일지 작성 허용 여부 (기본 false)", example = "false")
+  private Boolean postEndWriteAllowed;
+
   @Schema(description = "챌린지 형태 (INDIVIDUAL: 개인, GROUP: 단체)", example = "GROUP")
   private ParticipationType participationType;
 

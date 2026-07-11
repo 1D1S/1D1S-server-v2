@@ -270,7 +270,8 @@ class DiaryServiceTest {
         .title("고정 목표 챌린지")
         .category(Category.EXERCISE) // 실제 값으로 수정
         .startDate(LocalDate.of(2026, 3, 1))
-        .endDate(LocalDate.of(2026, 3, 31))
+        // 진행 중 챌린지로 유지: 일지 작성 유예(종료+2일) 가드에 걸리지 않도록 종료일을 미래로 둔다.
+        .endDate(LocalDate.now().plusYears(1))
         .maxParticipantsCnt(10L)
         .goalType(GoalType.FIXED)
         .participationType(ParticipationType.GROUP)
