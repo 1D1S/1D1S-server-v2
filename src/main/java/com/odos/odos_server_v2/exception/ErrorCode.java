@@ -21,6 +21,8 @@ public enum ErrorCode {
   INVALID_OAUTH_EMAIL(HttpStatus.BAD_REQUEST, "AUTH-011", "소셜 로그인에서 이메일을 가져올 수 없습니다."),
   REFRESH_TOKEN_REUSE_DETECTED(
       HttpStatus.UNAUTHORIZED, "AUTH-012", "재사용된 RefreshToken이 감지되어 세션이 무효화되었습니다."),
+  OAUTH_PROVIDER_TOKEN_INVALID(
+      HttpStatus.UNAUTHORIZED, "AUTH-013", "소셜 provider 토큰이 유효하지 않아 사용자 정보를 가져올 수 없습니다."),
 
   // member
   CATEGORY_EMPTY(HttpStatus.BAD_REQUEST, "USER-001", "관심 카테고리는 최소 1개 이상 선택해야 합니다."),
