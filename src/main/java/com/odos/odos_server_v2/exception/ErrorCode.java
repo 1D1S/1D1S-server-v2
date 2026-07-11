@@ -113,7 +113,13 @@ public enum ErrorCode {
 
   // statistics
   INVALID_STATISTICS_PERIOD(
-      HttpStatus.BAD_REQUEST, "STAT-001", "요청한 통계 기간이 올바르지 않습니다. (형식/가입 이전/미래 범위 확인)");
+      HttpStatus.BAD_REQUEST, "STAT-001", "요청한 통계 기간이 올바르지 않습니다. (형식/가입 이전/미래 범위 확인)"),
+
+  // popup
+  POPUP_NOT_FOUND(HttpStatus.NOT_FOUND, "POPUP-001", "존재하지 않는 팝업입니다."),
+  INVALID_POPUP_PERIOD(HttpStatus.BAD_REQUEST, "POPUP-002", "팝업 게시 기간이 올바르지 않습니다. (시작일 <= 종료일)"),
+  POPUP_REQUIRED_FIELD_MISSING(
+      HttpStatus.BAD_REQUEST, "POPUP-003", "팝업 필수 항목(imageUrl/ctaText/linkUrl/기간)이 누락되었습니다.");
 
   private final HttpStatus status;
   private final String code;
