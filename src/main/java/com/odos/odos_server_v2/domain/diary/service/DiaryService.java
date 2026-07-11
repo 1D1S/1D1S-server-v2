@@ -29,6 +29,7 @@ import com.odos.odos_server_v2.exception.ErrorCode;
 import jakarta.transaction.Transactional;
 import java.io.IOException;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.*;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -43,6 +44,11 @@ import org.springframework.web.multipart.MultipartFile;
 @RequiredArgsConstructor
 @Slf4j
 public class DiaryService {
+
+  private static final ZoneId KST = ZoneId.of("Asia/Seoul");
+  // 챌린지 종료 후에도 이 일수(KST)만큼은 일지 작성을 허용하는 유예 기간.
+  private static final int POST_END_WRITE_GRACE_DAYS = 2;
+
   private final DiaryRepository diaryRepository;
   private final MemberRepository memberRepository;
   private final DiaryLikeRepository diaryLikeRepository;
@@ -71,6 +77,9 @@ public class DiaryService {
             .orElseThrow(() -> new CustomException(ErrorCode.CHALLENGE_NOT_FOUND));
     ChallengeSummaryResponse challengeSummary =
         challengeService.toChallengeSummary(challenge, memberId);
+
+    // 챌린지 종료 후 유예 기간(endDate + 2일, KST)이 지나면 일지 작성 불가.
+    validateDiaryWritable(challenge);
 
     // 인증샷 필수 챌린지면 이미지가 최소 1장 있어야 한다.
     validatePhotoRequired(challenge, hasImage(request.getImageUrls()));
@@ -460,6 +469,21 @@ public class DiaryService {
   private void validatePhotoRequired(Challenge challenge, boolean hasImage) {
     if (challenge.isPhotoRequired() && !hasImage) {
       throw new CustomException(ErrorCode.DIARY_PHOTO_REQUIRED);
+    }
+  }
+
+  // 일지 작성 가능 기간 검증.
+  // - 무기한 챌린지(endDate == null): 종료 개념이 없어 항상 허용.
+  // - 그 외: 오늘(KST) <= endDate + 유예일 이면 허용, 지나면 DIARY-011 로 차단.
+  //   (진행중/시작 전은 today <= endDate 이므로 자연히 허용된다.)
+  private void validateDiaryWritable(Challenge challenge) {
+    LocalDate endDate = challenge.getEndDate();
+    if (endDate == null) {
+      return;
+    }
+    LocalDate lastWritableDate = endDate.plusDays(POST_END_WRITE_GRACE_DAYS);
+    if (LocalDate.now(KST).isAfter(lastWritableDate)) {
+      throw new CustomException(ErrorCode.DIARY_WRITE_PERIOD_CLOSED);
     }
   }
 
