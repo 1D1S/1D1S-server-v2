@@ -537,7 +537,8 @@ public class DiaryService {
   }
 
   @Transactional
-  public OffsetPagination<DiaryResponse> getChallengeDiaries(Long challengeId, Pageable pageable) {
+  public OffsetPagination<DiaryResponse> getChallengeDiaries(
+      Long challengeId, LocalDate date, Pageable pageable) {
     Long memberId = CurrentUserContext.getCurrentMemberId();
     Member member =
         memberRepository
@@ -548,16 +549,27 @@ public class DiaryService {
             .findById(challengeId)
             .orElseThrow(() -> new CustomException(ErrorCode.CHALLENGE_NOT_FOUND));
     ChallengeSummaryResponse summary = challengeService.toChallengeSummary(challenge, memberId);
-    Page<Diary> diaries = null;
-    if ((participantRepository.existsByChallengeIdAndMemberIdAndStatus(
-            challengeId, memberId, ParticipantStatus.PARTICIPANT)
-        || (participantRepository.existsByChallengeIdAndMemberIdAndStatus(
-            challengeId, memberId, ParticipantStatus.HOST)))) {
-      diaries = diaryRepository.findAllByChallengeIdAndIsDeletedFalse(challengeId, pageable);
+
+    // 참여자/호스트는 전체(비공개 포함), 그 외는 공개 일지만. date(completedDate) 지정 시 그 날짜로 필터.
+    boolean isMember =
+        participantRepository.existsByChallengeIdAndMemberIdAndStatus(
+                challengeId, memberId, ParticipantStatus.PARTICIPANT)
+            || participantRepository.existsByChallengeIdAndMemberIdAndStatus(
+                challengeId, memberId, ParticipantStatus.HOST);
+    Page<Diary> diaries;
+    if (isMember) {
+      diaries =
+          (date == null)
+              ? diaryRepository.findAllByChallengeIdAndIsDeletedFalse(challengeId, pageable)
+              : diaryRepository.findAllByChallengeIdAndCompletedDateAndIsDeletedFalse(
+                  challengeId, date, pageable);
     } else {
       diaries =
-          diaryRepository.findDiariesByChallengeIdAndIsPublicAndIsDeletedFalse(
-              challengeId, Boolean.TRUE, pageable);
+          (date == null)
+              ? diaryRepository.findDiariesByChallengeIdAndIsPublicAndIsDeletedFalse(
+                  challengeId, Boolean.TRUE, pageable)
+              : diaryRepository.findByChallengeIdAndIsPublicAndCompletedDateAndIsDeletedFalse(
+                  challengeId, Boolean.TRUE, date, pageable);
     }
 
     Map<Long, Long> commentCounts = getCommentCountMap(diaries.getContent());
