@@ -83,16 +83,16 @@ public class StatisticsController {
   }
 
   @Operation(
-      summary = "친구 대비 비교",
+      summary = "특정 친구와 1:1 비교",
       description =
-          "period(WEEK/MONTH, 기본 MONTH)의 친구 평균/내 순위. 프라이버시상 개별 친구 값은 노출하지 않는다. "
-              + "친구 0명이면 평균 0, 순위 1/1.")
+          "period(WEEK/MONTH, 기본 MONTH) 기간의 나 vs 특정 친구(friendId) 지표(일지 수/완료 목표 수) 비교. "
+              + "friendId 는 실제 내 친구여야 하며(아니면 FRIEND-007), 미지정 시 400. 친구 닉네임/프로필 URL 포함.")
   @GetMapping("/friend-comparison")
   public ApiResponse<FriendComparisonResponse> getFriendComparison(
-      @RequestParam(defaultValue = "MONTH") StatUnit period) {
+      @RequestParam(defaultValue = "MONTH") StatUnit period, @RequestParam Long friendId) {
     Long memberId = CurrentUserContext.getCurrentMemberId();
     return ApiResponse.success(
         Message.GET_STAT_FRIEND_COMPARISON,
-        statisticsService.getFriendComparison(memberId, period));
+        statisticsService.getFriendComparison(memberId, period, friendId));
   }
 }

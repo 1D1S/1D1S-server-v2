@@ -14,6 +14,7 @@ import com.odos.odos_server_v2.domain.member.repository.MemberRepository;
 import com.odos.odos_server_v2.domain.member.statistics.StatUnit;
 import com.odos.odos_server_v2.domain.member.statistics.dto.PeriodSummaryResponse;
 import com.odos.odos_server_v2.domain.member.statistics.repository.StatisticsRepository;
+import com.odos.odos_server_v2.domain.shared.service.ImageService;
 import com.odos.odos_server_v2.exception.CustomException;
 import com.odos.odos_server_v2.exception.ErrorCode;
 import java.time.LocalDateTime;
@@ -33,8 +34,9 @@ class StatisticsServiceSummaryTest {
   private final StatisticsRepository statisticsRepository = mock(StatisticsRepository.class);
   private final MemberRepository memberRepository = mock(MemberRepository.class);
   private final FriendRepository friendRepository = mock(FriendRepository.class);
+  private final ImageService imageService = mock(ImageService.class);
   private final StatisticsService service =
-      new StatisticsService(statisticsRepository, memberRepository, friendRepository);
+      new StatisticsService(statisticsRepository, memberRepository, friendRepository, imageService);
 
   @BeforeEach
   void stubEmptyAggregations() {
