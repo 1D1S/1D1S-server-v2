@@ -304,9 +304,12 @@ public class ChallengeService {
         participationRate, completedGoalCount, buildChallengeDiaryTrend(challenge));
   }
 
+  // 무기한(endDate==null) 챌린지 일지 추이의 최대 조회 구간(일). 오래된 무기한 챌린지에서 startDate~오늘 전 구간을
+  // 일 단위로 순회하면 포인트 수·JSON 크기가 무한정 커져(오늘-시작일) 응답 지연/과부하로 이어진다. 최근 N일로 상한.
+  private static final int UNLIMITED_TREND_MAX_DAYS = 90;
+
   // 챌린지 기간(startDate ~ endDate, 무기한이면 startDate ~ 오늘) 동안 날짜별 일지 개수 시계열(빈 날짜 0).
-  // ponytail: 무기한 챌린지가 아주 오래됐으면 포인트 수가 (오늘-시작일)만큼 커진다. 실제 챌린지 기간은 유한해 문제되지 않지만,
-  // 필요하면 상한(예: 최근 N일) 파라미터를 추가.
+  // 무기한 챌린지는 최근 UNLIMITED_TREND_MAX_DAYS 일로 조회 구간을 제한(그 이전은 절삭).
   private List<ChallengeStatisticsResponse.DiaryTrendPoint> buildChallengeDiaryTrend(
       Challenge challenge) {
     LocalDate from = challenge.getStartDate();
@@ -316,6 +319,13 @@ public class ChallengeService {
     LocalDate to = challenge.getEndDate() != null ? challenge.getEndDate() : LocalDate.now();
     if (to.isBefore(from)) {
       return List.of();
+    }
+    // 무기한: startDate 가 아주 오래됐어도 최근 N일 창으로 제한한다.
+    if (challenge.getEndDate() == null) {
+      LocalDate windowStart = to.minusDays(UNLIMITED_TREND_MAX_DAYS - 1L);
+      if (windowStart.isAfter(from)) {
+        from = windowStart;
+      }
     }
 
     Map<LocalDate, Long> counts = new java.util.HashMap<>();
