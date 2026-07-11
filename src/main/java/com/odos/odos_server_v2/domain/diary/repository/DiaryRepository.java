@@ -1,5 +1,6 @@
 package com.odos.odos_server_v2.domain.diary.repository;
 
+import com.odos.odos_server_v2.domain.challenge.dto.ChallengeDailyCountProjection;
 import com.odos.odos_server_v2.domain.challenge.dto.MemberDiaryDateProjection;
 import com.odos.odos_server_v2.domain.diary.entity.Diary;
 import java.time.LocalDate;
@@ -41,6 +42,29 @@ public interface DiaryRepository extends JpaRepository<Diary, Long> {
       """)
   List<MemberDiaryDateProjection> findMemberDiaryDatesForChallenge(
       @Param("challengeId") Long challengeId);
+
+  /** 챌린지 통계용: 기간 내 날짜별 일지 개수(일지 추이). completedDate 기준, 삭제 제외. */
+  @Query(
+      """
+      select d.completedDate as bucket, count(d) as cnt
+      from Diary d
+      where d.challenge.id = :challengeId
+        and d.isDeleted = false
+        and d.completedDate between :from and :to
+      group by d.completedDate
+      """)
+  List<ChallengeDailyCountProjection> countDiariesByDateForChallenge(
+      @Param("challengeId") Long challengeId,
+      @Param("from") LocalDate from,
+      @Param("to") LocalDate to);
+
+  /** 챌린지 일지 리스트(참여자/호스트용): 특정 날짜(completedDate)로 필터. */
+  Page<Diary> findAllByChallengeIdAndCompletedDateAndIsDeletedFalse(
+      Long challengeId, LocalDate completedDate, Pageable pageable);
+
+  /** 챌린지 일지 리스트(비참여자용): 특정 날짜(completedDate) + 공개 일지만. */
+  Page<Diary> findByChallengeIdAndIsPublicAndCompletedDateAndIsDeletedFalse(
+      Long challengeId, Boolean isPublic, LocalDate completedDate, Pageable pageable);
 
   @Query(
       """
