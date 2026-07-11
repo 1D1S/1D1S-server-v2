@@ -279,6 +279,58 @@ public class ChallengeService {
     return toChallengeResponse(challenge, member);
   }
 
+  /** 특정 챌린지 통계: 참여율 + 완료 목표수 + 기간 내 날짜별 일지 추이. 권한은 챌린지 상세 조회 정책과 동일. */
+  public ChallengeStatisticsResponse getChallengeStatistics(Long challengeId, Long memberId) {
+    Challenge challenge =
+        challengeRepository
+            .findById(challengeId)
+            .orElseThrow(() -> new CustomException(ErrorCode.CHALLENGE_NOT_FOUND));
+    memberRepository
+        .findById(memberId)
+        .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+
+    if (challenge.getChallengeType() == ChallengeType.PRIVATE) {
+      ParticipantStatus status = getMemberStatus(challengeId, memberId);
+      if (status != ParticipantStatus.HOST && status != ParticipantStatus.PARTICIPANT) {
+        throw new CustomException(ErrorCode.PRIVATE_CHALLENGE);
+      }
+    }
+
+    double participationRate = getParticipationRate(challenge);
+    long completedGoalCount =
+        diaryGoalRepository.countByDiary_Challenge_IdAndIsCompletedTrueAndDiary_IsDeletedFalse(
+            challengeId);
+    return new ChallengeStatisticsResponse(
+        participationRate, completedGoalCount, buildChallengeDiaryTrend(challenge));
+  }
+
+  // 챌린지 기간(startDate ~ endDate, 무기한이면 startDate ~ 오늘) 동안 날짜별 일지 개수 시계열(빈 날짜 0).
+  // ponytail: 무기한 챌린지가 아주 오래됐으면 포인트 수가 (오늘-시작일)만큼 커진다. 실제 챌린지 기간은 유한해 문제되지 않지만,
+  // 필요하면 상한(예: 최근 N일) 파라미터를 추가.
+  private List<ChallengeStatisticsResponse.DiaryTrendPoint> buildChallengeDiaryTrend(
+      Challenge challenge) {
+    LocalDate from = challenge.getStartDate();
+    if (from == null) {
+      return List.of();
+    }
+    LocalDate to = challenge.getEndDate() != null ? challenge.getEndDate() : LocalDate.now();
+    if (to.isBefore(from)) {
+      return List.of();
+    }
+
+    Map<LocalDate, Long> counts = new java.util.HashMap<>();
+    for (ChallengeDailyCountProjection row :
+        diaryRepository.countDiariesByDateForChallenge(challenge.getId(), from, to)) {
+      counts.put(row.getBucket(), row.getCnt());
+    }
+
+    List<ChallengeStatisticsResponse.DiaryTrendPoint> out = new ArrayList<>();
+    for (LocalDate d = from; !d.isAfter(to); d = d.plusDays(1)) {
+      out.add(new ChallengeStatisticsResponse.DiaryTrendPoint(d, counts.getOrDefault(d, 0L)));
+    }
+    return out;
+  }
+
   public OffsetPagination<ParticipantResponse> getChallengeParticipants(
       Long challengeId,
       Long memberId,

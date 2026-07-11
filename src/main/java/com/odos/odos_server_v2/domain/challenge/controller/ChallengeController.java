@@ -420,6 +420,18 @@ public class ChallengeController {
   }
 
   @Operation(
+      summary = "특정 챌린지 통계",
+      description = "참여율 + 완료 목표수 + 기간 내 날짜별 일지 추이(빈 날짜 0). 권한은 챌린지 상세 조회 정책과 동일(비공개는 참여자/호스트).")
+  @GetMapping("/{challengeId}/statistics")
+  public ApiResponse<ChallengeStatisticsResponse> getChallengeStatistics(
+      @Parameter(description = "챌린지 ID") @PathVariable Long challengeId) {
+    Long memberId = CurrentUserContext.getCurrentMemberId();
+    return ApiResponse.success(
+        Message.GET_CHALLENGE_STATISTICS,
+        challengeService.getChallengeStatistics(challengeId, memberId));
+  }
+
+  @Operation(
       summary = "챌린지 참여자 목록 조회",
       description =
           """
