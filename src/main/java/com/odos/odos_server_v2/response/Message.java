@@ -46,6 +46,7 @@ public class Message {
   public static String GET_MY_CHALLENGE_DIARY_WRITTEN = "특정 챌린지의 3일 이내의 일지 작성 날짜 조회 성공했습니다.";
   public static String JOIN_PRIVATE_CHALLENGE = "비공개 챌린지 참여 성공했습니다.";
   public static String GET_CHALLENGE_PREVIEW = "챌린지 미리보기 조회 성공했습니다.";
+  public static String GET_CHALLENGE_STATISTICS = "챌린지 통계 조회 성공했습니다.";
   public static String CHALLENGE_POKE = "챌린지원 찌르기 성공했습니다.";
 
   // admin challenge
@@ -105,6 +106,14 @@ public class Message {
   public static String GET_FRIEND_REQUESTS = "친구 신청 목록 조회 성공했습니다.";
   public static String GET_BLOCK_LIST = "차단 목록 조회 성공했습니다.";
   public static String GET_MEMBER_RELATION = "멤버 관계 조회 성공했습니다.";
+
+  // popup
+  public static String CREATE_POPUP = "팝업 생성 성공했습니다.";
+  public static String UPDATE_POPUP = "팝업 수정 성공했습니다.";
+  public static String DELETE_POPUP = "팝업 삭제 성공했습니다.";
+  public static String GET_POPUP = "팝업 조회 성공했습니다.";
+  public static String GET_POPUP_LIST = "팝업 목록 조회 성공했습니다.";
+  public static String GET_ACTIVE_POPUPS = "게시 중 팝업 조회 성공했습니다.";
 
   // story
   public static String GET_STORY_LIST = "스토리 목록 조회 성공했습니다.";

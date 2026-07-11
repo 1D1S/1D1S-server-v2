@@ -30,16 +30,22 @@ public interface StatisticsRepository extends JpaRepository<Diary, Long> {
   List<DailyCount> aggregateDailyCounts(
       @Param("memberId") Long memberId, @Param("from") LocalDate from, @Param("to") LocalDate to);
 
-  /** 감정별 일지 수 집계. challengeId/기간은 선택(null 이면 전체). feeling 이 null 인 행은 미선택으로 앱에서 병합. */
+  /**
+   * 감정별 일지 수 집계. challengeId/기간은 선택(null 이면 전체). feeling 이 null 인 행은 미선택으로 앱에서 병합.
+   *
+   * <p>optional 파라미터의 null 체크는 반드시 cast 로 타입을 명시한다. Postgres 는 {@code (:param is null ...)} 처럼 타입
+   * 단서 없는 파라미터를 서버 프리페어(운영 URL 의 {@code prepareThreshold=0}) 단계에서 "could not determine data type of
+   * parameter" 로 거절하기 때문이다. (H2 는 관대해 통과하므로 로컬/H2 테스트만으로는 드러나지 않는다.)
+   */
   @Query(
       """
       select d.feeling as feeling, count(d) as cnt
       from Diary d
       where d.member.id = :memberId
         and d.isDeleted = false
-        and (:from is null or d.completedDate >= :from)
-        and (:to is null or d.completedDate <= :to)
-        and (:challengeId is null or d.challenge.id = :challengeId)
+        and (cast(:from as date) is null or d.completedDate >= :from)
+        and (cast(:to as date) is null or d.completedDate <= :to)
+        and (cast(:challengeId as long) is null or d.challenge.id = :challengeId)
       group by d.feeling
       """)
   List<FeelingCount> aggregateFeelings(

@@ -121,6 +121,7 @@ public class ChallengeService {
             .hostMember(member)
             .allowMidJoin(challengeRequest.getAllowMidJoin())
             .photoRequired(Boolean.TRUE.equals(challengeRequest.getPhotoRequired()))
+            .postEndWriteAllowed(Boolean.TRUE.equals(challengeRequest.getPostEndWriteAllowed()))
             .participationType(challengeRequest.getParticipationType())
             .challengeType(challengeType)
             .password(encodedPassword)
@@ -276,6 +277,58 @@ public class ChallengeService {
     }
 
     return toChallengeResponse(challenge, member);
+  }
+
+  /** 특정 챌린지 통계: 참여율 + 완료 목표수 + 기간 내 날짜별 일지 추이. 권한은 챌린지 상세 조회 정책과 동일. */
+  public ChallengeStatisticsResponse getChallengeStatistics(Long challengeId, Long memberId) {
+    Challenge challenge =
+        challengeRepository
+            .findById(challengeId)
+            .orElseThrow(() -> new CustomException(ErrorCode.CHALLENGE_NOT_FOUND));
+    memberRepository
+        .findById(memberId)
+        .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+
+    if (challenge.getChallengeType() == ChallengeType.PRIVATE) {
+      ParticipantStatus status = getMemberStatus(challengeId, memberId);
+      if (status != ParticipantStatus.HOST && status != ParticipantStatus.PARTICIPANT) {
+        throw new CustomException(ErrorCode.PRIVATE_CHALLENGE);
+      }
+    }
+
+    double participationRate = getParticipationRate(challenge);
+    long completedGoalCount =
+        diaryGoalRepository.countByDiary_Challenge_IdAndIsCompletedTrueAndDiary_IsDeletedFalse(
+            challengeId);
+    return new ChallengeStatisticsResponse(
+        participationRate, completedGoalCount, buildChallengeDiaryTrend(challenge));
+  }
+
+  // 챌린지 기간(startDate ~ endDate, 무기한이면 startDate ~ 오늘) 동안 날짜별 일지 개수 시계열(빈 날짜 0).
+  // ponytail: 무기한 챌린지가 아주 오래됐으면 포인트 수가 (오늘-시작일)만큼 커진다. 실제 챌린지 기간은 유한해 문제되지 않지만,
+  // 필요하면 상한(예: 최근 N일) 파라미터를 추가.
+  private List<ChallengeStatisticsResponse.DiaryTrendPoint> buildChallengeDiaryTrend(
+      Challenge challenge) {
+    LocalDate from = challenge.getStartDate();
+    if (from == null) {
+      return List.of();
+    }
+    LocalDate to = challenge.getEndDate() != null ? challenge.getEndDate() : LocalDate.now();
+    if (to.isBefore(from)) {
+      return List.of();
+    }
+
+    Map<LocalDate, Long> counts = new java.util.HashMap<>();
+    for (ChallengeDailyCountProjection row :
+        diaryRepository.countDiariesByDateForChallenge(challenge.getId(), from, to)) {
+      counts.put(row.getBucket(), row.getCnt());
+    }
+
+    List<ChallengeStatisticsResponse.DiaryTrendPoint> out = new ArrayList<>();
+    for (LocalDate d = from; !d.isAfter(to); d = d.plusDays(1)) {
+      out.add(new ChallengeStatisticsResponse.DiaryTrendPoint(d, counts.getOrDefault(d, 0L)));
+    }
+    return out;
   }
 
   public OffsetPagination<ParticipantResponse> getChallengeParticipants(
@@ -607,9 +660,14 @@ public class ChallengeService {
   }
 
   public List<ChallengeSummaryResponse> getRandomChallenges(Long memberId, int size) {
+    // "오늘 시작해볼 챌린지": 비공개/삭제/종료 챌린지는 제외하고 진행중·예정만 노출한다.
+    // (종료 판정 = endDate < today. 무기한(endDate==null)은 종료가 아니므로 포함.)
+    LocalDate today = LocalDate.now();
     List<Challenge> all =
         challengeRepository.findAll().stream()
             .filter(c -> c.getChallengeType() != ChallengeType.PRIVATE)
+            .filter(c -> c.getDeletedAt() == null)
+            .filter(c -> c.getEndDate() == null || !c.getEndDate().isBefore(today))
             .collect(java.util.stream.Collectors.toList());
     Collections.shuffle(all);
     return all.stream().limit(size).map(ch -> toChallengeSummary(ch, memberId)).toList();
@@ -1002,7 +1060,8 @@ public class ChallengeService {
         likeInfo,
         challenge.getDeletedAt() != null,
         pickRandomParticipants(challengeId, 3),
-        challenge.isPhotoRequired());
+        challenge.isPhotoRequired(),
+        challenge.isPostEndWriteAllowed());
   }
 
   private ChallengeDetailDto toChallengeDetail(Challenge challenge, Long memberId) {
@@ -1010,6 +1069,7 @@ public class ChallengeService {
         challenge.getDescription(),
         challenge.isAllowMidJoin(),
         challenge.isPhotoRequired(),
+        challenge.isPostEndWriteAllowed(),
         getMemberStatus(challenge.getId(), memberId),
         getParticipationRate(challenge),
         getGoalCompletionRate(challenge));
@@ -1073,7 +1133,7 @@ public class ChallengeService {
     LocalDate startDate = challenge.getStartDate();
     LocalDate endDate = challenge.getEndDate();
     LocalDate today = LocalDate.now();
-    if (today.isBefore(startDate)) return -1;
+    if (startDate == null || today.isBefore(startDate)) return -1; // 시작일 없음/시작 전
 
     Long challengeId = challenge.getId();
     long allGoalsCompletedDiaryCnt =
@@ -1082,13 +1142,10 @@ public class ChallengeService {
     long participantCnt = getParticipantCnt(challengeId);
     if (participantCnt == 0) return 0;
 
-    long days;
-    if (today.isBefore(endDate)) {
-      days = ChronoUnit.DAYS.between(startDate, today) + 1; // 오늘 포함
-    } else {
-      days = ChronoUnit.DAYS.between(startDate, endDate) + 1; // 종료일 포함
-    }
-    if (days == 0) return 0;
+    // 경과일: 무기한(endDate==null)이거나 아직 종료 전이면 오늘까지, 종료됐으면 종료일까지. (endDate null 시 NPE 방지)
+    LocalDate effectiveEnd = (endDate == null || today.isBefore(endDate)) ? today : endDate;
+    long days = ChronoUnit.DAYS.between(startDate, effectiveEnd) + 1;
+    if (days <= 0) return 0;
 
     return (double) allGoalsCompletedDiaryCnt / ((double) participantCnt * (double) days) * 100;
   }
@@ -1098,7 +1155,7 @@ public class ChallengeService {
     LocalDate startDate = challenge.getStartDate();
     LocalDate endDate = challenge.getEndDate();
     LocalDate today = LocalDate.now();
-    if (today.isBefore(startDate)) return -1;
+    if (startDate == null || today.isBefore(startDate)) return -1; // 시작일 없음/시작 전
 
     Long challengeId = challenge.getId();
 
@@ -1108,14 +1165,11 @@ public class ChallengeService {
             challengeId);
     // 전체 참여자
     long participantCnt = getParticipantCnt(challengeId);
-    // 진행된 일 수
-    long days;
-    if (today.isBefore(endDate)) {
-      days = ChronoUnit.DAYS.between(startDate, today) + 1; // 오늘 포함
-    } else {
-      days = ChronoUnit.DAYS.between(startDate, endDate) + 1; // 종료일 포함
-    }
-    if (days == 0) return 0;
+    if (participantCnt == 0) return 0; // 0 나눗셈(NaN) 방지
+    // 진행된 일 수: 무기한/종료 전이면 오늘까지, 종료됐으면 종료일까지. (endDate null 시 NPE 방지)
+    LocalDate effectiveEnd = (endDate == null || today.isBefore(endDate)) ? today : endDate;
+    long days = ChronoUnit.DAYS.between(startDate, effectiveEnd) + 1;
+    if (days <= 0) return 0;
     // 목표의 개수 (고정목표 챌린지의 원본 목표 기준)
     long goalCnt = fixedChallengeGoalRepository.countByChallengeId(challengeId);
     if (goalCnt <= 0) return 0;

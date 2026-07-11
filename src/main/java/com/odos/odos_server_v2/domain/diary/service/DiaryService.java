@@ -29,6 +29,7 @@ import com.odos.odos_server_v2.exception.ErrorCode;
 import jakarta.transaction.Transactional;
 import java.io.IOException;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.*;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -43,6 +44,11 @@ import org.springframework.web.multipart.MultipartFile;
 @RequiredArgsConstructor
 @Slf4j
 public class DiaryService {
+
+  private static final ZoneId KST = ZoneId.of("Asia/Seoul");
+  // 챌린지 종료 후에도 이 일수(KST)만큼은 일지 작성을 허용하는 유예 기간.
+  private static final int POST_END_WRITE_GRACE_DAYS = 2;
+
   private final DiaryRepository diaryRepository;
   private final MemberRepository memberRepository;
   private final DiaryLikeRepository diaryLikeRepository;
@@ -71,6 +77,9 @@ public class DiaryService {
             .orElseThrow(() -> new CustomException(ErrorCode.CHALLENGE_NOT_FOUND));
     ChallengeSummaryResponse challengeSummary =
         challengeService.toChallengeSummary(challenge, memberId);
+
+    // 챌린지 종료 후 유예 기간(endDate + 2일, KST)이 지나면 일지 작성 불가.
+    validateDiaryWritable(challenge);
 
     // 인증샷 필수 챌린지면 이미지가 최소 1장 있어야 한다.
     validatePhotoRequired(challenge, hasImage(request.getImageUrls()));
@@ -463,6 +472,27 @@ public class DiaryService {
     }
   }
 
+  // 일지 작성 가능 기간 검증. 허용 조건:
+  //   endDate == null(무기한) OR today <= endDate(진행중/시작 전)
+  //   OR (유예 옵션 ON AND today <= endDate + 유예일)
+  // 그 외(종료됐고 옵션 OFF 이거나 유예도 지남)는 DIARY-011 로 차단.
+  private void validateDiaryWritable(Challenge challenge) {
+    LocalDate endDate = challenge.getEndDate();
+    if (endDate == null) {
+      return; // 무기한: 종료 개념 없음
+    }
+    LocalDate today = LocalDate.now(KST);
+    if (!today.isAfter(endDate)) {
+      return; // 진행중/시작 전
+    }
+    // 종료됨: 옵션 ON 이고 유예 기간(종료일 + 2일) 이내면 허용
+    if (challenge.isPostEndWriteAllowed()
+        && !today.isAfter(endDate.plusDays(POST_END_WRITE_GRACE_DAYS))) {
+      return;
+    }
+    throw new CustomException(ErrorCode.DIARY_WRITE_PERIOD_CLOSED);
+  }
+
   // 대표 썸네일 결정. imageUrls는 non-null 가정(호출부에서 보장), 요소는 이미 validateImageUrls 통과.
   // - thumbnailUrl null 이면 대표 미선택 -> null (이미지가 있어도 자동 지정하지 않음)
   // - thumbnailUrl 지정 시 imageUrls에 포함돼야 함(아니면 DIARY-009, 빈 배열도 여기서 걸림)
@@ -507,7 +537,8 @@ public class DiaryService {
   }
 
   @Transactional
-  public OffsetPagination<DiaryResponse> getChallengeDiaries(Long challengeId, Pageable pageable) {
+  public OffsetPagination<DiaryResponse> getChallengeDiaries(
+      Long challengeId, LocalDate date, Pageable pageable) {
     Long memberId = CurrentUserContext.getCurrentMemberId();
     Member member =
         memberRepository
@@ -518,16 +549,27 @@ public class DiaryService {
             .findById(challengeId)
             .orElseThrow(() -> new CustomException(ErrorCode.CHALLENGE_NOT_FOUND));
     ChallengeSummaryResponse summary = challengeService.toChallengeSummary(challenge, memberId);
-    Page<Diary> diaries = null;
-    if ((participantRepository.existsByChallengeIdAndMemberIdAndStatus(
-            challengeId, memberId, ParticipantStatus.PARTICIPANT)
-        || (participantRepository.existsByChallengeIdAndMemberIdAndStatus(
-            challengeId, memberId, ParticipantStatus.HOST)))) {
-      diaries = diaryRepository.findAllByChallengeIdAndIsDeletedFalse(challengeId, pageable);
+
+    // 참여자/호스트는 전체(비공개 포함), 그 외는 공개 일지만. date(completedDate) 지정 시 그 날짜로 필터.
+    boolean isMember =
+        participantRepository.existsByChallengeIdAndMemberIdAndStatus(
+                challengeId, memberId, ParticipantStatus.PARTICIPANT)
+            || participantRepository.existsByChallengeIdAndMemberIdAndStatus(
+                challengeId, memberId, ParticipantStatus.HOST);
+    Page<Diary> diaries;
+    if (isMember) {
+      diaries =
+          (date == null)
+              ? diaryRepository.findAllByChallengeIdAndIsDeletedFalse(challengeId, pageable)
+              : diaryRepository.findAllByChallengeIdAndCompletedDateAndIsDeletedFalse(
+                  challengeId, date, pageable);
     } else {
       diaries =
-          diaryRepository.findDiariesByChallengeIdAndIsPublicAndIsDeletedFalse(
-              challengeId, Boolean.TRUE, pageable);
+          (date == null)
+              ? diaryRepository.findDiariesByChallengeIdAndIsPublicAndIsDeletedFalse(
+                  challengeId, Boolean.TRUE, pageable)
+              : diaryRepository.findByChallengeIdAndIsPublicAndCompletedDateAndIsDeletedFalse(
+                  challengeId, Boolean.TRUE, date, pageable);
     }
 
     Map<Long, Long> commentCounts = getCommentCountMap(diaries.getContent());

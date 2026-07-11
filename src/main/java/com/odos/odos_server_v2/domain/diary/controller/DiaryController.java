@@ -26,6 +26,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -570,12 +571,18 @@ public class DiaryController {
   @GetMapping("/challenges/{challengeId}")
   public ApiResponse<OffsetPagination<DiaryResponse>> getChallengeDiaries(
       @PathVariable(name = "challengeId") Long challengeId,
+      @Parameter(
+              description = "완료 날짜(completedDate) 필터. 지정 시 그 날짜 일지만. 미지정 시 전체.",
+              example = "2026-07-01")
+          @RequestParam(required = false)
+          @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+          LocalDate date,
       @RequestParam(defaultValue = "0") int page,
       @RequestParam(defaultValue = "10") int size) {
     Pageable pageable =
         PageRequest.of(page, size, Sort.by(Sort.Order.desc("createdAt"), Sort.Order.desc("id")));
     OffsetPagination<DiaryResponse> diaries =
-        diaryService.getChallengeDiaries(challengeId, pageable);
+        diaryService.getChallengeDiaries(challengeId, date, pageable);
     return ApiResponse.success(Message.CHALLENGE_DIARY_GET, diaries);
   }
 
