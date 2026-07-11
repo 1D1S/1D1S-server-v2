@@ -129,6 +129,37 @@ class ChallengeStatisticsServicePostgresTest {
     assertThat(res.diaryTrend().get(res.diaryTrend().size() - 1).date()).isEqualTo(today);
   }
 
+  /**
+   * 무기한 + 아주 오래된 시작일(2년 전): startDate~오늘 전 구간을 일 단위로 순회하면 700+ 포인트가 되어 응답 지연/과부하. 최근 90일 창으로 제한되어야
+   * 한다(회귀).
+   */
+  @Test
+  void statistics_onOldUnlimitedChallenge_trendIsCappedToRecentWindow() {
+    LocalDate today = LocalDate.now();
+    Member host = memberRepository.save(Member.builder().email("old@t.com").build());
+    Challenge ch =
+        challengeRepository.save(
+            Challenge.builder()
+                .title("오래된 무기한")
+                .hostMember(host)
+                .startDate(today.minusDays(730)) // 2년 전 시작
+                .endDate(null) // 무기한
+                .challengeType(ChallengeType.PUBLIC)
+                .goalType(GoalType.FIXED)
+                .participationType(ParticipationType.GROUP)
+                .maxParticipantsCnt(10L)
+                .build());
+    participantRepository.save(
+        Participant.builder().member(host).challenge(ch).status(ParticipantStatus.HOST).build());
+
+    ChallengeStatisticsResponse res = service.getChallengeStatistics(ch.getId(), host.getId());
+
+    // 90일 창: 정확히 90 포인트, 마지막은 오늘, 첫 포인트는 today-89.
+    assertThat(res.diaryTrend()).hasSize(90);
+    assertThat(res.diaryTrend().get(0).date()).isEqualTo(today.minusDays(89));
+    assertThat(res.diaryTrend().get(res.diaryTrend().size() - 1).date()).isEqualTo(today);
+  }
+
   /** 시작 전(startDate 미래) 챌린지: participationRate -1, diaryTrend 빈 배열, NPE 없음. */
   @Test
   void statistics_onUpcomingUnlimitedChallenge_doesNotThrow() {
