@@ -333,12 +333,15 @@ public class DiaryService {
   }
 
   @Transactional
-  public Boolean deleteDiary(Long diaryId) {
+  public Boolean deleteDiary(Long memberId, Long diaryId) {
     Diary diary =
         diaryRepository
             .findByIdAndIsDeletedFalse(diaryId)
             .orElseThrow(() -> new CustomException(ErrorCode.DIARY_NOT_FOUND));
-    // diaryRepository.deleteById(diaryId);
+    // 작성자 본인만 삭제 가능(관리자 삭제는 AdminDiaryController 별도 경로). 소유자 검증 없이는 IDOR.
+    if (!diary.getMember().getId().equals(memberId)) {
+      throw new CustomException(ErrorCode.DIARY_NOT_ACCESS);
+    }
     diary.softDelete();
     diaryRepository.save(diary);
     return true;

@@ -777,7 +777,8 @@ public class DiaryController {
       @Parameter(description = "삭제할 일지 ID", example = "1", required = true)
           @PathVariable(name = "id")
           Long diaryId) {
-    Boolean result = diaryService.deleteDiary(diaryId);
+    Long memberId = CurrentUserContext.getCurrentMemberId();
+    Boolean result = diaryService.deleteDiary(memberId, diaryId);
     return ApiResponse.success(Message.DIARY_DELETE_SUCCESS, result);
   }
 
