@@ -40,7 +40,8 @@ class RefreshTokenServiceTest {
     LocalDateTime newExpiresAt = LocalDateTime.now().plusDays(14);
     RefreshToken oldToken =
         RefreshToken.active(member, "old-token", LocalDateTime.now().plusDays(7), "family-A");
-    when(refreshTokenRepository.findByRefreshToken("old-token")).thenReturn(Optional.of(oldToken));
+    when(refreshTokenRepository.findByRefreshTokenForUpdate("old-token"))
+        .thenReturn(Optional.of(oldToken));
 
     refreshTokenService.rotate(member, "old-token", "new-token", newExpiresAt);
 
@@ -53,7 +54,8 @@ class RefreshTokenServiceTest {
   @Test
   void rotate_startsNewFamilyForLegacyTokenNotInDb() {
     LocalDateTime newExpiresAt = LocalDateTime.now().plusDays(14);
-    when(refreshTokenRepository.findByRefreshToken("legacy-token")).thenReturn(Optional.empty());
+    when(refreshTokenRepository.findByRefreshTokenForUpdate("legacy-token"))
+        .thenReturn(Optional.empty());
 
     refreshTokenService.rotate(member, "legacy-token", "new-token", newExpiresAt);
 
@@ -67,7 +69,7 @@ class RefreshTokenServiceTest {
     RefreshToken revokedToken =
         RefreshToken.active(member, "reused-token", LocalDateTime.now().plusDays(7), "family-A");
     revokedToken.revoke();
-    when(refreshTokenRepository.findByRefreshToken("reused-token"))
+    when(refreshTokenRepository.findByRefreshTokenForUpdate("reused-token"))
         .thenReturn(Optional.of(revokedToken));
 
     CustomException exception =
@@ -90,7 +92,7 @@ class RefreshTokenServiceTest {
     RefreshToken othersToken =
         RefreshToken.active(
             otherOwner, "others-token", LocalDateTime.now().plusDays(7), "family-B");
-    when(refreshTokenRepository.findByRefreshToken("others-token"))
+    when(refreshTokenRepository.findByRefreshTokenForUpdate("others-token"))
         .thenReturn(Optional.of(othersToken));
 
     CustomException exception =
@@ -109,7 +111,7 @@ class RefreshTokenServiceTest {
     RefreshToken expiredToken =
         RefreshToken.active(
             member, "expired-token", LocalDateTime.now().minusMinutes(1), "family-A");
-    when(refreshTokenRepository.findByRefreshToken("expired-token"))
+    when(refreshTokenRepository.findByRefreshTokenForUpdate("expired-token"))
         .thenReturn(Optional.of(expiredToken));
 
     CustomException exception =
