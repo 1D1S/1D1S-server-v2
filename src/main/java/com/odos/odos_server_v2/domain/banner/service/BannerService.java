@@ -44,6 +44,13 @@ public class BannerService {
         .toList();
   }
 
+  public List<BannerResponse> getAllBanners() {
+    requireAdmin();
+    return bannerRepository.findAllByOrderByStartDateAscIdAsc().stream()
+        .map(BannerResponse::from)
+        .toList();
+  }
+
   private Banner toEntity(BannerCreateRequest request) {
     return Banner.builder()
         .title(request.getTitle())

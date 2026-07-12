@@ -119,6 +119,7 @@ public class Message {
 
   // banner
   public static String CREATE_BANNER = "배너 생성 성공했습니다.";
+  public static String GET_BANNER_LIST = "배너 목록 조회 성공했습니다.";
   public static String GET_TODAY_BANNERS = "오늘의 배너 목록 조회 성공했습니다.";
 
   // story

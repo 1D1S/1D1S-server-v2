@@ -28,6 +28,82 @@ public class AdminBannerController {
   private final BannerService bannerService;
 
   @Operation(
+      summary = "관리자 배너 전체 목록 조회",
+      description = "관리자가 등록된 모든 배너를 게시 기간과 무관하게 조회합니다. 시작일 오름차순으로 정렬됩니다.")
+  @io.swagger.v3.oas.annotations.responses.ApiResponses({
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "200",
+        description = "배너 전체 목록 조회 성공",
+        content =
+            @Content(
+                mediaType = "application/json",
+                examples =
+                    @ExampleObject(
+                        value =
+                            """
+                            {
+                              "message": "배너 목록 조회 성공했습니다.",
+                              "data": [
+                                {
+                                  "id": 1,
+                                  "title": "여름 이벤트",
+                                  "subtitle": "7월 한정 혜택",
+                                  "imageUrl": "https://cdn.example.com/banner.png",
+                                  "linkUrl": "https://1day1streak.com/event/1",
+                                  "startDate": "2026-07-01",
+                                  "endDate": "2026-07-09"
+                                },
+                                {
+                                  "id": 2,
+                                  "title": "가을 이벤트",
+                                  "subtitle": "9월 챌린지 혜택",
+                                  "imageUrl": "https://cdn.example.com/banner-fall.png",
+                                  "linkUrl": "https://1day1streak.com/event/2",
+                                  "startDate": "2026-09-01",
+                                  "endDate": "2026-09-30"
+                                }
+                              ]
+                            }
+                            """))),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "401",
+        description = "인증 실패",
+        content =
+            @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class),
+                examples =
+                    @ExampleObject(
+                        value =
+                            """
+                            {
+                              "code": "AUTH-001",
+                              "message": "인증되지 않은 접근입니다."
+                            }
+                            """))),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "403",
+        description = "관리자가 아닌 회원",
+        content =
+            @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class),
+                examples =
+                    @ExampleObject(
+                        value =
+                            """
+                            {
+                              "code": "USER-009",
+                              "message": "관리자 회원만 요청이 가능합니다."
+                            }
+                            """)))
+  })
+  @GetMapping
+  public ApiResponse<List<BannerResponse>> getAllBanners() {
+    return ApiResponse.success(Message.GET_BANNER_LIST, bannerService.getAllBanners());
+  }
+
+  @Operation(
       summary = "오늘의 배너 목록 조회",
       description =
           "관리자가 오늘 날짜(KST)가 게시 기간에 포함된 배너 목록을 조회합니다. "

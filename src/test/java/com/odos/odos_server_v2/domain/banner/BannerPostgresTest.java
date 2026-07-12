@@ -125,6 +125,48 @@ class BannerPostgresTest {
   }
 
   @Test
+  void adminGetsAllBanners() {
+    Member admin = saveMember("admin5@t.com", MemberRole.ADMIN);
+    authenticateAs(admin);
+    LocalDate today = LocalDate.now(java.time.ZoneId.of("Asia/Seoul"));
+
+    BannerResponse past =
+        bannerService.create(
+            request(
+                "Past Banner",
+                "Past",
+                "https://cdn.example.com/past.png",
+                "https://1day1streak.com/past",
+                today.minusDays(3),
+                today.minusDays(1)));
+    BannerResponse active =
+        bannerService.create(
+            request(
+                "Active Banner",
+                "Today",
+                "https://cdn.example.com/active.png",
+                "https://1day1streak.com/active",
+                today.minusDays(1),
+                today.plusDays(1)));
+    BannerResponse future =
+        bannerService.create(
+            request(
+                "Future Banner",
+                "Future",
+                "https://cdn.example.com/future.png",
+                "https://1day1streak.com/future",
+                today.plusDays(1),
+                today.plusDays(3)));
+
+    java.util.List<BannerResponse> banners = bannerService.getAllBanners();
+
+    assertThat(banners).hasSize(3);
+    assertThat(banners)
+        .extracting(BannerResponse::id)
+        .containsExactly(past.id(), active.id(), future.id());
+  }
+
+  @Test
   void userCannotCreateBanner() {
     Member user = saveMember("user@t.com", MemberRole.USER);
     authenticateAs(user);
@@ -141,6 +183,17 @@ class BannerPostgresTest {
     authenticateAs(user);
 
     assertThatThrownBy(() -> bannerService.getTodayBanners())
+        .isInstanceOf(CustomException.class)
+        .extracting(e -> ((CustomException) e).getErrorCode())
+        .isEqualTo(ErrorCode.MEMBER_NOT_ADMIN);
+  }
+
+  @Test
+  void userCannotGetAllBanners() {
+    Member user = saveMember("user3@t.com", MemberRole.USER);
+    authenticateAs(user);
+
+    assertThatThrownBy(() -> bannerService.getAllBanners())
         .isInstanceOf(CustomException.class)
         .extracting(e -> ((CustomException) e).getErrorCode())
         .isEqualTo(ErrorCode.MEMBER_NOT_ADMIN);
