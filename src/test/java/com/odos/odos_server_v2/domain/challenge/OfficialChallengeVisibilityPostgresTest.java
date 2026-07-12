@@ -76,7 +76,7 @@ class OfficialChallengeVisibilityPostgresTest {
             .build());
   }
 
-  private List<Long> searchPageIds() {
+  private List<Long> searchPageIds(boolean includeHidden) {
     return challengeRepository
         .searchPage(
             null,
@@ -89,13 +89,14 @@ class OfficialChallengeVisibilityPostgresTest {
             List.of(),
             today,
             now,
+            includeHidden,
             PageRequest.of(0, 50))
         .stream()
         .map(Challenge::getId)
         .toList();
   }
 
-  private List<Long> findByFiltersIds() {
+  private List<Long> findByFiltersIds(boolean includeHidden) {
     return challengeRepository
         .findByFilters(
             null,
@@ -107,6 +108,7 @@ class OfficialChallengeVisibilityPostgresTest {
             List.of(),
             today,
             now,
+            includeHidden,
             PageRequest.of(0, 50))
         .stream()
         .map(Challenge::getId)
@@ -127,11 +129,20 @@ class OfficialChallengeVisibilityPostgresTest {
     assertThat(randomIds).contains(immediate.getId(), past.getId());
     assertThat(randomIds).doesNotContain(scheduled.getId());
 
-    // 커서 목록 + 오프셋 목록 + 검색
-    assertThat(searchPageIds()).contains(immediate.getId(), past.getId());
-    assertThat(searchPageIds()).doesNotContain(scheduled.getId());
-    assertThat(findByFiltersIds()).contains(immediate.getId(), past.getId());
-    assertThat(findByFiltersIds()).doesNotContain(scheduled.getId());
+    // 커서 목록 + 오프셋 목록 + 검색 (일반 사용자: includeHidden=false)
+    assertThat(searchPageIds(false)).contains(immediate.getId(), past.getId());
+    assertThat(searchPageIds(false)).doesNotContain(scheduled.getId());
+    assertThat(findByFiltersIds(false)).contains(immediate.getId(), past.getId());
+    assertThat(findByFiltersIds(false)).doesNotContain(scheduled.getId());
+  }
+
+  @Test
+  void listQueries_includeScheduled_whenIncludeHiddenTrue() {
+    Challenge scheduled = save("scheduled-included", now.plusDays(1));
+
+    // 관리자 경로(includeHidden=true)에서는 예약 챌린지도 목록에 노출된다.
+    assertThat(searchPageIds(true)).contains(scheduled.getId());
+    assertThat(findByFiltersIds(true)).contains(scheduled.getId());
   }
 
   @Test
