@@ -39,7 +39,7 @@ public class ChallengeController {
           새로운 챌린지를 생성한다.
 
           - 챌린지 썸네일 이미지 등록 시 presigned URL 발급 API를 통해 이미지를 업로드 한 뒤, 해당 키 값을 thumbnailImage 필드에 담아 전송한다. ( /image/presigned-url API 참고 )
-          - 챌린지 카테고리는 다음에서 선택한다. DEV/EXERCISE/BOOK/MUSIC/STUDY/LEISURE/ECONOMY
+          - 챌린지 카테고리는 다음에서 선택한다. DEV/EXERCISE/BOOK/DIET/HEALTH/HOBBY/LANGUAGE/SELF_DEV/ETC
           - 챌린지 형태는 다음에서 선택한다. INDIVIDUAL(개인)/ GROUP(단체)
           - 최대 참여 인원 제한이 없다면 NULL로 보낸다.
           - 챌린지 목표는 다음에서 선택한다. FIXED(고정형)/FLEXIBLE(유연형)
@@ -1211,7 +1211,7 @@ public class ChallengeController {
           String keyword,
       @Parameter(
               description =
-                  "카테고리 필터 (DEV, EXERCISE, BOOK, MUSIC, STUDY, LEISURE, ECONOMY). 다중 선택 가능(category=DEV&category=BOOK), 미입력 시 전체")
+                  "카테고리 필터 (DEV, EXERCISE, BOOK, DIET, HEALTH, HOBBY, LANGUAGE, SELF_DEV, ETC). 다중 선택 가능(category=DEV&category=BOOK), 미입력 시 전체")
           @RequestParam(name = "category", required = false)
           List<Category> categories,
       @Parameter(description = "챌린지 종류 필터 (PUBLIC, OFFICIAL). 미입력 시 전체 (PRIVATE 제외)")
@@ -1317,7 +1317,7 @@ public class ChallengeController {
           String keyword,
       @Parameter(
               description =
-                  "카테고리 필터 (DEV, EXERCISE, BOOK, MUSIC, STUDY, LEISURE, ECONOMY). 다중 선택 가능(category=DEV&category=BOOK), 미입력 시 전체")
+                  "카테고리 필터 (DEV, EXERCISE, BOOK, DIET, HEALTH, HOBBY, LANGUAGE, SELF_DEV, ETC). 다중 선택 가능(category=DEV&category=BOOK), 미입력 시 전체")
           @RequestParam(name = "category", required = false)
           List<Category> categories,
       @Parameter(description = "챌린지 종류 필터 (PUBLIC, OFFICIAL). 미입력 시 전체 (PRIVATE 제외)")
