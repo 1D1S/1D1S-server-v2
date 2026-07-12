@@ -953,6 +953,47 @@ public class ChallengeService {
     return new ChallengePokeResponse(receiverIds.stream().toList());
   }
 
+  /**
+   * 홈 '오늘의 기록'용 경량 조회: 내가 진행 중인 챌린지 목록 + 각 챌린지의 내 목표 + 오늘 일지 작성 여부를 한 번에 반환한다. 기존엔 챌린지마다 상세 조회 API를
+   * 호출(N+1)했으나, 참여자+목표를 단일 fetch join 쿼리로, 오늘 작성 여부를 IN 절 한 번으로 처리한다(총 2 쿼리).
+   */
+  public List<MyTodayChallengeResponse> getMyTodayChallenges(Long memberId) {
+    memberRepository
+        .findById(memberId)
+        .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+
+    LocalDate today = LocalDate.now();
+    List<Participant> participants =
+        participantRepository.findInProgressWithGoals(
+            memberId, List.of(ParticipantStatus.HOST, ParticipantStatus.PARTICIPANT), today);
+
+    // 챌린지당 1건으로 정리(가장 먼저 참여한 행 유지). participant(member_id, challenge_id) 유니크 제약이
+    // 없어 더티 중복 행이 있으면 같은 챌린지가 두 번 나올 수 있어 방어한다.
+    // ponytail: 근본 해결은 유니크 제약(참여자 중복 정리 마이그레이션). 그 전까지 이 dedupe 로 홈 중복 카드 차단.
+    Map<Long, Participant> byChallenge = new java.util.LinkedHashMap<>();
+    for (Participant p : participants) {
+      byChallenge.putIfAbsent(p.getChallenge().getId(), p);
+    }
+    if (byChallenge.isEmpty()) {
+      return List.of();
+    }
+
+    Set<Long> writtenToday =
+        new java.util.HashSet<>(
+            diaryRepository.findChallengeIdsWithDiaryOnDate(memberId, byChallenge.keySet(), today));
+
+    return byChallenge.values().stream()
+        .map(
+            p ->
+                MyTodayChallengeResponse.builder()
+                    .challengeId(p.getChallenge().getId())
+                    .title(p.getChallenge().getTitle())
+                    .todayWritten(writtenToday.contains(p.getChallenge().getId()))
+                    .goals(p.getChallengeGoals().stream().map(this::toChallengeGoal).toList())
+                    .build())
+        .toList();
+  }
+
   public List<ChallengeSummaryResponse> getMemberChallenge(Long currentMemberId, Long memberId) {
     Member member =
         memberRepository

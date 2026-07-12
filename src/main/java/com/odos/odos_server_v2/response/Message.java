@@ -43,6 +43,7 @@ public class Message {
   public static String CANCEL_CHALLENGE_LIKE = "챌린지 좋아요 취소 성공했습니다.";
   public static String GET_CHALLENGES_BY_MEMBER = "진행중인 챌린지 불러오기 성공했습니다.";
   public static String GET_MY_CHALLENGE = "내 챌린지 목록 조회 성공했습니다.";
+  public static String GET_MY_TODAY_CHALLENGE = "오늘의 기록 조회 성공했습니다.";
   public static String GET_MY_CHALLENGE_DIARY_WRITTEN = "특정 챌린지의 3일 이내의 일지 작성 날짜 조회 성공했습니다.";
   public static String JOIN_PRIVATE_CHALLENGE = "비공개 챌린지 참여 성공했습니다.";
   public static String GET_CHALLENGE_PREVIEW = "챌린지 미리보기 조회 성공했습니다.";

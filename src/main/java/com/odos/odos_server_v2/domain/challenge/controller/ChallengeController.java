@@ -984,6 +984,79 @@ public class ChallengeController {
         Message.GET_MY_CHALLENGE, challengeService.getMemberChallenge(memberId, memberId));
   }
 
+  @Operation(
+      summary = "홈 '오늘의 기록' 조회",
+      description =
+          """
+          홈 화면 '오늘의 기록'에 필요한 데이터를 단일 호출로 반환한다.
+
+          - 내가 진행 중(오늘 기준: 시작일 <= 오늘 <= 종료일, 삭제 제외)인 챌린지 목록
+          - 각 챌린지에 대한 내 목표 목록(challengeGoalId, content)
+          - 각 챌린지에 오늘(KST) 일지를 작성했는지 여부(todayWritten, completedDate 기준·삭제 제외)
+
+          기존처럼 챌린지마다 상세 조회 API를 호출(N+1)할 필요 없이 이 API 하나로 처리한다.
+          """)
+  @ApiResponses({
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "200",
+        description = "오늘의 기록 조회 성공",
+        content =
+            @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = MyTodayChallengeResponse.class),
+                examples =
+                    @ExampleObject(
+                        value =
+                            """
+                            {
+                              "message": "오늘의 기록 조회 성공했습니다.",
+                              "data": [
+                                {
+                                  "challengeId": 1,
+                                  "title": "30일 코딩 챌린지",
+                                  "todayWritten": false,
+                                  "goals": [
+                                    { "challengeGoalId": 10, "content": "알고리즘 1문제 풀기" },
+                                    { "challengeGoalId": 11, "content": "책 10페이지 읽기" }
+                                  ]
+                                }
+                              ]
+                            }
+                            """))),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "401",
+        description = "인증되지 않은 접근",
+        content =
+            @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class),
+                examples =
+                    @ExampleObject(
+                        value =
+                            """
+                            { "code": "AUTH-001", "message": "인증되지 않은 접근입니다." }
+                            """))),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "404",
+        description = "회원을 찾을 수 없음",
+        content =
+            @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class),
+                examples =
+                    @ExampleObject(
+                        value =
+                            """
+                            { "code": "USER-003", "message": "회원을 찾을 수 없습니다." }
+                            """)))
+  })
+  @GetMapping("/my/today")
+  public ApiResponse<List<MyTodayChallengeResponse>> myTodayChallenges() {
+    Long memberId = CurrentUserContext.getCurrentMemberId();
+    return ApiResponse.success(
+        Message.GET_MY_TODAY_CHALLENGE, challengeService.getMyTodayChallenges(memberId));
+  }
+
   @Operation(summary = "챌린지 탈퇴", description = "참여 중인 챌린지에서 탈퇴한다.")
   @ApiResponses({
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
