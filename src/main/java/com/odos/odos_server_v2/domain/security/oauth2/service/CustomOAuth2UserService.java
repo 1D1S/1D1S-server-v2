@@ -48,11 +48,6 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
             .findByEmailAndSignupRoute(email, signupRoute)
             .orElseGet(() -> createMember(email, signupRoute, userInfo.getId()));
 
-    //    log.debug(">>> OAuth2 attributes: {}", attributes);
-    //    log.info(
-    //        "OAuth2UserService provider = {}",
-    // userRequest.getClientRegistration().getRegistrationId());
-
     return new MemberPrincipal(
         member.getId(), member.getEmail(), member.getRole().name(), member.getSignupRoute());
   }
@@ -67,11 +62,6 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
             .build();
 
     Member saved = memberRepository.save(newMember);
-    //    log.info(
-    //        "new member saved : id={}, email={}, provider={}",
-    //        saved.getId(),
-    //        saved.getEmail(),
-    //        saved.getSignupRoute());
     return saved;
   }
 }
