@@ -451,6 +451,18 @@ public class ChallengeService {
         .orElse(false);
   }
 
+  // 관리자만 예약 노출 전(visibleFrom 미래) 공식 챌린지를 목록에서 볼 수 있다.
+  // 반드시 서버에서 ADMIN 권한을 검증한다(클라가 임의 파라미터로 숨김 챌린지를 볼 수 없게).
+  private boolean isAdmin(Long memberId) {
+    if (memberId == null) {
+      return false;
+    }
+    return memberRepository
+        .findById(memberId)
+        .map(member -> member.getRole() == MemberRole.ADMIN)
+        .orElse(false);
+  }
+
   /** 진행 상태 미선택 여부(=전체 조회). 이 경우 쿼리에서 날짜 조건을 우회한다. */
   private boolean isAllStatus(List<ChallengeStatus> statuses) {
     return statuses == null || statuses.isEmpty();
@@ -505,6 +517,7 @@ public class ChallengeService {
             toStatusNames(statuses),
             LocalDate.now(),
             LocalDateTime.now(KST),
+            isAdmin(memberId),
             pageable);
 
     Page<ChallengeSummaryResponse> responsePage =
@@ -853,6 +866,7 @@ public class ChallengeService {
             toStatusNames(statuses),
             LocalDate.now(),
             LocalDateTime.now(KST),
+            isAdmin(memberId),
             pageable);
 
     boolean hasNext = rows.size() > limit;
