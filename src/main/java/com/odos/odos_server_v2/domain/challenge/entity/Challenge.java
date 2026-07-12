@@ -111,6 +111,10 @@ public class Challenge {
     this.allowMidJoin = allowMidJoin;
   }
 
+  public void updatePhotoRequired(boolean photoRequired) {
+    this.photoRequired = photoRequired;
+  }
+
   public void updateMaxParticipantCnt(Long maxParticipantCnt) {
     this.maxParticipantsCnt = maxParticipantCnt;
   }

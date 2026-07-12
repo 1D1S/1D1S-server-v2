@@ -37,6 +37,9 @@ public class OfficialChallengeRequest {
   @Schema(description = "중도 참여 허용 여부", example = "true")
   private Boolean allowMidJoin;
 
+  @Schema(description = "인증샷(사진) 필수 여부. true면 일지 작성 시 이미지 1장 이상 필수.", example = "false")
+  private Boolean photoRequired;
+
   @Schema(description = "챌린지 목표 유형 (FIXED: 고정형, FLEXIBLE: 유연형)", example = "FIXED")
   private GoalType goalType;
 
