@@ -4,6 +4,7 @@ import com.odos.odos_server_v2.domain.challenge.entity.Enum.GoalType;
 import com.odos.odos_server_v2.domain.shared.Enum.Category;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -41,4 +42,9 @@ public class OfficialChallengeRequest {
 
   @Schema(description = "챌린지 목표 목록", example = "[\"알고리즘 1문제 풀기\", \"책 10페이지 읽기\"]")
   private List<String> goals;
+
+  @Schema(
+      description = "예약 노출 시각(KST). null이면 즉시 노출. 이 시각 이전에는 클라이언트에 노출되지 않음.",
+      example = "2026-08-01T09:00:00")
+  private LocalDateTime visibleFrom;
 }

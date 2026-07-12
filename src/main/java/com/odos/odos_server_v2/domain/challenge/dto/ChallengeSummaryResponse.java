@@ -8,6 +8,7 @@ import com.odos.odos_server_v2.domain.shared.dto.LikeDto;
 import com.odos.odos_server_v2.domain.shared.entity.MemberInfo;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -66,4 +67,14 @@ public class ChallengeSummaryResponse {
 
   @Schema(description = "챌린지 종료 후 유예 기간(종료일+2일) 내 일지 작성 허용 여부", example = "false")
   private boolean postEndWriteAllowed;
+
+  @Schema(
+      description = "공식 챌린지 예약 노출 시각(KST). null이면 즉시 노출. 공식 챌린지가 아니면 null.",
+      example = "2026-08-01T09:00:00")
+  private LocalDateTime visibleFrom;
+
+  @Schema(
+      description = "예약 노출 상태. true=예약됨(노출 전), false=노출중. 어드민 목록에서 예약 여부 판별용.",
+      example = "false")
+  private boolean scheduled;
 }

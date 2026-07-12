@@ -106,7 +106,8 @@ class FullScanReplacementPostgresTest {
     saveChallenge(host, ChallengeType.PUBLIC, today.minusDays(1), today.plusDays(3), true); // 삭제
 
     List<Challenge> result =
-        challengeRepository.findRandomActiveChallenges(today, PageRequest.of(0, 50));
+        challengeRepository.findRandomActiveChallenges(
+            today, today.atStartOfDay(), PageRequest.of(0, 50));
 
     assertThat(result).extracting(Challenge::getId).contains(active.getId(), unlimited.getId());
     assertThat(result).hasSize(2);

@@ -71,6 +71,9 @@ public class Challenge {
 
   @Column @CreatedDate private LocalDateTime createdAt;
 
+  // 공식(OFFICIAL) 챌린지 예약 노출 시각(KST 벽시계). null=즉시 노출. 이 시각 이전이면 클라 조회에서 제외.
+  @Column private LocalDateTime visibleFrom;
+
   @Column private LocalDateTime deletedAt;
 
   @Column private String deletedReason;
@@ -118,6 +121,10 @@ public class Challenge {
 
   public void updatePassword(String encodedPassword) {
     this.password = encodedPassword;
+  }
+
+  public void updateVisibleFrom(LocalDateTime visibleFrom) {
+    this.visibleFrom = visibleFrom;
   }
 
   public void setHostMember(Member member) {

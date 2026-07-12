@@ -25,16 +25,19 @@ public interface ChallengeRepository extends JpaRepository<Challenge, Long> {
       select c from Challenge c
        where cast(c.challengeType as string) <> 'PRIVATE'
          and c.deletedAt is null
+         and (c.visibleFrom is null or c.visibleFrom <= :now)
          and (c.endDate is null or c.endDate >= :today)
        order by function('random')
       """)
-  List<Challenge> findRandomActiveChallenges(@Param("today") LocalDate today, Pageable pageable);
+  List<Challenge> findRandomActiveChallenges(
+      @Param("today") LocalDate today, @Param("now") LocalDateTime now, Pageable pageable);
 
   @Query(
       """
     select c
       from Challenge c
      where c.deletedAt is null
+       and (c.visibleFrom is null or c.visibleFrom <= :now)
        and (:cursorId is null or c.id < :cursorId)
        and ( :keyword = ''
              or lower(c.title) like concat('%', lower(:keyword), '%')
@@ -58,12 +61,14 @@ public interface ChallengeRepository extends JpaRepository<Challenge, Long> {
       @Param("allStatus") boolean allStatus,
       @Param("statuses") List<String> statuses,
       @Param("today") LocalDate today,
+      @Param("now") LocalDateTime now,
       Pageable pageable);
 
   @Query(
       """
             SELECT c FROM Challenge c
             WHERE c.deletedAt IS NULL
+              AND (c.visibleFrom IS NULL OR c.visibleFrom <= :now)
               AND (:keyword IS NULL OR c.title LIKE CONCAT('%', CAST(:keyword AS string), '%'))
               AND (:allCategory = true OR CAST(c.category AS string) IN :categoryNames)
               AND CAST(c.challengeType AS string) != :excludeTypeName
@@ -83,6 +88,7 @@ public interface ChallengeRepository extends JpaRepository<Challenge, Long> {
       @Param("allStatus") boolean allStatus,
       @Param("statuses") List<String> statuses,
       @Param("today") LocalDate today,
+      @Param("now") LocalDateTime now,
       Pageable pageable);
 
   List<Challenge> findByHostMemberId(Long memberId);
