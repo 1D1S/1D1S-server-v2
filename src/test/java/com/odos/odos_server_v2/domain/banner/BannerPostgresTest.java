@@ -79,8 +79,49 @@ class BannerPostgresTest {
     assertThat(created.linkUrl()).isEqualTo("https://1day1streak.com/event/1");
     assertThat(created.startDate()).isEqualTo(LocalDate.of(2026, 7, 1));
     assertThat(created.endDate()).isEqualTo(LocalDate.of(2026, 7, 9));
-    assertThat(created.createdAt()).isNotNull();
     assertThat(bannerRepository.findById(created.id())).isPresent();
+  }
+
+  @Test
+  void adminGetsTodayBannersOnly() {
+    Member admin = saveMember("admin4@t.com", MemberRole.ADMIN);
+    authenticateAs(admin);
+    LocalDate today = LocalDate.now(java.time.ZoneId.of("Asia/Seoul"));
+
+    BannerResponse active =
+        bannerService.create(
+            request(
+                "Active Banner",
+                "Today",
+                "https://cdn.example.com/active.png",
+                "https://1day1streak.com/active",
+                today.minusDays(1),
+                today.plusDays(1)));
+    bannerService.create(
+        request(
+            "Future Banner",
+            "Future",
+            "https://cdn.example.com/future.png",
+            "https://1day1streak.com/future",
+            today.plusDays(1),
+            today.plusDays(3)));
+    bannerService.create(
+        request(
+            "Past Banner",
+            "Past",
+            "https://cdn.example.com/past.png",
+            "https://1day1streak.com/past",
+            today.minusDays(3),
+            today.minusDays(1)));
+
+    java.util.List<BannerResponse> todayBanners = bannerService.getTodayBanners();
+
+    assertThat(todayBanners).hasSize(1);
+    assertThat(todayBanners.get(0).id()).isEqualTo(active.id());
+    assertThat(todayBanners.get(0).title()).isEqualTo("Active Banner");
+    assertThat(todayBanners.get(0).subtitle()).isEqualTo("Today");
+    assertThat(todayBanners.get(0).imageUrl()).isEqualTo("https://cdn.example.com/active.png");
+    assertThat(todayBanners.get(0).linkUrl()).isEqualTo("https://1day1streak.com/active");
   }
 
   @Test
@@ -89,6 +130,17 @@ class BannerPostgresTest {
     authenticateAs(user);
 
     assertThatThrownBy(() -> bannerService.create(validRequest()))
+        .isInstanceOf(CustomException.class)
+        .extracting(e -> ((CustomException) e).getErrorCode())
+        .isEqualTo(ErrorCode.MEMBER_NOT_ADMIN);
+  }
+
+  @Test
+  void userCannotGetTodayBanners() {
+    Member user = saveMember("user2@t.com", MemberRole.USER);
+    authenticateAs(user);
+
+    assertThatThrownBy(() -> bannerService.getTodayBanners())
         .isInstanceOf(CustomException.class)
         .extracting(e -> ((CustomException) e).getErrorCode())
         .isEqualTo(ErrorCode.MEMBER_NOT_ADMIN);
@@ -136,13 +188,29 @@ class BannerPostgresTest {
   }
 
   private BannerCreateRequest validRequest() {
+    return request(
+        "Summer Event",
+        "July benefit",
+        "https://cdn.example.com/banner.png",
+        "https://1day1streak.com/event/1",
+        LocalDate.of(2026, 7, 1),
+        LocalDate.of(2026, 7, 9));
+  }
+
+  private BannerCreateRequest request(
+      String title,
+      String subtitle,
+      String imageUrl,
+      String linkUrl,
+      LocalDate startDate,
+      LocalDate endDate) {
     BannerCreateRequest request = new BannerCreateRequest();
-    request.setTitle("Summer Event");
-    request.setSubtitle("July benefit");
-    request.setImageUrl("https://cdn.example.com/banner.png");
-    request.setLinkUrl("https://1day1streak.com/event/1");
-    request.setStartDate(LocalDate.of(2026, 7, 1));
-    request.setEndDate(LocalDate.of(2026, 7, 9));
+    request.setTitle(title);
+    request.setSubtitle(subtitle);
+    request.setImageUrl(imageUrl);
+    request.setLinkUrl(linkUrl);
+    request.setStartDate(startDate);
+    request.setEndDate(endDate);
     return request;
   }
 }

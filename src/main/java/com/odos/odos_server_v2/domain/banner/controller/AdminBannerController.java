@@ -11,7 +11,9 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -24,6 +26,75 @@ import org.springframework.web.bind.annotation.RestController;
 public class AdminBannerController {
 
   private final BannerService bannerService;
+
+  @Operation(
+      summary = "오늘의 배너 목록 조회",
+      description =
+          "관리자가 오늘 날짜(KST)가 게시 기간에 포함된 배너 목록을 조회합니다. "
+              + "조회 조건은 startDate <= today <= endDate 입니다.")
+  @io.swagger.v3.oas.annotations.responses.ApiResponses({
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "200",
+        description = "오늘의 배너 목록 조회 성공",
+        content =
+            @Content(
+                mediaType = "application/json",
+                examples =
+                    @ExampleObject(
+                        value =
+                            """
+                            {
+                              "message": "오늘의 배너 목록 조회 성공했습니다.",
+                              "data": [
+                                {
+                                  "id": 1,
+                                  "title": "여름 이벤트",
+                                  "subtitle": "7월 한정 혜택",
+                                  "imageUrl": "https://cdn.example.com/banner.png",
+                                  "linkUrl": "https://1day1streak.com/event/1",
+                                  "startDate": "2026-07-01",
+                                  "endDate": "2026-07-09"
+                                }
+                              ]
+                            }
+                            """))),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "401",
+        description = "인증 실패",
+        content =
+            @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class),
+                examples =
+                    @ExampleObject(
+                        value =
+                            """
+                            {
+                              "code": "AUTH-001",
+                              "message": "인증되지 않은 접근입니다."
+                            }
+                            """))),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "403",
+        description = "관리자가 아닌 회원",
+        content =
+            @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class),
+                examples =
+                    @ExampleObject(
+                        value =
+                            """
+                            {
+                              "code": "USER-009",
+                              "message": "관리자 회원만 요청이 가능합니다."
+                            }
+                            """)))
+  })
+  @GetMapping("/today")
+  public ApiResponse<List<BannerResponse>> getTodayBanners() {
+    return ApiResponse.success(Message.GET_TODAY_BANNERS, bannerService.getTodayBanners());
+  }
 
   @Operation(
       summary = "배너 생성",
@@ -50,8 +121,7 @@ public class AdminBannerController {
                                 "imageUrl": "https://cdn.example.com/banner.png",
                                 "linkUrl": "https://1day1streak.com/event/1",
                                 "startDate": "2026-07-01",
-                                "endDate": "2026-07-09",
-                                "createdAt": "2026-07-13T00:00:00"
+                                "endDate": "2026-07-09"
                               }
                             }
                             """))),

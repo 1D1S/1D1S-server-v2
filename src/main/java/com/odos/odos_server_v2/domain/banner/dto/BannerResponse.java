@@ -33,6 +33,7 @@ public class BannerResponse {
 
   public static BannerResponse from(Banner banner) {
     return BannerResponse.builder()
+        .id(banner.getId())
         .title(banner.getTitle())
         .subtitle(banner.getSubtitle())
         .imageUrl(banner.getImageUrl())

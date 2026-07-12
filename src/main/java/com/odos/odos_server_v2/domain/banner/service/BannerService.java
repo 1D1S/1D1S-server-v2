@@ -11,6 +11,8 @@ import com.odos.odos_server_v2.domain.member.repository.MemberRepository;
 import com.odos.odos_server_v2.exception.CustomException;
 import com.odos.odos_server_v2.exception.ErrorCode;
 import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,6 +21,8 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class BannerService {
+
+  private static final ZoneId KST = ZoneId.of("Asia/Seoul");
 
   private final BannerRepository bannerRepository;
   private final MemberRepository memberRepository;
@@ -31,6 +35,13 @@ public class BannerService {
 
     Banner saved = bannerRepository.save(toEntity(request));
     return BannerResponse.from(saved);
+  }
+
+  public List<BannerResponse> getTodayBanners() {
+    requireAdmin();
+    return bannerRepository.findTodayBanners(LocalDate.now(KST)).stream()
+        .map(BannerResponse::from)
+        .toList();
   }
 
   private Banner toEntity(BannerCreateRequest request) {
