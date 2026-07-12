@@ -282,17 +282,12 @@ public class ChallengeService {
             .findById(memberId)
             .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
 
-    // 예약 노출 전 공식 챌린지는 존재를 드러내지 않는다(404).
-    if (isNotYetVisible(challenge)) {
+    // 예약 노출 전 공식 챌린지는 존재를 드러내지 않는다(404). 단, 관리자는 확인 가능.
+    if (isNotYetVisible(challenge) && !isAdmin(memberId)) {
       throw new CustomException(ErrorCode.CHALLENGE_NOT_FOUND);
     }
 
-    if (challenge.getChallengeType() == ChallengeType.PRIVATE) {
-      ParticipantStatus status = getMemberStatus(challengeId, memberId);
-      if (status != ParticipantStatus.HOST && status != ParticipantStatus.PARTICIPANT) {
-        throw new CustomException(ErrorCode.PRIVATE_CHALLENGE);
-      }
-    }
+    assertPrivateChallengeReadable(challenge, memberId);
 
     return toChallengeResponse(challenge, member);
   }
@@ -307,17 +302,12 @@ public class ChallengeService {
         .findById(memberId)
         .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
 
-    // 예약 노출 전 공식 챌린지는 존재를 드러내지 않는다(404).
-    if (isNotYetVisible(challenge)) {
+    // 예약 노출 전 공식 챌린지는 존재를 드러내지 않는다(404). 단, 관리자는 확인 가능.
+    if (isNotYetVisible(challenge) && !isAdmin(memberId)) {
       throw new CustomException(ErrorCode.CHALLENGE_NOT_FOUND);
     }
 
-    if (challenge.getChallengeType() == ChallengeType.PRIVATE) {
-      ParticipantStatus status = getMemberStatus(challengeId, memberId);
-      if (status != ParticipantStatus.HOST && status != ParticipantStatus.PARTICIPANT) {
-        throw new CustomException(ErrorCode.PRIVATE_CHALLENGE);
-      }
-    }
+    assertPrivateChallengeReadable(challenge, memberId);
 
     double participationRate = getParticipationRate(challenge);
     long completedGoalCount =
@@ -449,6 +439,18 @@ public class ChallengeService {
         .findById(memberId)
         .map(member -> member.getRole() == MemberRole.ADMIN)
         .orElse(false);
+  }
+
+  // 비공개 챌린지 읽기 접근 정책: 참여자(HOST/PARTICIPANT) 또는 관리자만 허용(읽기 전용).
+  // 상세/통계/일지 목록 등 관리자 화면이 필요로 하는 읽기 경로에서 공통으로 사용한다.
+  private void assertPrivateChallengeReadable(Challenge challenge, Long memberId) {
+    if (challenge.getChallengeType() != ChallengeType.PRIVATE || isAdmin(memberId)) {
+      return;
+    }
+    ParticipantStatus status = getMemberStatus(challenge.getId(), memberId);
+    if (status != ParticipantStatus.HOST && status != ParticipantStatus.PARTICIPANT) {
+      throw new CustomException(ErrorCode.PRIVATE_CHALLENGE);
+    }
   }
 
   // 관리자만 예약 노출 전(visibleFrom 미래) 공식 챌린지를 목록에서 볼 수 있다.

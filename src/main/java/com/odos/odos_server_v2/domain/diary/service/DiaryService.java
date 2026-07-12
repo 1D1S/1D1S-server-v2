@@ -16,6 +16,7 @@ import com.odos.odos_server_v2.domain.diary.entity.*;
 import com.odos.odos_server_v2.domain.diary.repository.*;
 import com.odos.odos_server_v2.domain.friend.repository.FriendRepository;
 import com.odos.odos_server_v2.domain.member.CurrentUserContext;
+import com.odos.odos_server_v2.domain.member.entity.Enum.MemberRole;
 import com.odos.odos_server_v2.domain.member.entity.Member;
 import com.odos.odos_server_v2.domain.member.repository.MemberRepository;
 import com.odos.odos_server_v2.domain.notification.service.NotificationService;
@@ -550,9 +551,10 @@ public class DiaryService {
             .orElseThrow(() -> new CustomException(ErrorCode.CHALLENGE_NOT_FOUND));
     ChallengeSummaryResponse summary = challengeService.toChallengeSummary(challenge, memberId);
 
-    // 참여자/호스트는 전체(비공개 포함), 그 외는 공개 일지만. date(completedDate) 지정 시 그 날짜로 필터.
+    // 참여자/호스트/관리자는 전체(비공개 포함), 그 외는 공개 일지만. date(completedDate) 지정 시 그 날짜로 필터.
     boolean isMember =
-        participantRepository.existsByChallengeIdAndMemberIdAndStatus(
+        member.getRole() == MemberRole.ADMIN
+            || participantRepository.existsByChallengeIdAndMemberIdAndStatus(
                 challengeId, memberId, ParticipantStatus.PARTICIPANT)
             || participantRepository.existsByChallengeIdAndMemberIdAndStatus(
                 challengeId, memberId, ParticipantStatus.HOST);
