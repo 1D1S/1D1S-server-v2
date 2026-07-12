@@ -16,6 +16,20 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface ChallengeRepository extends JpaRepository<Challenge, Long> {
+
+  // "오늘 시작해볼 챌린지": 비공개/삭제/종료 제외한 진행중·예정 챌린지 중 무작위 N건(Pageable 로 상한).
+  // 기존엔 findAll() 로 전체 challenge 를 JVM 에 적재 후 필터·셔플했다(대용량 시 OOM/지연).
+  // 종료 판정 = endDate < today. 무기한(endDate is null 또는 미래 센티널)은 endDate >= today 로 포함.
+  @Query(
+      """
+      select c from Challenge c
+       where cast(c.challengeType as string) <> 'PRIVATE'
+         and c.deletedAt is null
+         and (c.endDate is null or c.endDate >= :today)
+       order by function('random')
+      """)
+  List<Challenge> findRandomActiveChallenges(@Param("today") LocalDate today, Pageable pageable);
+
   @Query(
       """
     select c

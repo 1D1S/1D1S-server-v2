@@ -360,8 +360,7 @@ public class DiaryService {
       DiaryLike diaryLike = DiaryLike.builder().diary(diary).member(pressedMember).build();
       diaryLike.setDiary(diary);
       diaryLikeRepository.save(diaryLike);
-      List<DiaryLike> likes = diaryLikeRepository.getDiaryLikeCountByDiaryId(diaryId);
-      int likeCount = likes.size();
+      int likeCount = (int) diaryLikeRepository.countByDiaryId(diaryId);
       notificationService.notifyDiaryLikeMilestone(diaryId, likeCount);
       return likeCount;
     } else {
@@ -382,7 +381,7 @@ public class DiaryService {
       throw new CustomException(ErrorCode.DIARYLIKE_NOT_EXISTS);
     } else {
       diaryLikeRepository.delete(like.get());
-      return diaryLikeRepository.getDiaryLikeCountByDiaryId(diaryId).size();
+      return (int) diaryLikeRepository.countByDiaryId(diaryId);
     }
   }
 
@@ -396,13 +395,11 @@ public class DiaryService {
               ? memberRepository.findById(currentMemberId).orElse(null)
               : null;
 
-      List<Diary> diaries = diaryRepository.findDiariesByIsPublicAndIsDeletedFalse(Boolean.TRUE);
-      if (diaries.isEmpty()) {
+      List<Diary> selectedDiaries =
+          diaryRepository.findRandomPublicDiaries(PageRequest.of(0, Math.toIntExact(size)));
+      if (selectedDiaries.isEmpty()) {
         return Collections.emptyList();
       }
-
-      Collections.shuffle(diaries);
-      List<Diary> selectedDiaries = diaries.stream().limit(size).toList();
       return toDiaryResponses(currentMember, currentMemberId, selectedDiaries);
     } catch (CustomException e) {
       return Collections.emptyList();
