@@ -86,7 +86,7 @@ public class DiaryService {
 
     Participant participant =
         participantRepository
-            .findByMemberIdAndChallengeId(memberId, challenge.getId())
+            .findFirstByMemberIdAndChallengeIdOrderByIdAsc(memberId, challenge.getId())
             .orElseThrow(() -> new CustomException(ErrorCode.PARTICIPANT_NOT_FOUND));
 
     Boolean isCheckedAll = false;
@@ -201,7 +201,7 @@ public class DiaryService {
 
     Participant participant =
         participantRepository
-            .findByMemberIdAndChallengeId(memberId, challenge.getId())
+            .findFirstByMemberIdAndChallengeIdOrderByIdAsc(memberId, challenge.getId())
             .orElseThrow(() -> new CustomException(ErrorCode.PARTICIPANT_NOT_FOUND));
 
     // FIXED/FLEXIBLE 모두 참여자 본인의 challenge_goal 을 기준으로 일지 목표를 생성한다.

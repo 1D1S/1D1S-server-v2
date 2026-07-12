@@ -117,11 +117,11 @@ class ChallengeServiceTest {
     // then
     Participant updatedHostParticipant =
         participantRepository
-            .findByMemberIdAndChallengeId(host.getId(), challenge.getId())
+            .findFirstByMemberIdAndChallengeIdOrderByIdAsc(host.getId(), challenge.getId())
             .orElseThrow();
     Participant updatedA =
         participantRepository
-            .findByMemberIdAndChallengeId(memberA.getId(), challenge.getId())
+            .findFirstByMemberIdAndChallengeIdOrderByIdAsc(memberA.getId(), challenge.getId())
             .orElseThrow();
 
     assertEquals(ParticipantStatus.LEAVE, updatedHostParticipant.getStatus());
@@ -165,11 +165,11 @@ class ChallengeServiceTest {
     // then: "나가" < "다나가" 이므로 memberA가 다음 호스트
     Participant updatedA =
         participantRepository
-            .findByMemberIdAndChallengeId(memberA.getId(), challenge.getId())
+            .findFirstByMemberIdAndChallengeIdOrderByIdAsc(memberA.getId(), challenge.getId())
             .orElseThrow();
     Participant updatedB =
         participantRepository
-            .findByMemberIdAndChallengeId(memberB.getId(), challenge.getId())
+            .findFirstByMemberIdAndChallengeIdOrderByIdAsc(memberB.getId(), challenge.getId())
             .orElseThrow();
 
     assertEquals(ParticipantStatus.HOST, updatedA.getStatus());
@@ -201,7 +201,7 @@ class ChallengeServiceTest {
     // then: 모두 0점이므로 닉네임 가나다순 "가나다"가 위임
     Participant updatedA =
         participantRepository
-            .findByMemberIdAndChallengeId(memberA.getId(), challenge.getId())
+            .findFirstByMemberIdAndChallengeIdOrderByIdAsc(memberA.getId(), challenge.getId())
             .orElseThrow();
     assertEquals(ParticipantStatus.HOST, updatedA.getStatus());
 
