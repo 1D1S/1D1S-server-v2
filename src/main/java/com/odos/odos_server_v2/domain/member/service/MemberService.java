@@ -81,6 +81,10 @@ public class MemberService {
 
   @Transactional
   public void editPhoneNumber(Long memberId, String phoneNumber) {
+    String normalized = Member.normalizePhoneNumber(phoneNumber);
+    if (memberRepository.existsByPhoneNumberAndIdNot(normalized, memberId)) {
+      throw new CustomException(ErrorCode.PHONE_NUMBER_ALREADY_EXISTS);
+    }
     Member member = findActiveMemberById(memberId);
     member.updatePhoneNumber(phoneNumber);
   }

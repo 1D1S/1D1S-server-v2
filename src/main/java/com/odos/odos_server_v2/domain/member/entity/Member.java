@@ -28,7 +28,11 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
     uniqueConstraints = {
       @UniqueConstraint(
           name = "uk_email_signup_route",
-          columnNames = {"email", "signup_route"})
+          columnNames = {"email", "signup_route"}),
+      // 전화번호 중복 불가. NULL 은 Postgres 기본 동작상 서로 distinct 하여 다중 허용.
+      @UniqueConstraint(
+          name = "uk_member_phone_number",
+          columnNames = {"phone_number"})
     })
 public class Member {
 
@@ -148,7 +152,8 @@ public class Member {
   }
 
   // 하이픈 등 숫자 외 문자를 제거해 숫자만으로 통일 저장한다(형식 검증은 요청 DTO에서 수행).
-  private static String normalizePhoneNumber(String raw) {
+  // 저장값과 동일한 형태로 중복 조회하기 위해 서비스에서도 재사용한다.
+  public static String normalizePhoneNumber(String raw) {
     return raw == null ? null : raw.replaceAll("[^0-9]", "");
   }
 

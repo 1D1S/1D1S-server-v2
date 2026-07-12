@@ -33,6 +33,7 @@ public enum ErrorCode {
   NICKNAME_ALREADY_EXISTS(HttpStatus.CONFLICT, "USER-007", "이미 사용 중인 닉네임입니다."),
   MEMBER_IS_ADMIN(HttpStatus.CONFLICT, "USER-008", "이미 관리자인 회원입니다."),
   MEMBER_NOT_ADMIN(HttpStatus.FORBIDDEN, "USER-009", "관리자 회원만 요청이 가능합니다."),
+  PHONE_NUMBER_ALREADY_EXISTS(HttpStatus.CONFLICT, "USER-010", "이미 등록된 휴대폰 번호입니다."),
 
   // diary
   DIARY_NOT_CREATED(HttpStatus.NOT_FOUND, "DIARY-001", "다이어리를 생성하는것에 실패하였습니다."),
