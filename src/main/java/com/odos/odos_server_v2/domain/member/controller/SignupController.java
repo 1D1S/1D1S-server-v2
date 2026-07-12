@@ -14,6 +14,7 @@ import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -106,7 +107,8 @@ public class SignupController {
   })
   @PutMapping("/info")
   public ApiResponse<Void> completeSignupInfo(
-      @RequestBody SignupInfoRequest request, @AuthenticationPrincipal MemberPrincipal principal) {
+      @Valid @RequestBody SignupInfoRequest request,
+      @AuthenticationPrincipal MemberPrincipal principal) {
     signupService.completeSignupInfo(principal.getId(), request);
     return success(SIGN_UP_INFO);
   }
