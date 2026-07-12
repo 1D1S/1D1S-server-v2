@@ -41,6 +41,7 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -79,6 +80,14 @@ public class ChallengeService {
   private final ChallengeRankingService challengeRankingService;
   @PersistenceContext private EntityManager entityManager;
   private final PasswordEncoder passwordEncoder;
+
+  private static final ZoneId KST = ZoneId.of("Asia/Seoul");
+
+  // 예약 노출 판정: visibleFrom 이 미래(KST)면 아직 노출 전. null=즉시 노출.
+  private boolean isNotYetVisible(Challenge challenge) {
+    return challenge.getVisibleFrom() != null
+        && challenge.getVisibleFrom().isAfter(LocalDateTime.now(KST));
+  }
 
   @Transactional
   public ChallengeSummaryResponse createChallenge(
@@ -252,6 +261,10 @@ public class ChallengeService {
         challengeRepository
             .findById(challengeId)
             .orElseThrow(() -> new CustomException(ErrorCode.CHALLENGE_NOT_FOUND));
+    // 예약 노출 전 공식 챌린지는 존재를 드러내지 않는다(404).
+    if (isNotYetVisible(challenge)) {
+      throw new CustomException(ErrorCode.CHALLENGE_NOT_FOUND);
+    }
     return new ChallengePreviewResponse(
         challenge.getTitle(),
         challenge.getGoalType(),
@@ -268,6 +281,11 @@ public class ChallengeService {
         memberRepository
             .findById(memberId)
             .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+
+    // 예약 노출 전 공식 챌린지는 존재를 드러내지 않는다(404).
+    if (isNotYetVisible(challenge)) {
+      throw new CustomException(ErrorCode.CHALLENGE_NOT_FOUND);
+    }
 
     if (challenge.getChallengeType() == ChallengeType.PRIVATE) {
       ParticipantStatus status = getMemberStatus(challengeId, memberId);
@@ -288,6 +306,11 @@ public class ChallengeService {
     memberRepository
         .findById(memberId)
         .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+
+    // 예약 노출 전 공식 챌린지는 존재를 드러내지 않는다(404).
+    if (isNotYetVisible(challenge)) {
+      throw new CustomException(ErrorCode.CHALLENGE_NOT_FOUND);
+    }
 
     if (challenge.getChallengeType() == ChallengeType.PRIVATE) {
       ParticipantStatus status = getMemberStatus(challengeId, memberId);
@@ -481,6 +504,7 @@ public class ChallengeService {
             isAllStatus(statuses),
             toStatusNames(statuses),
             LocalDate.now(),
+            LocalDateTime.now(KST),
             pageable);
 
     Page<ChallengeSummaryResponse> responsePage =
@@ -681,7 +705,9 @@ public class ChallengeService {
     // "오늘 시작해볼 챌린지": 비공개/삭제/종료 챌린지는 제외하고 진행중·예정만 노출한다.
     // (종료 판정 = endDate < today. 무기한(endDate==null)은 종료가 아니므로 포함.)
     LocalDate today = LocalDate.now();
-    return challengeRepository.findRandomActiveChallenges(today, PageRequest.of(0, size)).stream()
+    return challengeRepository
+        .findRandomActiveChallenges(today, LocalDateTime.now(KST), PageRequest.of(0, size))
+        .stream()
         .map(ch -> toChallengeSummary(ch, memberId))
         .toList();
   }
@@ -826,6 +852,7 @@ public class ChallengeService {
             isAllStatus(statuses),
             toStatusNames(statuses),
             LocalDate.now(),
+            LocalDateTime.now(KST),
             pageable);
 
     boolean hasNext = rows.size() > limit;
@@ -1115,7 +1142,9 @@ public class ChallengeService {
         challenge.getDeletedAt() != null,
         pickRandomParticipants(challengeId, 3),
         challenge.isPhotoRequired(),
-        challenge.isPostEndWriteAllowed());
+        challenge.isPostEndWriteAllowed(),
+        challenge.getVisibleFrom(),
+        isNotYetVisible(challenge));
   }
 
   private ChallengeDetailDto toChallengeDetail(Challenge challenge, Long memberId) {

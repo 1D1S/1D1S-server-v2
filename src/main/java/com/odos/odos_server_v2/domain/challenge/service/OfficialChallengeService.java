@@ -70,6 +70,7 @@ public class OfficialChallengeService {
             .allowMidJoin(request.getAllowMidJoin() != null && request.getAllowMidJoin())
             .participationType(ParticipationType.GROUP)
             .challengeType(ChallengeType.OFFICIAL)
+            .visibleFrom(request.getVisibleFrom())
             .password(null)
             .build();
 
@@ -178,6 +179,10 @@ public class OfficialChallengeService {
     }
     if (request.getAllowMidJoin() != null) {
       challenge.updateAllowMidJoin(request.getAllowMidJoin().orElse(false));
+    }
+    // 예약 노출 시각: 필드 생략=변경 없음, null=예약 해제(즉시 노출), 값=예약 설정/변경.
+    if (request.getVisibleFrom() != null) {
+      challenge.updateVisibleFrom(request.getVisibleFrom().orElse(null));
     }
 
     return challengeService.toChallengeSummary(challenge, memberId);

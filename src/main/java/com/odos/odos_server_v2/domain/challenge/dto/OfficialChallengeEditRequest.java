@@ -2,6 +2,7 @@ package com.odos.odos_server_v2.domain.challenge.dto;
 
 import com.odos.odos_server_v2.domain.shared.Enum.Category;
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import lombok.*;
@@ -31,4 +32,10 @@ public class OfficialChallengeEditRequest {
 
   @Schema(description = "챌린지 목표 목록", example = "[\"알고리즘 1문제 풀기\", \"책 10페이지 읽기\"]")
   private Optional<List<String>> goals;
+
+  // 필드 미포함=변경 없음, null 값 전송=예약 해제(즉시 노출), 값 전송=예약 시각 설정/변경.
+  @Schema(
+      description = "예약 노출 시각(KST). 필드 생략=변경 없음, null=예약 해제(즉시 노출), 값=예약 설정/변경.",
+      example = "2026-08-01T09:00:00")
+  private Optional<LocalDateTime> visibleFrom;
 }
