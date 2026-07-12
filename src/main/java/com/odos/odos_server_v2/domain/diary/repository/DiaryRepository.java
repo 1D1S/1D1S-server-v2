@@ -87,6 +87,24 @@ public interface DiaryRepository extends JpaRepository<Diary, Long> {
   boolean existsByChallengeIdAndMemberIdAndCompletedDateAndIsDeletedFalse(
       Long challengeId, Long memberId, LocalDate completedDate);
 
+  /**
+   * 홈 '오늘의 기록'용: 주어진 챌린지들 중 회원이 오늘(completedDate) 일지를 작성한 챌린지 id 목록. 챌린지별 exists 반복(N+1) 대신 IN 절 한
+   * 번으로 처리한다. idx_diary_member_completed_date(member_id, completed_date) 로 커버.
+   */
+  @Query(
+      """
+      select distinct d.challenge.id
+      from Diary d
+      where d.member.id = :memberId
+        and d.challenge.id in :challengeIds
+        and d.completedDate = :date
+        and d.isDeleted = false
+      """)
+  List<Long> findChallengeIdsWithDiaryOnDate(
+      @Param("memberId") Long memberId,
+      @Param("challengeIds") Collection<Long> challengeIds,
+      @Param("date") LocalDate date);
+
   @Query(
       """
       select d
