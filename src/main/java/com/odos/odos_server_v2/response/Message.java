@@ -117,6 +117,9 @@ public class Message {
   public static String GET_POPUP_LIST = "팝업 목록 조회 성공했습니다.";
   public static String GET_ACTIVE_POPUPS = "게시 중 팝업 조회 성공했습니다.";
 
+  // banner
+  public static String CREATE_BANNER = "배너 생성 성공했습니다.";
+
   // story
   public static String GET_STORY_LIST = "스토리 목록 조회 성공했습니다.";
   public static String STORY_VIEW = "스토리를 시청했습니다.";
