@@ -27,6 +27,9 @@ public class AdminMemberResponseDto {
   @Schema(description = "이메일", example = "user@example.com")
   private String email;
 
+  @Schema(description = "휴대폰 번호(숫자만, 상품 발송용). 미입력 회원은 null", example = "01012345678")
+  private String phoneNumber;
+
   @Schema(description = "가입한 SNS (KAKAO, NAVER, GOOGLE, APPLE)", example = "KAKAO")
   private SignupRoute signupRoute;
 
@@ -60,6 +63,7 @@ public class AdminMemberResponseDto {
       Long memberId,
       String nickname,
       String email,
+      String phoneNumber,
       SignupRoute signupRoute,
       LocalDateTime createdAt,
       Job job,
@@ -72,6 +76,7 @@ public class AdminMemberResponseDto {
     this.memberId = memberId;
     this.nickname = nickname;
     this.email = email;
+    this.phoneNumber = phoneNumber;
     this.signupRoute = signupRoute;
     this.createdAt = createdAt;
     this.job = job;
@@ -105,6 +110,7 @@ public class AdminMemberResponseDto {
         .memberId(member.getId())
         .nickname(member.getNickname())
         .email(member.getEmail())
+        .phoneNumber(member.getPhoneNumber())
         .signupRoute(member.getSignupRoute())
         .createdAt(member.getCreatedAt())
         .job(member.getJob())

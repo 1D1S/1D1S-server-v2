@@ -53,6 +53,10 @@ public class Member {
   private String nickname;
   private String profileUrl;
 
+  // 상품 발송용. 저장 형식은 숫자만(하이픈 제거). 기존 회원은 null 가능.
+  @Column(name = "phone_number")
+  private String phoneNumber;
+
   @Enumerated(EnumType.STRING)
   private Job job;
 
@@ -126,15 +130,26 @@ public class Member {
       Job job,
       LocalDate birth,
       Gender gender,
-      Boolean isPublic) {
+      Boolean isPublic,
+      String phoneNumber) {
     this.nickname = nickname;
     this.profileUrl = profileImageKey;
     this.job = job;
     this.birth = birth;
     this.gender = gender;
     this.isPublic = isPublic;
+    this.phoneNumber = normalizePhoneNumber(phoneNumber);
     this.role = MemberRole.USER;
     this.nicknameLastModifiedAt = LocalDateTime.now();
+  }
+
+  public void updatePhoneNumber(String phoneNumber) {
+    this.phoneNumber = normalizePhoneNumber(phoneNumber);
+  }
+
+  // 하이픈 등 숫자 외 문자를 제거해 숫자만으로 통일 저장한다(형식 검증은 요청 DTO에서 수행).
+  private static String normalizePhoneNumber(String raw) {
+    return raw == null ? null : raw.replaceAll("[^0-9]", "");
   }
 
   public void updateCategories(List<Category> categories) {

@@ -79,6 +79,12 @@ public class MemberService {
     member.updateProfileImage(objectKey);
   }
 
+  @Transactional
+  public void editPhoneNumber(Long memberId, String phoneNumber) {
+    Member member = findActiveMemberById(memberId);
+    member.updatePhoneNumber(phoneNumber);
+  }
+
   private Member findActiveMemberById(Long memberId) {
     Optional<Member> activeMember =
         memberRepository.findByIdAndStatus(memberId, MemberStatus.ACTIVE);
@@ -100,6 +106,7 @@ public class MemberService {
         .profileUrl(imageService.getFileUrl(member.getProfileUrl()))
         .email(member.getEmail())
         .provider(member.getSignupRoute().name())
+        .phoneNumber(member.getPhoneNumber())
         .streak(getStreakByMemberId(id))
         .challengeList(challengeService.getMemberChallenge(id, id))
         .diaryList(diaryService.getMyDiaries(pageable))

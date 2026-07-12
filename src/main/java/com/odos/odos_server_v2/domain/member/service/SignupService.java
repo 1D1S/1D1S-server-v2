@@ -48,7 +48,8 @@ public class SignupService {
         request.getJob(),
         request.getBirth(),
         request.getGender(),
-        request.getIsPublic());
+        request.getIsPublic(),
+        request.getPhoneNumber());
 
     member.updateCategories(list);
 
