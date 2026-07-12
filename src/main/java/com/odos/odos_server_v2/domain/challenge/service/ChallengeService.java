@@ -658,7 +658,7 @@ public class ChallengeService {
     }
     Participant participant =
         participantRepository
-            .findByMemberIdAndChallengeId(memberId, challengeId)
+            .findFirstByMemberIdAndChallengeIdOrderByIdAsc(memberId, challengeId)
             .orElseThrow(() -> new CustomException(ErrorCode.PARTICIPANT_NOT_FOUND));
 
     challengeGoalRepository.deleteAllByParticipant(participant);
@@ -726,7 +726,7 @@ public class ChallengeService {
       } else {
         Participant participant =
             participantRepository
-                .findByMemberIdAndChallengeId(memberId, challengeId)
+                .findFirstByMemberIdAndChallengeIdOrderByIdAsc(memberId, challengeId)
                 .orElseThrow(() -> new CustomException(ErrorCode.PARTICIPANT_NOT_FOUND));
         participant.setStatus(ParticipantStatus.LEAVE);
         diaryRepository.softDeleteByChallengeIdAndMemberId(challengeId, memberId);
@@ -1001,7 +1001,7 @@ public class ChallengeService {
     if ((status == ParticipantStatus.HOST) || (status == ParticipantStatus.PARTICIPANT)) {
       challengeGoals =
           participantRepository
-              .findByMemberIdAndChallengeId(memberId, challengeId)
+              .findFirstByMemberIdAndChallengeIdOrderByIdAsc(memberId, challengeId)
               .orElseThrow(() -> new CustomException(ErrorCode.PARTICIPANT_NOT_FOUND))
               .getChallengeGoals()
               .stream()
@@ -1124,7 +1124,7 @@ public class ChallengeService {
 
   private ParticipantStatus getMemberStatus(Long challengeId, Long memberId) {
     Optional<Participant> participant =
-        participantRepository.findByMemberIdAndChallengeId(memberId, challengeId);
+        participantRepository.findFirstByMemberIdAndChallengeIdOrderByIdAsc(memberId, challengeId);
     if (participant.isEmpty()) {
       return ParticipantStatus.NONE;
     } else {
