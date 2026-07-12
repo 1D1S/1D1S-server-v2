@@ -23,6 +23,15 @@ public interface DiaryRepository extends JpaRepository<Diary, Long> {
   @EntityGraph(attributePaths = {"member", "challenge"})
   List<Diary> findDiariesByIsPublicAndIsDeletedFalse(Boolean isPublic);
 
+  // 랜덤 공개 일지 N건(Pageable 로 상한). 전체 공개 일지를 JVM 으로 로드해 셔플하면(대용량 시 OOM/지연)
+  // 위험하므로 DB 에서 무작위 정렬 후 상한만 가져온다. member/challenge 는 EntityGraph 로 함께 로딩.
+  // ponytail: function('random') 은 대상 전체를 정렬하지만 앱으로 넘어오는 행은 상한으로 제한되어
+  // JVM 메모리 폭주는 사라진다. 표본이 매우 커지면 tablesample/키 랜덤 조인으로 교체.
+  @EntityGraph(attributePaths = {"member", "challenge"})
+  @Query(
+      "select d from Diary d where d.isPublic = true and d.isDeleted = false order by function('random')")
+  List<Diary> findRandomPublicDiaries(Pageable pageable);
+
   List<Diary> findDiariesByMember_Id(Long memberId);
 
   @EntityGraph(attributePaths = {"member", "challenge"})

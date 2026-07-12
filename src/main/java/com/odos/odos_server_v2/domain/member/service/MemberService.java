@@ -237,32 +237,7 @@ public class MemberService {
 
   public int getTodayGoalCount(Long memberId) {
     LocalDate today = LocalDate.now();
-
-    List<ChallengeGoal> allGoals = challengeGoalRepository.findAll();
-
-    return (int)
-        allGoals.stream()
-            .filter(
-                goal -> {
-                  Participant mc = goal.getParticipant();
-                  if (mc == null || mc.getMember() == null || mc.getChallenge() == null)
-                    return false;
-
-                  // 1. 현재 사용자 여부
-                  if (!mc.getMember().getId().equals(memberId)) return false;
-
-                  // 2. 챌린지 진행 중 여부
-                  Challenge challenge = mc.getChallenge();
-                  LocalDate start = challenge.getStartDate();
-                  LocalDate end = challenge.getEndDate();
-
-                  boolean started = !start.isAfter(today); // startDate ≤ today
-                  boolean notEnded =
-                      (end == null) || !today.isAfter(end); // today ≤ endDate or no endDate
-
-                  return started && notEnded;
-                })
-            .count();
+    return (int) challengeGoalRepository.countTodayInProgressGoals(memberId, today);
   }
 
   private int[] calculateStreaks(List<Diary> diaryList) {
