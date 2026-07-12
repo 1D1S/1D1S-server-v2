@@ -16,11 +16,28 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface ChallengeRepository extends JpaRepository<Challenge, Long> {
+
+  // "오늘 시작해볼 챌린지": 비공개/삭제/종료 제외한 진행중·예정 챌린지 중 무작위 N건(Pageable 로 상한).
+  // 기존엔 findAll() 로 전체 challenge 를 JVM 에 적재 후 필터·셔플했다(대용량 시 OOM/지연).
+  // 종료 판정 = endDate < today. 무기한(endDate is null 또는 미래 센티널)은 endDate >= today 로 포함.
+  @Query(
+      """
+      select c from Challenge c
+       where cast(c.challengeType as string) <> 'PRIVATE'
+         and c.deletedAt is null
+         and (c.visibleFrom is null or c.visibleFrom <= :now)
+         and (c.endDate is null or c.endDate >= :today)
+       order by function('random')
+      """)
+  List<Challenge> findRandomActiveChallenges(
+      @Param("today") LocalDate today, @Param("now") LocalDateTime now, Pageable pageable);
+
   @Query(
       """
     select c
       from Challenge c
      where c.deletedAt is null
+       and (:includeHidden = true or c.visibleFrom is null or c.visibleFrom <= :now)
        and (:cursorId is null or c.id < :cursorId)
        and ( :keyword = ''
              or lower(c.title) like concat('%', lower(:keyword), '%')
@@ -44,12 +61,15 @@ public interface ChallengeRepository extends JpaRepository<Challenge, Long> {
       @Param("allStatus") boolean allStatus,
       @Param("statuses") List<String> statuses,
       @Param("today") LocalDate today,
+      @Param("now") LocalDateTime now,
+      @Param("includeHidden") boolean includeHidden,
       Pageable pageable);
 
   @Query(
       """
             SELECT c FROM Challenge c
             WHERE c.deletedAt IS NULL
+              AND (:includeHidden = true OR c.visibleFrom IS NULL OR c.visibleFrom <= :now)
               AND (:keyword IS NULL OR c.title LIKE CONCAT('%', CAST(:keyword AS string), '%'))
               AND (:allCategory = true OR CAST(c.category AS string) IN :categoryNames)
               AND CAST(c.challengeType AS string) != :excludeTypeName
@@ -69,6 +89,8 @@ public interface ChallengeRepository extends JpaRepository<Challenge, Long> {
       @Param("allStatus") boolean allStatus,
       @Param("statuses") List<String> statuses,
       @Param("today") LocalDate today,
+      @Param("now") LocalDateTime now,
+      @Param("includeHidden") boolean includeHidden,
       Pageable pageable);
 
   List<Challenge> findByHostMemberId(Long memberId);

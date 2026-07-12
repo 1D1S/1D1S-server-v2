@@ -2,9 +2,14 @@ package com.odos.odos_server_v2.exception;
 
 import com.odos.odos_server_v2.response.ErrorResponse;
 import io.swagger.v3.oas.annotations.Hidden;
+import jakarta.servlet.http.HttpServletRequest;
+import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -40,9 +45,58 @@ public class GlobalExceptionHandler {
         .body(new ErrorResponse("400", "필수 요청 파라미터 '" + ex.getParameterName() + "' 가 누락되었습니다."));
   }
 
+  // 깨진 JSON·바디 내 enum 오타 등 읽을 수 없는 요청 바디는 클라이언트 오류이므로 400.
+  // (핸들러가 없으면 아래 Exception 핸들러가 가로채 500 으로 응답한다.)
+  @ExceptionHandler(HttpMessageNotReadableException.class)
+  public ResponseEntity<ErrorResponse> handleNotReadable(HttpMessageNotReadableException ex) {
+    log.warn("요청 바디를 읽을 수 없음(형식 오류)", ex);
+    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+        .body(new ErrorResponse("400", "요청 바디 형식이 올바르지 않습니다."));
+  }
+
+  // @Valid 검증 실패는 400 + 실패한 필드 메시지로 응답한다(핸들러 없으면 500이 됨).
+  @ExceptionHandler(MethodArgumentNotValidException.class)
+  public ResponseEntity<ErrorResponse> handleValidation(MethodArgumentNotValidException ex) {
+    String detail =
+        ex.getBindingResult().getFieldErrors().stream()
+            .map(fe -> fe.getField() + ": " + fe.getDefaultMessage())
+            .collect(Collectors.joining(", "));
+    log.warn("요청 값 검증 실패: {}", detail);
+    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+        .body(new ErrorResponse("400", detail.isBlank() ? "요청 값이 올바르지 않습니다." : detail));
+  }
+
+  // DB 유니크/무결성 제약 위반은 서버 버그가 아니라 요청 충돌이므로 500 이 아닌 409 로 응답한다.
+  // (앱 레벨 existsBy 검사를 통과한 동시성 경합 등에서 최종 방어선으로 동작)
+  @ExceptionHandler(DataIntegrityViolationException.class)
+  public ResponseEntity<ErrorResponse> handleDataIntegrityViolation(
+      DataIntegrityViolationException ex) {
+    log.warn("데이터 무결성 제약 위반", ex);
+    Throwable root = ex.getMostSpecificCause();
+    String detail = root == null ? "" : String.valueOf(root.getMessage());
+    if (detail.contains("uk_member_phone_number")) {
+      ErrorCode code = ErrorCode.PHONE_NUMBER_ALREADY_EXISTS;
+      return ResponseEntity.status(code.getStatus()).body(ErrorResponse.of(code));
+    }
+    return ResponseEntity.status(HttpStatus.CONFLICT)
+        .body(new ErrorResponse("409", "요청이 기존 데이터와 충돌합니다."));
+  }
+
+  // 예상치 못한 500은 스택트레이스만으론 어떤 요청에서 터졌는지 알 수 없어 진단이 어렵다.
+  // 요청 메서드/URI 와 예외 클래스명을 함께 남겨 로그 grep 만으로 엔드포인트·예외 유형을 특정한다.
+  // (응답 바디에는 내부 예외 정보를 노출하지 않는다.)
   @ExceptionHandler(Exception.class)
-  public ResponseEntity<ErrorResponse> handleUnexpectedException(Exception ex) {
-    log.error("Unexpected Exception 발생", ex);
+  public ResponseEntity<ErrorResponse> handleUnexpectedException(
+      Exception ex, HttpServletRequest request) {
+    String query = request.getQueryString();
+    log.error(
+        "Unexpected Exception 발생 [{} {}{}] {}: {}",
+        request.getMethod(),
+        request.getRequestURI(),
+        query == null ? "" : "?" + query,
+        ex.getClass().getName(),
+        ex.getMessage(),
+        ex);
     return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
         .body(new ErrorResponse("500", "Internal Server Error"));
   }

@@ -2,6 +2,7 @@ package com.odos.odos_server_v2.domain.member.statistics.repository;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.mockito.Mockito.mock;
 
 import com.odos.odos_server_v2.domain.diary.entity.Diary;
 import com.odos.odos_server_v2.domain.diary.entity.DiaryGoal;
@@ -12,6 +13,7 @@ import com.odos.odos_server_v2.domain.member.repository.MemberRepository;
 import com.odos.odos_server_v2.domain.member.statistics.StatUnit;
 import com.odos.odos_server_v2.domain.member.statistics.dto.PeriodSummaryResponse;
 import com.odos.odos_server_v2.domain.member.statistics.service.StatisticsService;
+import com.odos.odos_server_v2.domain.shared.service.ImageService;
 import jakarta.persistence.EntityManager;
 import java.time.LocalDate;
 import org.junit.jupiter.api.BeforeEach;
@@ -19,7 +21,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.context.annotation.Import;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.PostgreSQLContainer;
@@ -38,7 +39,6 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @Testcontainers
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@Import(StatisticsService.class)
 class StatisticsSummaryPostgresTest {
 
   @Container
@@ -73,7 +73,9 @@ class StatisticsSummaryPostgresTest {
 
   @BeforeEach
   void setUp() {
-    service = new StatisticsService(statisticsRepository, memberRepository, friendRepository);
+    service =
+        new StatisticsService(
+            statisticsRepository, memberRepository, friendRepository, mock(ImageService.class));
 
     Member m = memberRepository.save(Member.builder().email("pg-probe@t.com").build());
     memberId = m.getId();

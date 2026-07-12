@@ -43,9 +43,11 @@ public class Message {
   public static String CANCEL_CHALLENGE_LIKE = "챌린지 좋아요 취소 성공했습니다.";
   public static String GET_CHALLENGES_BY_MEMBER = "진행중인 챌린지 불러오기 성공했습니다.";
   public static String GET_MY_CHALLENGE = "내 챌린지 목록 조회 성공했습니다.";
+  public static String GET_MY_TODAY_CHALLENGE = "오늘의 기록 조회 성공했습니다.";
   public static String GET_MY_CHALLENGE_DIARY_WRITTEN = "특정 챌린지의 3일 이내의 일지 작성 날짜 조회 성공했습니다.";
   public static String JOIN_PRIVATE_CHALLENGE = "비공개 챌린지 참여 성공했습니다.";
   public static String GET_CHALLENGE_PREVIEW = "챌린지 미리보기 조회 성공했습니다.";
+  public static String GET_CHALLENGE_STATISTICS = "챌린지 통계 조회 성공했습니다.";
   public static String CHALLENGE_POKE = "챌린지원 찌르기 성공했습니다.";
 
   // admin challenge
@@ -65,6 +67,7 @@ public class Message {
   public static String UPDATE_NICKNAME = "닉네임 변경 성공했습니다.";
   public static String NICKNAME_AVAILABLE = "사용 가능한 닉네임입니다.";
   public static String UPDATE_PROFILE_IMAGE = "프로필 이미지 변경 성공했습니다.";
+  public static String UPDATE_PHONE_NUMBER = "휴대폰 번호 변경 성공했습니다.";
   public static String GET_OTHERS_PROFILE = "다른 사람 프로필 조회 성공했습니다.";
   public static String MEMBER_DELETE = "회원 탈퇴 요청 성공했습니다.";
   public static String MEMBER_GRANT_ADMIN = "관리자 권한 부여 성공했습니다.";
@@ -105,6 +108,14 @@ public class Message {
   public static String GET_FRIEND_REQUESTS = "친구 신청 목록 조회 성공했습니다.";
   public static String GET_BLOCK_LIST = "차단 목록 조회 성공했습니다.";
   public static String GET_MEMBER_RELATION = "멤버 관계 조회 성공했습니다.";
+
+  // popup
+  public static String CREATE_POPUP = "팝업 생성 성공했습니다.";
+  public static String UPDATE_POPUP = "팝업 수정 성공했습니다.";
+  public static String DELETE_POPUP = "팝업 삭제 성공했습니다.";
+  public static String GET_POPUP = "팝업 조회 성공했습니다.";
+  public static String GET_POPUP_LIST = "팝업 목록 조회 성공했습니다.";
+  public static String GET_ACTIVE_POPUPS = "게시 중 팝업 조회 성공했습니다.";
 
   // story
   public static String GET_STORY_LIST = "스토리 목록 조회 성공했습니다.";

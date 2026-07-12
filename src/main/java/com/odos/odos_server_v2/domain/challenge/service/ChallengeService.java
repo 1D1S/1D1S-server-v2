@@ -41,6 +41,7 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -79,6 +80,14 @@ public class ChallengeService {
   private final ChallengeRankingService challengeRankingService;
   @PersistenceContext private EntityManager entityManager;
   private final PasswordEncoder passwordEncoder;
+
+  private static final ZoneId KST = ZoneId.of("Asia/Seoul");
+
+  // 예약 노출 판정: visibleFrom 이 미래(KST)면 아직 노출 전. null=즉시 노출.
+  private boolean isNotYetVisible(Challenge challenge) {
+    return challenge.getVisibleFrom() != null
+        && challenge.getVisibleFrom().isAfter(LocalDateTime.now(KST));
+  }
 
   @Transactional
   public ChallengeSummaryResponse createChallenge(
@@ -252,6 +261,10 @@ public class ChallengeService {
         challengeRepository
             .findById(challengeId)
             .orElseThrow(() -> new CustomException(ErrorCode.CHALLENGE_NOT_FOUND));
+    // 예약 노출 전 공식 챌린지는 존재를 드러내지 않는다(404).
+    if (isNotYetVisible(challenge)) {
+      throw new CustomException(ErrorCode.CHALLENGE_NOT_FOUND);
+    }
     return new ChallengePreviewResponse(
         challenge.getTitle(),
         challenge.getGoalType(),
@@ -269,14 +282,84 @@ public class ChallengeService {
             .findById(memberId)
             .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
 
-    if (challenge.getChallengeType() == ChallengeType.PRIVATE) {
-      ParticipantStatus status = getMemberStatus(challengeId, memberId);
-      if (status != ParticipantStatus.HOST && status != ParticipantStatus.PARTICIPANT) {
-        throw new CustomException(ErrorCode.PRIVATE_CHALLENGE);
+    // 예약 노출 전 공식 챌린지는 존재를 드러내지 않는다(404). 단, 관리자는 확인 가능.
+    if (isNotYetVisible(challenge) && !isAdmin(memberId)) {
+      throw new CustomException(ErrorCode.CHALLENGE_NOT_FOUND);
+    }
+
+    assertPrivateChallengeReadable(challenge, memberId);
+
+    return toChallengeResponse(challenge, member);
+  }
+
+  /** 특정 챌린지 통계: 참여율 + 완료 목표수 + 기간 내 날짜별 일지 추이. 권한은 챌린지 상세 조회 정책과 동일. */
+  public ChallengeStatisticsResponse getChallengeStatistics(Long challengeId, Long memberId) {
+    Challenge challenge =
+        challengeRepository
+            .findById(challengeId)
+            .orElseThrow(() -> new CustomException(ErrorCode.CHALLENGE_NOT_FOUND));
+    memberRepository
+        .findById(memberId)
+        .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+
+    // 예약 노출 전 공식 챌린지는 존재를 드러내지 않는다(404). 단, 관리자는 확인 가능.
+    if (isNotYetVisible(challenge) && !isAdmin(memberId)) {
+      throw new CustomException(ErrorCode.CHALLENGE_NOT_FOUND);
+    }
+
+    assertPrivateChallengeReadable(challenge, memberId);
+
+    double participationRate = getParticipationRate(challenge);
+    long completedGoalCount =
+        diaryGoalRepository.countByDiary_Challenge_IdAndIsCompletedTrueAndDiary_IsDeletedFalse(
+            challengeId);
+    return new ChallengeStatisticsResponse(
+        participationRate, completedGoalCount, buildChallengeDiaryTrend(challenge));
+  }
+
+  // 무기한 챌린지 일지 추이의 최대 조회 구간(일). 오래된 무기한 챌린지에서 startDate~오늘 전 구간을
+  // 일 단위로 순회하면 포인트 수·JSON 크기가 무한정 커져(오늘-시작일) 응답 지연/과부하로 이어진다. 최근 N일로 상한.
+  private static final int UNLIMITED_TREND_MAX_DAYS = 90;
+
+  // 챌린지 기간(startDate ~ endDate, 무기한이면 startDate ~ 오늘) 동안 날짜별 일지 개수 시계열(빈 날짜 0).
+  // 무기한 챌린지는 최근 UNLIMITED_TREND_MAX_DAYS 일로 조회 구간을 제한(그 이전은 절삭).
+  private List<ChallengeStatisticsResponse.DiaryTrendPoint> buildChallengeDiaryTrend(
+      Challenge challenge) {
+    LocalDate from = challenge.getStartDate();
+    if (from == null) {
+      return List.of();
+    }
+    // 무기한 판정: endDate 미설정(null)뿐 아니라, 클라이언트가 무기한을 endDate=9999-12-31 센티널로 저장하기 때문에
+    // "endDate 가 오늘보다 미래" 인 경우도 아직 열려있는(무기한) 챌린지로 본다.
+    // (endDate==null 만 무기한으로 보면 센티널(9999)에서 상한이 걸리지 않아 아래 일 단위 순회가 startDate~9999
+    //  = 수백만 포인트로 폭주 → OOM/응답지연으로 통계 500 이 난다.)
+    LocalDate today = LocalDate.now();
+    LocalDate endDate = challenge.getEndDate();
+    boolean unlimited = endDate == null || endDate.isAfter(today);
+    // 미래 일지는 존재하지 않으므로 추이 상한(to)은 오늘을 넘지 않는다(무기한/미래 endDate의 폭주 방지).
+    LocalDate to = unlimited ? today : endDate;
+    if (to.isBefore(from)) {
+      return List.of();
+    }
+    // 무기한: startDate 가 아주 오래됐어도 최근 N일 창으로 제한한다.
+    if (unlimited) {
+      LocalDate windowStart = to.minusDays(UNLIMITED_TREND_MAX_DAYS - 1L);
+      if (windowStart.isAfter(from)) {
+        from = windowStart;
       }
     }
 
-    return toChallengeResponse(challenge, member);
+    Map<LocalDate, Long> counts = new java.util.HashMap<>();
+    for (ChallengeDailyCountProjection row :
+        diaryRepository.countDiariesByDateForChallenge(challenge.getId(), from, to)) {
+      counts.put(row.getBucket(), row.getCnt());
+    }
+
+    List<ChallengeStatisticsResponse.DiaryTrendPoint> out = new ArrayList<>();
+    for (LocalDate d = from; !d.isAfter(to); d = d.plusDays(1)) {
+      out.add(new ChallengeStatisticsResponse.DiaryTrendPoint(d, counts.getOrDefault(d, 0L)));
+    }
+    return out;
   }
 
   public OffsetPagination<ParticipantResponse> getChallengeParticipants(
@@ -358,6 +441,30 @@ public class ChallengeService {
         .orElse(false);
   }
 
+  // 비공개 챌린지 읽기 접근 정책: 참여자(HOST/PARTICIPANT) 또는 관리자만 허용(읽기 전용).
+  // 상세/통계/일지 목록 등 관리자 화면이 필요로 하는 읽기 경로에서 공통으로 사용한다.
+  private void assertPrivateChallengeReadable(Challenge challenge, Long memberId) {
+    if (challenge.getChallengeType() != ChallengeType.PRIVATE || isAdmin(memberId)) {
+      return;
+    }
+    ParticipantStatus status = getMemberStatus(challenge.getId(), memberId);
+    if (status != ParticipantStatus.HOST && status != ParticipantStatus.PARTICIPANT) {
+      throw new CustomException(ErrorCode.PRIVATE_CHALLENGE);
+    }
+  }
+
+  // 관리자만 예약 노출 전(visibleFrom 미래) 공식 챌린지를 목록에서 볼 수 있다.
+  // 반드시 서버에서 ADMIN 권한을 검증한다(클라가 임의 파라미터로 숨김 챌린지를 볼 수 없게).
+  private boolean isAdmin(Long memberId) {
+    if (memberId == null) {
+      return false;
+    }
+    return memberRepository
+        .findById(memberId)
+        .map(member -> member.getRole() == MemberRole.ADMIN)
+        .orElse(false);
+  }
+
   /** 진행 상태 미선택 여부(=전체 조회). 이 경우 쿼리에서 날짜 조건을 우회한다. */
   private boolean isAllStatus(List<ChallengeStatus> statuses) {
     return statuses == null || statuses.isEmpty();
@@ -411,6 +518,8 @@ public class ChallengeService {
             isAllStatus(statuses),
             toStatusNames(statuses),
             LocalDate.now(),
+            LocalDateTime.now(KST),
+            isAdmin(memberId),
             pageable);
 
     Page<ChallengeSummaryResponse> responsePage =
@@ -596,7 +705,7 @@ public class ChallengeService {
     }
     Participant participant =
         participantRepository
-            .findByMemberIdAndChallengeId(memberId, challengeId)
+            .findFirstByMemberIdAndChallengeIdOrderByIdAsc(memberId, challengeId)
             .orElseThrow(() -> new CustomException(ErrorCode.PARTICIPANT_NOT_FOUND));
 
     challengeGoalRepository.deleteAllByParticipant(participant);
@@ -608,12 +717,14 @@ public class ChallengeService {
   }
 
   public List<ChallengeSummaryResponse> getRandomChallenges(Long memberId, int size) {
-    List<Challenge> all =
-        challengeRepository.findAll().stream()
-            .filter(c -> c.getChallengeType() != ChallengeType.PRIVATE)
-            .collect(java.util.stream.Collectors.toList());
-    Collections.shuffle(all);
-    return all.stream().limit(size).map(ch -> toChallengeSummary(ch, memberId)).toList();
+    // "오늘 시작해볼 챌린지": 비공개/삭제/종료 챌린지는 제외하고 진행중·예정만 노출한다.
+    // (종료 판정 = endDate < today. 무기한(endDate==null)은 종료가 아니므로 포함.)
+    LocalDate today = LocalDate.now();
+    return challengeRepository
+        .findRandomActiveChallenges(today, LocalDateTime.now(KST), PageRequest.of(0, size))
+        .stream()
+        .map(ch -> toChallengeSummary(ch, memberId))
+        .toList();
   }
 
   public void withdrawMemberLeaveChallengeHost(Long memberId) {
@@ -659,7 +770,7 @@ public class ChallengeService {
       } else {
         Participant participant =
             participantRepository
-                .findByMemberIdAndChallengeId(memberId, challengeId)
+                .findFirstByMemberIdAndChallengeIdOrderByIdAsc(memberId, challengeId)
                 .orElseThrow(() -> new CustomException(ErrorCode.PARTICIPANT_NOT_FOUND));
         participant.setStatus(ParticipantStatus.LEAVE);
         diaryRepository.softDeleteByChallengeIdAndMemberId(challengeId, memberId);
@@ -756,6 +867,8 @@ public class ChallengeService {
             isAllStatus(statuses),
             toStatusNames(statuses),
             LocalDate.now(),
+            LocalDateTime.now(KST),
+            isAdmin(memberId),
             pageable);
 
     boolean hasNext = rows.size() > limit;
@@ -883,6 +996,47 @@ public class ChallengeService {
     return new ChallengePokeResponse(receiverIds.stream().toList());
   }
 
+  /**
+   * 홈 '오늘의 기록'용 경량 조회: 내가 진행 중인 챌린지 목록 + 각 챌린지의 내 목표 + 오늘 일지 작성 여부를 한 번에 반환한다. 기존엔 챌린지마다 상세 조회 API를
+   * 호출(N+1)했으나, 참여자+목표를 단일 fetch join 쿼리로, 오늘 작성 여부를 IN 절 한 번으로 처리한다(총 2 쿼리).
+   */
+  public List<MyTodayChallengeResponse> getMyTodayChallenges(Long memberId) {
+    memberRepository
+        .findById(memberId)
+        .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+
+    LocalDate today = LocalDate.now();
+    List<Participant> participants =
+        participantRepository.findInProgressWithGoals(
+            memberId, List.of(ParticipantStatus.HOST, ParticipantStatus.PARTICIPANT), today);
+
+    // 챌린지당 1건으로 정리(가장 먼저 참여한 행 유지). participant(member_id, challenge_id) 유니크 제약이
+    // 없어 더티 중복 행이 있으면 같은 챌린지가 두 번 나올 수 있어 방어한다.
+    // ponytail: 근본 해결은 유니크 제약(참여자 중복 정리 마이그레이션). 그 전까지 이 dedupe 로 홈 중복 카드 차단.
+    Map<Long, Participant> byChallenge = new java.util.LinkedHashMap<>();
+    for (Participant p : participants) {
+      byChallenge.putIfAbsent(p.getChallenge().getId(), p);
+    }
+    if (byChallenge.isEmpty()) {
+      return List.of();
+    }
+
+    Set<Long> writtenToday =
+        new java.util.HashSet<>(
+            diaryRepository.findChallengeIdsWithDiaryOnDate(memberId, byChallenge.keySet(), today));
+
+    return byChallenge.values().stream()
+        .map(
+            p ->
+                MyTodayChallengeResponse.builder()
+                    .challengeId(p.getChallenge().getId())
+                    .title(p.getChallenge().getTitle())
+                    .todayWritten(writtenToday.contains(p.getChallenge().getId()))
+                    .goals(p.getChallengeGoals().stream().map(this::toChallengeGoal).toList())
+                    .build())
+        .toList();
+  }
+
   public List<ChallengeSummaryResponse> getMemberChallenge(Long currentMemberId, Long memberId) {
     Member member =
         memberRepository
@@ -934,7 +1088,7 @@ public class ChallengeService {
     if ((status == ParticipantStatus.HOST) || (status == ParticipantStatus.PARTICIPANT)) {
       challengeGoals =
           participantRepository
-              .findByMemberIdAndChallengeId(memberId, challengeId)
+              .findFirstByMemberIdAndChallengeIdOrderByIdAsc(memberId, challengeId)
               .orElseThrow(() -> new CustomException(ErrorCode.PARTICIPANT_NOT_FOUND))
               .getChallengeGoals()
               .stream()
@@ -1004,7 +1158,9 @@ public class ChallengeService {
         challenge.getDeletedAt() != null,
         pickRandomParticipants(challengeId, 3),
         challenge.isPhotoRequired(),
-        challenge.isPostEndWriteAllowed());
+        challenge.isPostEndWriteAllowed(),
+        challenge.getVisibleFrom(),
+        isNotYetVisible(challenge));
   }
 
   private ChallengeDetailDto toChallengeDetail(Challenge challenge, Long memberId) {
@@ -1057,7 +1213,7 @@ public class ChallengeService {
 
   private ParticipantStatus getMemberStatus(Long challengeId, Long memberId) {
     Optional<Participant> participant =
-        participantRepository.findByMemberIdAndChallengeId(memberId, challengeId);
+        participantRepository.findFirstByMemberIdAndChallengeIdOrderByIdAsc(memberId, challengeId);
     if (participant.isEmpty()) {
       return ParticipantStatus.NONE;
     } else {
@@ -1076,7 +1232,7 @@ public class ChallengeService {
     LocalDate startDate = challenge.getStartDate();
     LocalDate endDate = challenge.getEndDate();
     LocalDate today = LocalDate.now();
-    if (today.isBefore(startDate)) return -1;
+    if (startDate == null || today.isBefore(startDate)) return -1; // 시작일 없음/시작 전
 
     Long challengeId = challenge.getId();
     long allGoalsCompletedDiaryCnt =
@@ -1085,13 +1241,10 @@ public class ChallengeService {
     long participantCnt = getParticipantCnt(challengeId);
     if (participantCnt == 0) return 0;
 
-    long days;
-    if (today.isBefore(endDate)) {
-      days = ChronoUnit.DAYS.between(startDate, today) + 1; // 오늘 포함
-    } else {
-      days = ChronoUnit.DAYS.between(startDate, endDate) + 1; // 종료일 포함
-    }
-    if (days == 0) return 0;
+    // 경과일: 무기한(endDate==null)이거나 아직 종료 전이면 오늘까지, 종료됐으면 종료일까지. (endDate null 시 NPE 방지)
+    LocalDate effectiveEnd = (endDate == null || today.isBefore(endDate)) ? today : endDate;
+    long days = ChronoUnit.DAYS.between(startDate, effectiveEnd) + 1;
+    if (days <= 0) return 0;
 
     return (double) allGoalsCompletedDiaryCnt / ((double) participantCnt * (double) days) * 100;
   }
@@ -1101,7 +1254,7 @@ public class ChallengeService {
     LocalDate startDate = challenge.getStartDate();
     LocalDate endDate = challenge.getEndDate();
     LocalDate today = LocalDate.now();
-    if (today.isBefore(startDate)) return -1;
+    if (startDate == null || today.isBefore(startDate)) return -1; // 시작일 없음/시작 전
 
     Long challengeId = challenge.getId();
 
@@ -1111,14 +1264,11 @@ public class ChallengeService {
             challengeId);
     // 전체 참여자
     long participantCnt = getParticipantCnt(challengeId);
-    // 진행된 일 수
-    long days;
-    if (today.isBefore(endDate)) {
-      days = ChronoUnit.DAYS.between(startDate, today) + 1; // 오늘 포함
-    } else {
-      days = ChronoUnit.DAYS.between(startDate, endDate) + 1; // 종료일 포함
-    }
-    if (days == 0) return 0;
+    if (participantCnt == 0) return 0; // 0 나눗셈(NaN) 방지
+    // 진행된 일 수: 무기한/종료 전이면 오늘까지, 종료됐으면 종료일까지. (endDate null 시 NPE 방지)
+    LocalDate effectiveEnd = (endDate == null || today.isBefore(endDate)) ? today : endDate;
+    long days = ChronoUnit.DAYS.between(startDate, effectiveEnd) + 1;
+    if (days <= 0) return 0;
     // 목표의 개수 (고정목표 챌린지의 원본 목표 기준)
     long goalCnt = fixedChallengeGoalRepository.countByChallengeId(challengeId);
     if (goalCnt <= 0) return 0;

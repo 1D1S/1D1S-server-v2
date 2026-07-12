@@ -39,7 +39,7 @@ public class ChallengeController {
           새로운 챌린지를 생성한다.
 
           - 챌린지 썸네일 이미지 등록 시 presigned URL 발급 API를 통해 이미지를 업로드 한 뒤, 해당 키 값을 thumbnailImage 필드에 담아 전송한다. ( /image/presigned-url API 참고 )
-          - 챌린지 카테고리는 다음에서 선택한다. DEV/EXERCISE/BOOK/MUSIC/STUDY/LEISURE/ECONOMY
+          - 챌린지 카테고리는 다음에서 선택한다. DEV/EXERCISE/BOOK/DIET/HEALTH/HOBBY/LANGUAGE/SELF_DEV/ETC
           - 챌린지 형태는 다음에서 선택한다. INDIVIDUAL(개인)/ GROUP(단체)
           - 최대 참여 인원 제한이 없다면 NULL로 보낸다.
           - 챌린지 목표는 다음에서 선택한다. FIXED(고정형)/FLEXIBLE(유연형)
@@ -417,6 +417,19 @@ public class ChallengeController {
     Long memberId = CurrentUserContext.getCurrentMemberId();
     return ApiResponse.success(
         Message.GET_CHALLENGE, challengeService.getChallenge(challengeId, memberId));
+  }
+
+  @Operation(
+      summary = "특정 챌린지 통계",
+      description =
+          "참여율 + 완료 목표수 + 기간 내 날짜별 일지 추이(빈 날짜 0). 권한은 챌린지 상세 조회 정책과 동일(비공개는 참여자/호스트/관리자).")
+  @GetMapping("/{challengeId}/statistics")
+  public ApiResponse<ChallengeStatisticsResponse> getChallengeStatistics(
+      @Parameter(description = "챌린지 ID") @PathVariable Long challengeId) {
+    Long memberId = CurrentUserContext.getCurrentMemberId();
+    return ApiResponse.success(
+        Message.GET_CHALLENGE_STATISTICS,
+        challengeService.getChallengeStatistics(challengeId, memberId));
   }
 
   @Operation(
@@ -972,6 +985,79 @@ public class ChallengeController {
         Message.GET_MY_CHALLENGE, challengeService.getMemberChallenge(memberId, memberId));
   }
 
+  @Operation(
+      summary = "홈 '오늘의 기록' 조회",
+      description =
+          """
+          홈 화면 '오늘의 기록'에 필요한 데이터를 단일 호출로 반환한다.
+
+          - 내가 진행 중(오늘 기준: 시작일 <= 오늘 <= 종료일, 삭제 제외)인 챌린지 목록
+          - 각 챌린지에 대한 내 목표 목록(challengeGoalId, content)
+          - 각 챌린지에 오늘(KST) 일지를 작성했는지 여부(todayWritten, completedDate 기준·삭제 제외)
+
+          기존처럼 챌린지마다 상세 조회 API를 호출(N+1)할 필요 없이 이 API 하나로 처리한다.
+          """)
+  @ApiResponses({
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "200",
+        description = "오늘의 기록 조회 성공",
+        content =
+            @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = MyTodayChallengeResponse.class),
+                examples =
+                    @ExampleObject(
+                        value =
+                            """
+                            {
+                              "message": "오늘의 기록 조회 성공했습니다.",
+                              "data": [
+                                {
+                                  "challengeId": 1,
+                                  "title": "30일 코딩 챌린지",
+                                  "todayWritten": false,
+                                  "goals": [
+                                    { "challengeGoalId": 10, "content": "알고리즘 1문제 풀기" },
+                                    { "challengeGoalId": 11, "content": "책 10페이지 읽기" }
+                                  ]
+                                }
+                              ]
+                            }
+                            """))),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "401",
+        description = "인증되지 않은 접근",
+        content =
+            @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class),
+                examples =
+                    @ExampleObject(
+                        value =
+                            """
+                            { "code": "AUTH-001", "message": "인증되지 않은 접근입니다." }
+                            """))),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "404",
+        description = "회원을 찾을 수 없음",
+        content =
+            @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class),
+                examples =
+                    @ExampleObject(
+                        value =
+                            """
+                            { "code": "USER-003", "message": "회원을 찾을 수 없습니다." }
+                            """)))
+  })
+  @GetMapping("/my/today")
+  public ApiResponse<List<MyTodayChallengeResponse>> myTodayChallenges() {
+    Long memberId = CurrentUserContext.getCurrentMemberId();
+    return ApiResponse.success(
+        Message.GET_MY_TODAY_CHALLENGE, challengeService.getMyTodayChallenges(memberId));
+  }
+
   @Operation(summary = "챌린지 탈퇴", description = "참여 중인 챌린지에서 탈퇴한다.")
   @ApiResponses({
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
@@ -1125,7 +1211,7 @@ public class ChallengeController {
           String keyword,
       @Parameter(
               description =
-                  "카테고리 필터 (DEV, EXERCISE, BOOK, MUSIC, STUDY, LEISURE, ECONOMY). 다중 선택 가능(category=DEV&category=BOOK), 미입력 시 전체")
+                  "카테고리 필터 (DEV, EXERCISE, BOOK, DIET, HEALTH, HOBBY, LANGUAGE, SELF_DEV, ETC). 다중 선택 가능(category=DEV&category=BOOK), 미입력 시 전체")
           @RequestParam(name = "category", required = false)
           List<Category> categories,
       @Parameter(description = "챌린지 종류 필터 (PUBLIC, OFFICIAL). 미입력 시 전체 (PRIVATE 제외)")
@@ -1231,7 +1317,7 @@ public class ChallengeController {
           String keyword,
       @Parameter(
               description =
-                  "카테고리 필터 (DEV, EXERCISE, BOOK, MUSIC, STUDY, LEISURE, ECONOMY). 다중 선택 가능(category=DEV&category=BOOK), 미입력 시 전체")
+                  "카테고리 필터 (DEV, EXERCISE, BOOK, DIET, HEALTH, HOBBY, LANGUAGE, SELF_DEV, ETC). 다중 선택 가능(category=DEV&category=BOOK), 미입력 시 전체")
           @RequestParam(name = "category", required = false)
           List<Category> categories,
       @Parameter(description = "챌린지 종류 필터 (PUBLIC, OFFICIAL). 미입력 시 전체 (PRIVATE 제외)")

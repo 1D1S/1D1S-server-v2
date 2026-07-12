@@ -33,6 +33,7 @@ public enum ErrorCode {
   NICKNAME_ALREADY_EXISTS(HttpStatus.CONFLICT, "USER-007", "이미 사용 중인 닉네임입니다."),
   MEMBER_IS_ADMIN(HttpStatus.CONFLICT, "USER-008", "이미 관리자인 회원입니다."),
   MEMBER_NOT_ADMIN(HttpStatus.FORBIDDEN, "USER-009", "관리자 회원만 요청이 가능합니다."),
+  PHONE_NUMBER_ALREADY_EXISTS(HttpStatus.CONFLICT, "USER-010", "이미 등록된 휴대폰 번호입니다."),
 
   // diary
   DIARY_NOT_CREATED(HttpStatus.NOT_FOUND, "DIARY-001", "다이어리를 생성하는것에 실패하였습니다."),
@@ -113,7 +114,13 @@ public enum ErrorCode {
 
   // statistics
   INVALID_STATISTICS_PERIOD(
-      HttpStatus.BAD_REQUEST, "STAT-001", "요청한 통계 기간이 올바르지 않습니다. (형식/가입 이전/미래 범위 확인)");
+      HttpStatus.BAD_REQUEST, "STAT-001", "요청한 통계 기간이 올바르지 않습니다. (형식/가입 이전/미래 범위 확인)"),
+
+  // popup
+  POPUP_NOT_FOUND(HttpStatus.NOT_FOUND, "POPUP-001", "존재하지 않는 팝업입니다."),
+  INVALID_POPUP_PERIOD(HttpStatus.BAD_REQUEST, "POPUP-002", "팝업 게시 기간이 올바르지 않습니다. (시작일 <= 종료일)"),
+  POPUP_REQUIRED_FIELD_MISSING(
+      HttpStatus.BAD_REQUEST, "POPUP-003", "팝업 필수 항목(imageUrl/ctaText/linkUrl/기간)이 누락되었습니다.");
 
   private final HttpStatus status;
   private final String code;

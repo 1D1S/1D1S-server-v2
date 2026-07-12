@@ -16,6 +16,7 @@ import com.odos.odos_server_v2.domain.diary.entity.*;
 import com.odos.odos_server_v2.domain.diary.repository.*;
 import com.odos.odos_server_v2.domain.friend.repository.FriendRepository;
 import com.odos.odos_server_v2.domain.member.CurrentUserContext;
+import com.odos.odos_server_v2.domain.member.entity.Enum.MemberRole;
 import com.odos.odos_server_v2.domain.member.entity.Member;
 import com.odos.odos_server_v2.domain.member.repository.MemberRepository;
 import com.odos.odos_server_v2.domain.notification.service.NotificationService;
@@ -86,7 +87,7 @@ public class DiaryService {
 
     Participant participant =
         participantRepository
-            .findByMemberIdAndChallengeId(memberId, challenge.getId())
+            .findFirstByMemberIdAndChallengeIdOrderByIdAsc(memberId, challenge.getId())
             .orElseThrow(() -> new CustomException(ErrorCode.PARTICIPANT_NOT_FOUND));
 
     Boolean isCheckedAll = false;
@@ -201,7 +202,7 @@ public class DiaryService {
 
     Participant participant =
         participantRepository
-            .findByMemberIdAndChallengeId(memberId, challenge.getId())
+            .findFirstByMemberIdAndChallengeIdOrderByIdAsc(memberId, challenge.getId())
             .orElseThrow(() -> new CustomException(ErrorCode.PARTICIPANT_NOT_FOUND));
 
     // FIXED/FLEXIBLE 모두 참여자 본인의 challenge_goal 을 기준으로 일지 목표를 생성한다.
@@ -333,12 +334,15 @@ public class DiaryService {
   }
 
   @Transactional
-  public Boolean deleteDiary(Long diaryId) {
+  public Boolean deleteDiary(Long memberId, Long diaryId) {
     Diary diary =
         diaryRepository
             .findByIdAndIsDeletedFalse(diaryId)
             .orElseThrow(() -> new CustomException(ErrorCode.DIARY_NOT_FOUND));
-    // diaryRepository.deleteById(diaryId);
+    // 작성자 본인만 삭제 가능(관리자 삭제는 AdminDiaryController 별도 경로). 소유자 검증 없이는 IDOR.
+    if (!diary.getMember().getId().equals(memberId)) {
+      throw new CustomException(ErrorCode.DIARY_NOT_ACCESS);
+    }
     diary.softDelete();
     diaryRepository.save(diary);
     return true;
@@ -360,8 +364,7 @@ public class DiaryService {
       DiaryLike diaryLike = DiaryLike.builder().diary(diary).member(pressedMember).build();
       diaryLike.setDiary(diary);
       diaryLikeRepository.save(diaryLike);
-      List<DiaryLike> likes = diaryLikeRepository.getDiaryLikeCountByDiaryId(diaryId);
-      int likeCount = likes.size();
+      int likeCount = (int) diaryLikeRepository.countByDiaryId(diaryId);
       notificationService.notifyDiaryLikeMilestone(diaryId, likeCount);
       return likeCount;
     } else {
@@ -382,7 +385,7 @@ public class DiaryService {
       throw new CustomException(ErrorCode.DIARYLIKE_NOT_EXISTS);
     } else {
       diaryLikeRepository.delete(like.get());
-      return diaryLikeRepository.getDiaryLikeCountByDiaryId(diaryId).size();
+      return (int) diaryLikeRepository.countByDiaryId(diaryId);
     }
   }
 
@@ -396,13 +399,11 @@ public class DiaryService {
               ? memberRepository.findById(currentMemberId).orElse(null)
               : null;
 
-      List<Diary> diaries = diaryRepository.findDiariesByIsPublicAndIsDeletedFalse(Boolean.TRUE);
-      if (diaries.isEmpty()) {
+      List<Diary> selectedDiaries =
+          diaryRepository.findRandomPublicDiaries(PageRequest.of(0, Math.toIntExact(size)));
+      if (selectedDiaries.isEmpty()) {
         return Collections.emptyList();
       }
-
-      Collections.shuffle(diaries);
-      List<Diary> selectedDiaries = diaries.stream().limit(size).toList();
       return toDiaryResponses(currentMember, currentMemberId, selectedDiaries);
     } catch (CustomException e) {
       return Collections.emptyList();
@@ -537,7 +538,8 @@ public class DiaryService {
   }
 
   @Transactional
-  public OffsetPagination<DiaryResponse> getChallengeDiaries(Long challengeId, Pageable pageable) {
+  public OffsetPagination<DiaryResponse> getChallengeDiaries(
+      Long challengeId, LocalDate date, Pageable pageable) {
     Long memberId = CurrentUserContext.getCurrentMemberId();
     Member member =
         memberRepository
@@ -548,16 +550,28 @@ public class DiaryService {
             .findById(challengeId)
             .orElseThrow(() -> new CustomException(ErrorCode.CHALLENGE_NOT_FOUND));
     ChallengeSummaryResponse summary = challengeService.toChallengeSummary(challenge, memberId);
-    Page<Diary> diaries = null;
-    if ((participantRepository.existsByChallengeIdAndMemberIdAndStatus(
-            challengeId, memberId, ParticipantStatus.PARTICIPANT)
-        || (participantRepository.existsByChallengeIdAndMemberIdAndStatus(
-            challengeId, memberId, ParticipantStatus.HOST)))) {
-      diaries = diaryRepository.findAllByChallengeIdAndIsDeletedFalse(challengeId, pageable);
+
+    // 참여자/호스트/관리자는 전체(비공개 포함), 그 외는 공개 일지만. date(completedDate) 지정 시 그 날짜로 필터.
+    boolean isMember =
+        member.getRole() == MemberRole.ADMIN
+            || participantRepository.existsByChallengeIdAndMemberIdAndStatus(
+                challengeId, memberId, ParticipantStatus.PARTICIPANT)
+            || participantRepository.existsByChallengeIdAndMemberIdAndStatus(
+                challengeId, memberId, ParticipantStatus.HOST);
+    Page<Diary> diaries;
+    if (isMember) {
+      diaries =
+          (date == null)
+              ? diaryRepository.findAllByChallengeIdAndIsDeletedFalse(challengeId, pageable)
+              : diaryRepository.findAllByChallengeIdAndCompletedDateAndIsDeletedFalse(
+                  challengeId, date, pageable);
     } else {
       diaries =
-          diaryRepository.findDiariesByChallengeIdAndIsPublicAndIsDeletedFalse(
-              challengeId, Boolean.TRUE, pageable);
+          (date == null)
+              ? diaryRepository.findDiariesByChallengeIdAndIsPublicAndIsDeletedFalse(
+                  challengeId, Boolean.TRUE, pageable)
+              : diaryRepository.findByChallengeIdAndIsPublicAndCompletedDateAndIsDeletedFalse(
+                  challengeId, Boolean.TRUE, date, pageable);
     }
 
     Map<Long, Long> commentCounts = getCommentCountMap(diaries.getContent());

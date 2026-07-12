@@ -71,7 +71,6 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
     response.setContentType("application/json;charset=UTF-8");
     ApiResponse<OAuth2LoginResponse> apiResponse = ApiResponse.success(LOGIN_SUCCESS, dto);
     response.getWriter().write(objectMapper.writeValueAsString(apiResponse));
-    // log.debug("OAuth2 login success - {} (profileComplete={})", email, isProfileComplete);
 
     // 탈퇴 처리 이후 7일 이전 로그인 시
     memberDeleteService.restoreMember();

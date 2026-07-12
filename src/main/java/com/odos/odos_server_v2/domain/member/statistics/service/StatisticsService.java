@@ -10,9 +10,8 @@ import com.odos.odos_server_v2.domain.member.statistics.dto.DiaryTrendResponse.T
 import com.odos.odos_server_v2.domain.member.statistics.dto.FeelingDistributionResponse;
 import com.odos.odos_server_v2.domain.member.statistics.dto.FeelingDistributionResponse.FeelingSlice;
 import com.odos.odos_server_v2.domain.member.statistics.dto.FriendComparisonResponse;
-import com.odos.odos_server_v2.domain.member.statistics.dto.FriendComparisonResponse.AverageStats;
+import com.odos.odos_server_v2.domain.member.statistics.dto.FriendComparisonResponse.FriendStats;
 import com.odos.odos_server_v2.domain.member.statistics.dto.FriendComparisonResponse.MemberStats;
-import com.odos.odos_server_v2.domain.member.statistics.dto.FriendComparisonResponse.RankStats;
 import com.odos.odos_server_v2.domain.member.statistics.dto.PeriodListResponse;
 import com.odos.odos_server_v2.domain.member.statistics.dto.PeriodListResponse.PeriodItem;
 import com.odos.odos_server_v2.domain.member.statistics.dto.PeriodSummaryResponse;
@@ -22,6 +21,7 @@ import com.odos.odos_server_v2.domain.member.statistics.repository.StatisticsRep
 import com.odos.odos_server_v2.domain.member.statistics.repository.StatisticsRepository.DailyCount;
 import com.odos.odos_server_v2.domain.member.statistics.repository.StatisticsRepository.FeelingCount;
 import com.odos.odos_server_v2.domain.member.statistics.repository.StatisticsRepository.MemberCount;
+import com.odos.odos_server_v2.domain.shared.service.ImageService;
 import com.odos.odos_server_v2.exception.CustomException;
 import com.odos.odos_server_v2.exception.ErrorCode;
 import java.time.LocalDate;
@@ -48,6 +48,7 @@ public class StatisticsService {
   private final StatisticsRepository statisticsRepository;
   private final MemberRepository memberRepository;
   private final FriendRepository friendRepository;
+  private final ImageService imageService;
 
   // ---------------------------------------------------------------------------
   // 1. 감정 분포
@@ -192,7 +193,8 @@ public class StatisticsService {
   // ---------------------------------------------------------------------------
   // 5. 친구 대비 비교
   // ---------------------------------------------------------------------------
-  public FriendComparisonResponse getFriendComparison(Long memberId, StatUnit period) {
+  public FriendComparisonResponse getFriendComparison(
+      Long memberId, StatUnit period, Long friendId) {
     if (period != StatUnit.WEEK && period != StatUnit.MONTH) {
       throw new CustomException(ErrorCode.INVALID_STATISTICS_PERIOD); // 비교는 WEEK/MONTH 만
     }
@@ -200,54 +202,38 @@ public class StatisticsService {
         memberRepository
             .findById(memberId)
             .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+    Member friend =
+        memberRepository
+            .findById(friendId)
+            .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+
+    // 실제 내 친구인지 검증(아니면/자기 자신이면 FRIEND_NOT_EXISTS).
+    if (!friendRepository.existsByMemberAndFriendMember(me, friend)) {
+      throw new CustomException(ErrorCode.FRIEND_NOT_EXISTS);
+    }
 
     LocalDate today = today();
     LocalDate start = bucketStart(period, today);
     LocalDate end = bucketEnd(period, today);
 
-    // 친구 id 는 findByMember 한 번으로 (friendMember 는 LAZY 지만 id 접근은 프록시로 추가 쿼리 없음)
-    List<Long> friendIds =
-        friendRepository.findByMember(me).stream()
-            .map(f -> f.getFriendMember().getId())
-            .distinct()
-            .toList();
-
-    List<Long> memberIds = new ArrayList<>(friendIds);
-    memberIds.add(memberId);
-
+    List<Long> memberIds = List.of(memberId, friendId);
     Map<Long, Long> diaryCounts =
         toMemberCountMap(statisticsRepository.countDiariesByMembers(memberIds, start, end));
     Map<Long, Long> goalCounts =
         toMemberCountMap(statisticsRepository.countCompletedGoalsByMembers(memberIds, start, end));
 
-    long myDiary = diaryCounts.getOrDefault(memberId, 0L);
-    long myGoal = goalCounts.getOrDefault(memberId, 0L);
+    MemberStats meStats =
+        new MemberStats(
+            diaryCounts.getOrDefault(memberId, 0L), goalCounts.getOrDefault(memberId, 0L));
+    FriendStats friendStats =
+        new FriendStats(
+            friendId,
+            friend.getNickname(),
+            imageService.getFileUrl(friend.getProfileUrl()),
+            diaryCounts.getOrDefault(friendId, 0L),
+            goalCounts.getOrDefault(friendId, 0L));
 
-    double avgDiary =
-        friendIds.isEmpty()
-            ? 0.0
-            : round4(
-                friendIds.stream().mapToLong(id -> diaryCounts.getOrDefault(id, 0L)).sum()
-                    / (double) friendIds.size());
-    double avgGoal =
-        friendIds.isEmpty()
-            ? 0.0
-            : round4(
-                friendIds.stream().mapToLong(id -> goalCounts.getOrDefault(id, 0L)).sum()
-                    / (double) friendIds.size());
-
-    // 순위: 나보다 일지 수가 많은 인원 수 + 1 (본인 포함 집단 기준, 동점은 같은 순위)
-    int rank =
-        1
-            + (int)
-                memberIds.stream().filter(id -> diaryCounts.getOrDefault(id, 0L) > myDiary).count();
-
-    return new FriendComparisonResponse(
-        period,
-        friendIds.size(),
-        new MemberStats(myDiary, myGoal),
-        new AverageStats(avgDiary, avgGoal),
-        new RankStats(rank, memberIds.size()));
+    return new FriendComparisonResponse(period, meStats, friendStats);
   }
 
   // ---------------------------------------------------------------------------

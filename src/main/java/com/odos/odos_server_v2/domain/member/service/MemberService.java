@@ -79,6 +79,16 @@ public class MemberService {
     member.updateProfileImage(objectKey);
   }
 
+  @Transactional
+  public void editPhoneNumber(Long memberId, String phoneNumber) {
+    String normalized = Member.normalizePhoneNumber(phoneNumber);
+    if (memberRepository.existsByPhoneNumberAndIdNot(normalized, memberId)) {
+      throw new CustomException(ErrorCode.PHONE_NUMBER_ALREADY_EXISTS);
+    }
+    Member member = findActiveMemberById(memberId);
+    member.updatePhoneNumber(phoneNumber);
+  }
+
   private Member findActiveMemberById(Long memberId) {
     Optional<Member> activeMember =
         memberRepository.findByIdAndStatus(memberId, MemberStatus.ACTIVE);
@@ -100,6 +110,7 @@ public class MemberService {
         .profileUrl(imageService.getFileUrl(member.getProfileUrl()))
         .email(member.getEmail())
         .provider(member.getSignupRoute().name())
+        .phoneNumber(member.getPhoneNumber())
         .streak(getStreakByMemberId(id))
         .challengeList(challengeService.getMemberChallenge(id, id))
         .diaryList(diaryService.getMyDiaries(pageable))
@@ -237,32 +248,7 @@ public class MemberService {
 
   public int getTodayGoalCount(Long memberId) {
     LocalDate today = LocalDate.now();
-
-    List<ChallengeGoal> allGoals = challengeGoalRepository.findAll();
-
-    return (int)
-        allGoals.stream()
-            .filter(
-                goal -> {
-                  Participant mc = goal.getParticipant();
-                  if (mc == null || mc.getMember() == null || mc.getChallenge() == null)
-                    return false;
-
-                  // 1. 현재 사용자 여부
-                  if (!mc.getMember().getId().equals(memberId)) return false;
-
-                  // 2. 챌린지 진행 중 여부
-                  Challenge challenge = mc.getChallenge();
-                  LocalDate start = challenge.getStartDate();
-                  LocalDate end = challenge.getEndDate();
-
-                  boolean started = !start.isAfter(today); // startDate ≤ today
-                  boolean notEnded =
-                      (end == null) || !today.isAfter(end); // today ≤ endDate or no endDate
-
-                  return started && notEnded;
-                })
-            .count();
+    return (int) challengeGoalRepository.countTodayInProgressGoals(memberId, today);
   }
 
   private int[] calculateStreaks(List<Diary> diaryList) {

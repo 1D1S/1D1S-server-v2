@@ -12,7 +12,11 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Getter
 @Builder
-@Table(name = "diary_goal")
+@Table(
+    name = "diary_goal",
+    indexes = {
+      @Index(name = "idx_diary_goal_diary_completed", columnList = "diary_id, is_completed")
+    })
 public class DiaryGoal {
 
   @Id

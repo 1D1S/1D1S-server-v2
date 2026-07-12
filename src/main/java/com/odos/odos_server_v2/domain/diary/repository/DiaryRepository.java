@@ -1,5 +1,6 @@
 package com.odos.odos_server_v2.domain.diary.repository;
 
+import com.odos.odos_server_v2.domain.challenge.dto.ChallengeDailyCountProjection;
 import com.odos.odos_server_v2.domain.challenge.dto.MemberDiaryDateProjection;
 import com.odos.odos_server_v2.domain.diary.entity.Diary;
 import java.time.LocalDate;
@@ -22,6 +23,15 @@ public interface DiaryRepository extends JpaRepository<Diary, Long> {
   @EntityGraph(attributePaths = {"member", "challenge"})
   List<Diary> findDiariesByIsPublicAndIsDeletedFalse(Boolean isPublic);
 
+  // 랜덤 공개 일지 N건(Pageable 로 상한). 전체 공개 일지를 JVM 으로 로드해 셔플하면(대용량 시 OOM/지연)
+  // 위험하므로 DB 에서 무작위 정렬 후 상한만 가져온다. member/challenge 는 EntityGraph 로 함께 로딩.
+  // ponytail: function('random') 은 대상 전체를 정렬하지만 앱으로 넘어오는 행은 상한으로 제한되어
+  // JVM 메모리 폭주는 사라진다. 표본이 매우 커지면 tablesample/키 랜덤 조인으로 교체.
+  @EntityGraph(attributePaths = {"member", "challenge"})
+  @Query(
+      "select d from Diary d where d.isPublic = true and d.isDeleted = false order by function('random')")
+  List<Diary> findRandomPublicDiaries(Pageable pageable);
+
   List<Diary> findDiariesByMember_Id(Long memberId);
 
   @EntityGraph(attributePaths = {"member", "challenge"})
@@ -42,6 +52,29 @@ public interface DiaryRepository extends JpaRepository<Diary, Long> {
   List<MemberDiaryDateProjection> findMemberDiaryDatesForChallenge(
       @Param("challengeId") Long challengeId);
 
+  /** 챌린지 통계용: 기간 내 날짜별 일지 개수(일지 추이). completedDate 기준, 삭제 제외. */
+  @Query(
+      """
+      select d.completedDate as bucket, count(d) as cnt
+      from Diary d
+      where d.challenge.id = :challengeId
+        and d.isDeleted = false
+        and d.completedDate between :from and :to
+      group by d.completedDate
+      """)
+  List<ChallengeDailyCountProjection> countDiariesByDateForChallenge(
+      @Param("challengeId") Long challengeId,
+      @Param("from") LocalDate from,
+      @Param("to") LocalDate to);
+
+  /** 챌린지 일지 리스트(참여자/호스트용): 특정 날짜(completedDate)로 필터. */
+  Page<Diary> findAllByChallengeIdAndCompletedDateAndIsDeletedFalse(
+      Long challengeId, LocalDate completedDate, Pageable pageable);
+
+  /** 챌린지 일지 리스트(비참여자용): 특정 날짜(completedDate) + 공개 일지만. */
+  Page<Diary> findByChallengeIdAndIsPublicAndCompletedDateAndIsDeletedFalse(
+      Long challengeId, Boolean isPublic, LocalDate completedDate, Pageable pageable);
+
   @Query(
       """
       select c.diary.id, count(c)
@@ -53,6 +86,24 @@ public interface DiaryRepository extends JpaRepository<Diary, Long> {
 
   boolean existsByChallengeIdAndMemberIdAndCompletedDateAndIsDeletedFalse(
       Long challengeId, Long memberId, LocalDate completedDate);
+
+  /**
+   * 홈 '오늘의 기록'용: 주어진 챌린지들 중 회원이 오늘(completedDate) 일지를 작성한 챌린지 id 목록. 챌린지별 exists 반복(N+1) 대신 IN 절 한
+   * 번으로 처리한다. idx_diary_member_completed_date(member_id, completed_date) 로 커버.
+   */
+  @Query(
+      """
+      select distinct d.challenge.id
+      from Diary d
+      where d.member.id = :memberId
+        and d.challenge.id in :challengeIds
+        and d.completedDate = :date
+        and d.isDeleted = false
+      """)
+  List<Long> findChallengeIdsWithDiaryOnDate(
+      @Param("memberId") Long memberId,
+      @Param("challengeIds") Collection<Long> challengeIds,
+      @Param("date") LocalDate date);
 
   @Query(
       """
