@@ -30,6 +30,9 @@ public class OfficialChallengeEditRequest {
   @Schema(description = "중도 참여 허용 여부", example = "true")
   private Optional<Boolean> allowMidJoin;
 
+  @Schema(description = "인증샷(사진) 필수 여부. true면 일지 작성 시 이미지 1장 이상 필수.", example = "false")
+  private Optional<Boolean> photoRequired;
+
   @Schema(description = "챌린지 목표 목록", example = "[\"알고리즘 1문제 풀기\", \"책 10페이지 읽기\"]")
   private Optional<List<String>> goals;
 

@@ -68,6 +68,9 @@ public class OfficialChallengeService {
             .description(request.getDescription())
             .hostMember(member)
             .allowMidJoin(request.getAllowMidJoin() != null && request.getAllowMidJoin())
+            .photoRequired(Boolean.TRUE.equals(request.getPhotoRequired()))
+            // 공식 챌린지는 항상 종료 후 유예 기간(종료일+2일, KST) 내 작성을 허용한다.
+            .postEndWriteAllowed(true)
             .participationType(ParticipationType.GROUP)
             .challengeType(ChallengeType.OFFICIAL)
             .visibleFrom(request.getVisibleFrom())
@@ -179,6 +182,9 @@ public class OfficialChallengeService {
     }
     if (request.getAllowMidJoin() != null) {
       challenge.updateAllowMidJoin(request.getAllowMidJoin().orElse(false));
+    }
+    if (request.getPhotoRequired() != null) {
+      challenge.updatePhotoRequired(request.getPhotoRequired().orElse(false));
     }
     // 예약 노출 시각: 필드 생략=변경 없음, null=예약 해제(즉시 노출), 값=예약 설정/변경.
     if (request.getVisibleFrom() != null) {
