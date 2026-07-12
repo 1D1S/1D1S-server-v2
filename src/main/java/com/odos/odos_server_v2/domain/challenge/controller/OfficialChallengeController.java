@@ -31,7 +31,7 @@ public class OfficialChallengeController {
           새로운 공식 챌린지를 생성한다.
 
           - 공식 챌린지는 언제나 단체 챌린지이며 인원수 제한이 없다.
-          - 챌린지 카테고리는 다음에서 선택한다. DEV/EXERCISE/BOOK/MUSIC/STUDY/LEISURE/ECONOMY
+          - 챌린지 카테고리는 다음에서 선택한다. DEV/EXERCISE/BOOK/DIET/HEALTH/HOBBY/LANGUAGE/SELF_DEV/ETC
           - 챌린지 목표는 다음에서 선택한다. FIXED(고정형)/FLEXIBLE(유연형)
           """)
   @ApiResponses({

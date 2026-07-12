@@ -1267,7 +1267,7 @@ public class DiaryController {
                                                     "challenge": {
                                                       "challengeId": 3,
                                                       "title": "30일 독서 챌린지",
-                                                      "category": "STUDY",
+                                                      "category": "SELF_DEV",
                                                       "startDate": "2026-04-01",
                                                       "endDate": "2026-04-30",
                                                       "maxParticipantCnt": 20,
@@ -1369,7 +1369,7 @@ public class DiaryController {
                                                                     "challenge": {
                                                                       "challengeId": 3,
                                                                       "title": "30일 독서 챌린지",
-                                                                      "category": "STUDY",
+                                                                      "category": "SELF_DEV",
                                                                       "startDate": "2026-04-01",
                                                                       "endDate": "2026-04-30",
                                                                       "maxParticipantCnt": 20,
@@ -1474,7 +1474,7 @@ public class DiaryController {
                                                                     "challenge": {
                                                                       "challengeId": 3,
                                                                       "title": "30일 독서 챌린지",
-                                                                      "category": "STUDY",
+                                                                      "category": "SELF_DEV",
                                                                       "startDate": "2026-04-01",
                                                                       "endDate": "2026-04-30",
                                                                       "maxParticipantCnt": 20,
@@ -1579,7 +1579,7 @@ public class DiaryController {
                                                                                     "challenge": {
                                                                                       "challengeId": 3,
                                                                                       "title": "30일 독서 챌린지",
-                                                                                      "category": "STUDY",
+                                                                                      "category": "SELF_DEV",
                                                                                       "startDate": "2026-04-01",
                                                                                       "endDate": "2026-04-30",
                                                                                       "maxParticipantCnt": 20,
