@@ -1,6 +1,7 @@
 package com.odos.odos_server_v2.domain.member;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.odos.odos_server_v2.domain.member.dto.MyPageDto;
@@ -23,6 +24,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.PostgreSQLContainer;
@@ -126,6 +128,31 @@ class MemberPhoneNumberPostgresTest {
     // 타인 조회: 값이 없으면(getOtherMyPage 는 세팅하지 않음) 키 자체가 직렬화되지 않는다.
     MyPageDto other = MyPageDto.builder().nickname("other").build();
     assertThat(mapper.writeValueAsString(other)).doesNotContain("phoneNumber");
+  }
+
+  @Test
+  void enforcesUniquePhoneNumber_andAllowsMultipleNulls() {
+    // NULL 다중 허용: 전화번호 없는 회원 여럿 저장 가능(Postgres 는 NULL 을 distinct 취급).
+    memberRepository.save(Member.builder().email("null1@t.com").build());
+    memberRepository.save(Member.builder().email("null2@t.com").build());
+    em.flush();
+
+    // 하이픈 포함 입력이 숫자만으로 정규화되어 저장되고, 정규화된 값으로 존재 조회가 가능하다.
+    Member a = memberRepository.save(Member.builder().email("a@t.com").build());
+    a.updatePhoneNumber("010-1111-2222");
+    em.flush();
+    em.clear();
+    assertThat(memberRepository.existsByPhoneNumber("01011112222")).isTrue();
+    // 본인 제외 조회: 본인 번호는 중복으로 보지 않는다.
+    assertThat(memberRepository.existsByPhoneNumberAndIdNot("01011112222", a.getId())).isFalse();
+    assertThat(memberRepository.existsByPhoneNumberAndIdNot("01011112222", a.getId() + 999))
+        .isTrue();
+
+    // DB 유니크 최종 방어선: 다른 회원이 동일 번호로 저장하면 무결성 위반 예외(Spring 변환).
+    Member b = memberRepository.save(Member.builder().email("b@t.com").build());
+    b.updatePhoneNumber("01011112222");
+    assertThatThrownBy(() -> memberRepository.saveAndFlush(b))
+        .isInstanceOf(DataIntegrityViolationException.class);
   }
 
   private static SignupInfoRequest signup(String phone) {

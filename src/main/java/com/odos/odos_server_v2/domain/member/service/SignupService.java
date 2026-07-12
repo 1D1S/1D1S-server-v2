@@ -40,6 +40,11 @@ public class SignupService {
       throw new CustomException(ErrorCode.NICKNAME_ALREADY_EXISTS);
     }
 
+    String normalizedPhone = Member.normalizePhoneNumber(request.getPhoneNumber());
+    if (memberRepository.existsByPhoneNumber(normalizedPhone)) {
+      throw new CustomException(ErrorCode.PHONE_NUMBER_ALREADY_EXISTS);
+    }
+
     // profile url 부분 코드 수정
 
     member.completeProfile(
