@@ -2,6 +2,7 @@ package com.odos.odos_server_v2.exception;
 
 import com.odos.odos_server_v2.response.ErrorResponse;
 import io.swagger.v3.oas.annotations.Hidden;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -40,9 +41,21 @@ public class GlobalExceptionHandler {
         .body(new ErrorResponse("400", "필수 요청 파라미터 '" + ex.getParameterName() + "' 가 누락되었습니다."));
   }
 
+  // 예상치 못한 500은 스택트레이스만으론 어떤 요청에서 터졌는지 알 수 없어 진단이 어렵다.
+  // 요청 메서드/URI 와 예외 클래스명을 함께 남겨 로그 grep 만으로 엔드포인트·예외 유형을 특정한다.
+  // (응답 바디에는 내부 예외 정보를 노출하지 않는다.)
   @ExceptionHandler(Exception.class)
-  public ResponseEntity<ErrorResponse> handleUnexpectedException(Exception ex) {
-    log.error("Unexpected Exception 발생", ex);
+  public ResponseEntity<ErrorResponse> handleUnexpectedException(
+      Exception ex, HttpServletRequest request) {
+    String query = request.getQueryString();
+    log.error(
+        "Unexpected Exception 발생 [{} {}{}] {}: {}",
+        request.getMethod(),
+        request.getRequestURI(),
+        query == null ? "" : "?" + query,
+        ex.getClass().getName(),
+        ex.getMessage(),
+        ex);
     return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
         .body(new ErrorResponse("500", "Internal Server Error"));
   }
