@@ -304,7 +304,7 @@ public class ChallengeService {
         participationRate, completedGoalCount, buildChallengeDiaryTrend(challenge));
   }
 
-  // 무기한(endDate==null) 챌린지 일지 추이의 최대 조회 구간(일). 오래된 무기한 챌린지에서 startDate~오늘 전 구간을
+  // 무기한 챌린지 일지 추이의 최대 조회 구간(일). 오래된 무기한 챌린지에서 startDate~오늘 전 구간을
   // 일 단위로 순회하면 포인트 수·JSON 크기가 무한정 커져(오늘-시작일) 응답 지연/과부하로 이어진다. 최근 N일로 상한.
   private static final int UNLIMITED_TREND_MAX_DAYS = 90;
 
@@ -316,12 +316,20 @@ public class ChallengeService {
     if (from == null) {
       return List.of();
     }
-    LocalDate to = challenge.getEndDate() != null ? challenge.getEndDate() : LocalDate.now();
+    // 무기한 판정: endDate 미설정(null)뿐 아니라, 클라이언트가 무기한을 endDate=9999-12-31 센티널로 저장하기 때문에
+    // "endDate 가 오늘보다 미래" 인 경우도 아직 열려있는(무기한) 챌린지로 본다.
+    // (endDate==null 만 무기한으로 보면 센티널(9999)에서 상한이 걸리지 않아 아래 일 단위 순회가 startDate~9999
+    //  = 수백만 포인트로 폭주 → OOM/응답지연으로 통계 500 이 난다.)
+    LocalDate today = LocalDate.now();
+    LocalDate endDate = challenge.getEndDate();
+    boolean unlimited = endDate == null || endDate.isAfter(today);
+    // 미래 일지는 존재하지 않으므로 추이 상한(to)은 오늘을 넘지 않는다(무기한/미래 endDate의 폭주 방지).
+    LocalDate to = unlimited ? today : endDate;
     if (to.isBefore(from)) {
       return List.of();
     }
     // 무기한: startDate 가 아주 오래됐어도 최근 N일 창으로 제한한다.
-    if (challenge.getEndDate() == null) {
+    if (unlimited) {
       LocalDate windowStart = to.minusDays(UNLIMITED_TREND_MAX_DAYS - 1L);
       if (windowStart.isAfter(from)) {
         from = windowStart;

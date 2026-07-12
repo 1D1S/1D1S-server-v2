@@ -160,6 +160,37 @@ class ChallengeStatisticsServicePostgresTest {
     assertThat(res.diaryTrend().get(res.diaryTrend().size() - 1).date()).isEqualTo(today);
   }
 
+  /**
+   * 실데이터 무기한: 클라이언트는 무기한을 endDate=null 이 아니라 9999-12-31 센티널로 보낸다. endDate==null 만 무기한으로 보면 트렌드가
+   * startDate~9999년까지 수백만 포인트로 폭주(500/OOM). 센티널도 무기한으로 취급해 90일 창으로 제한돼야 한다(회귀).
+   */
+  @Test
+  void statistics_onSentinelEndDateUnlimitedChallenge_trendIsCappedToRecentWindow() {
+    LocalDate today = LocalDate.now();
+    Member host = memberRepository.save(Member.builder().email("sentinel@t.com").build());
+    Challenge ch =
+        challengeRepository.save(
+            Challenge.builder()
+                .title("무기한(센티널 9999-12-31)")
+                .hostMember(host)
+                .startDate(today.minusDays(200))
+                .endDate(LocalDate.of(9999, 12, 31)) // 클라이언트 무기한 센티널
+                .challengeType(ChallengeType.PUBLIC)
+                .goalType(GoalType.FIXED)
+                .participationType(ParticipationType.GROUP)
+                .maxParticipantsCnt(10L)
+                .build());
+    participantRepository.save(
+        Participant.builder().member(host).challenge(ch).status(ParticipantStatus.HOST).build());
+
+    ChallengeStatisticsResponse res = service.getChallengeStatistics(ch.getId(), host.getId());
+
+    assertThat(res.diaryTrend()).hasSize(90);
+    assertThat(res.diaryTrend().get(0).date()).isEqualTo(today.minusDays(89));
+    assertThat(res.diaryTrend().get(res.diaryTrend().size() - 1).date()).isEqualTo(today);
+    assertThat(res.participationRate()).isGreaterThanOrEqualTo(0.0);
+  }
+
   /** 시작 전(startDate 미래) 챌린지: participationRate -1, diaryTrend 빈 배열, NPE 없음. */
   @Test
   void statistics_onUpcomingUnlimitedChallenge_doesNotThrow() {
