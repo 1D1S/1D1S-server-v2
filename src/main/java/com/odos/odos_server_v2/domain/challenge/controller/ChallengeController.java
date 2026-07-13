@@ -414,7 +414,7 @@ public class ChallengeController {
   @GetMapping("/{challengeId}")
   public ApiResponse<ChallengeResponse> getChallenge(
       @Parameter(description = "챌린지 ID") @PathVariable Long challengeId) {
-    Long memberId = CurrentUserContext.getCurrentMemberId();
+    Long memberId = CurrentUserContext.getCurrentMemberIdOrNull();
     return ApiResponse.success(
         Message.GET_CHALLENGE, challengeService.getChallenge(challengeId, memberId));
   }
@@ -426,7 +426,7 @@ public class ChallengeController {
   @GetMapping("/{challengeId}/statistics")
   public ApiResponse<ChallengeStatisticsResponse> getChallengeStatistics(
       @Parameter(description = "챌린지 ID") @PathVariable Long challengeId) {
-    Long memberId = CurrentUserContext.getCurrentMemberId();
+    Long memberId = CurrentUserContext.getCurrentMemberIdOrNull();
     return ApiResponse.success(
         Message.GET_CHALLENGE_STATISTICS,
         challengeService.getChallengeStatistics(challengeId, memberId));
