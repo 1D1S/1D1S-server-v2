@@ -7,6 +7,7 @@ import com.odos.odos_server_v2.domain.member.entity.Enum.MemberRole;
 import com.odos.odos_server_v2.domain.member.entity.Enum.SignupRoute;
 import com.odos.odos_server_v2.domain.member.entity.Member;
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import lombok.Builder;
@@ -40,6 +41,9 @@ public class AdminMemberResponseDto {
   @Schema(description = "직업 상태 (STUDENT, WORKER)", example = "STUDENT")
   private Job job;
 
+  @Schema(description = "생년월일(어드민 전용). 미입력 회원은 null", example = "1998-03-21")
+  private LocalDate birth;
+
   @Schema(description = "성별 (MALE, FEMALE, ETC)", example = "MALE")
   private Gender gender;
 
@@ -67,6 +71,7 @@ public class AdminMemberResponseDto {
       SignupRoute signupRoute,
       LocalDateTime createdAt,
       Job job,
+      LocalDate birth,
       Gender gender,
       Boolean isAdmin,
       List<String> interestCategories,
@@ -80,6 +85,7 @@ public class AdminMemberResponseDto {
     this.signupRoute = signupRoute;
     this.createdAt = createdAt;
     this.job = job;
+    this.birth = birth;
     this.gender = gender;
     this.isAdmin = isAdmin;
     this.interestCategories = interestCategories;
@@ -114,6 +120,7 @@ public class AdminMemberResponseDto {
         .signupRoute(member.getSignupRoute())
         .createdAt(member.getCreatedAt())
         .job(member.getJob())
+        .birth(member.getBirth())
         .gender(member.getGender())
         .isAdmin(isAdmin)
         .interestCategories(interests)
