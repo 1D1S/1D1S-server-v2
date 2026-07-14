@@ -4,6 +4,7 @@ import com.odos.odos_server_v2.domain.diary.dto.DiaryDeleteAdminRequest;
 import com.odos.odos_server_v2.domain.diary.dto.DiaryDeleteAdminResponse;
 import com.odos.odos_server_v2.domain.diary.dto.DiaryResponse;
 import com.odos.odos_server_v2.domain.diary.service.AdminDiaryService;
+import com.odos.odos_server_v2.domain.shared.dto.LikeMemberResponse;
 import com.odos.odos_server_v2.domain.shared.dto.OffsetPagination;
 import com.odos.odos_server_v2.response.ApiResponse;
 import com.odos.odos_server_v2.response.ErrorResponse;
@@ -358,6 +359,65 @@ public class AdminDiaryController {
   public ApiResponse<DiaryResponse> getDiary(@PathVariable(name = "id") Long diaryId) {
     DiaryResponse result = diaryService.getDiaryByAdmin(diaryId);
     return ApiResponse.success(Message.DIARY_GET_SUCCESS, result);
+  }
+
+  @Operation(
+      summary = "관리자 일지 좋아요 회원 목록 조회",
+      description = "해당 일지에 좋아요를 누른 회원 목록을 회원 ID 순으로 조회합니다.")
+  @io.swagger.v3.oas.annotations.responses.ApiResponses({
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "200",
+        description = "좋아요 회원 목록 조회 성공",
+        content =
+            @Content(
+                mediaType = "application/json",
+                examples =
+                    @ExampleObject(
+                        value =
+                            """
+                            {
+                              "message": "다이어리 좋아요 회원 목록 조회 성공했습니다.",
+                              "data": {
+                                "items": [
+                                  { "memberId": 1, "nickname": "노아", "profileImage": "https://odos-pic" },
+                                  { "memberId": 2, "nickname": "주나", "profileImage": null }
+                                ],
+                                "pageInfo": {
+                                  "page": 0,
+                                  "size": 20,
+                                  "totalElements": 2,
+                                  "totalPages": 1,
+                                  "hasNextPage": false
+                                }
+                              }
+                            }
+                            """))),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "403",
+        description = "요청자가 관리자가 아님",
+        content =
+            @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class))),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "404",
+        description = "존재하지 않는 일지",
+        content =
+            @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class),
+                examples =
+                    @ExampleObject(
+                        value = "{ \"code\": \"DIARY-002\", \"message\": \"존재하지 않는 다이어리입니다.\" }")))
+  })
+  @GetMapping("/{id}/likes")
+  public ApiResponse<OffsetPagination<LikeMemberResponse>> getDiaryLikers(
+      @PathVariable(name = "id") Long diaryId,
+      @RequestParam(defaultValue = "0") int page,
+      @RequestParam(defaultValue = "20") int size) {
+    OffsetPagination<LikeMemberResponse> result =
+        diaryService.getDiaryLikersByAdmin(diaryId, PageRequest.of(page, size));
+    return ApiResponse.success(Message.DIARY_LIKE_MEMBERS_GET_SUCCESS, result);
   }
 
   @Operation(summary = "관리자 일지 삭제", description = "관리자가 부적절한 일지를 삭제 사유와 함께 삭제 처리합니다.")
