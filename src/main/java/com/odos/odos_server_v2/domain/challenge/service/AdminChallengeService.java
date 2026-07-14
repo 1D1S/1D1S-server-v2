@@ -4,12 +4,14 @@ import com.odos.odos_server_v2.domain.challenge.dto.ChallengeDeleteAdminRequest;
 import com.odos.odos_server_v2.domain.challenge.dto.ChallengeDeleteAdminResponse;
 import com.odos.odos_server_v2.domain.challenge.dto.ChallengeSummaryResponse;
 import com.odos.odos_server_v2.domain.challenge.entity.Challenge;
+import com.odos.odos_server_v2.domain.challenge.repository.ChallengeLikeRepository;
 import com.odos.odos_server_v2.domain.challenge.repository.ChallengeRepository;
 import com.odos.odos_server_v2.domain.member.CurrentUserContext;
 import com.odos.odos_server_v2.domain.member.entity.Enum.MemberRole;
 import com.odos.odos_server_v2.domain.member.entity.Member;
 import com.odos.odos_server_v2.domain.member.repository.MemberRepository;
 import com.odos.odos_server_v2.domain.shared.Enum.Category;
+import com.odos.odos_server_v2.domain.shared.dto.LikeMemberResponse;
 import com.odos.odos_server_v2.domain.shared.dto.OffsetPagination;
 import com.odos.odos_server_v2.exception.CustomException;
 import com.odos.odos_server_v2.exception.ErrorCode;
@@ -27,6 +29,7 @@ import org.springframework.stereotype.Service;
 public class AdminChallengeService {
 
   private final ChallengeRepository challengeRepository;
+  private final ChallengeLikeRepository challengeLikeRepository;
   private final MemberRepository memberRepository;
   private final ChallengeService challengeService;
 
@@ -69,6 +72,20 @@ public class AdminChallengeService {
     Page<ChallengeSummaryResponse> result =
         challenges.map(c -> challengeService.toChallengeSummary(c, admin.getId()));
     return OffsetPagination.from(result);
+  }
+
+  @Transactional
+  public OffsetPagination<LikeMemberResponse> getChallengeLikersByAdmin(
+      Long challengeId, Pageable pageable) {
+    requireAdmin();
+    if (!challengeRepository.existsById(challengeId)) {
+      throw new CustomException(ErrorCode.CHALLENGE_NOT_FOUND);
+    }
+    Page<LikeMemberResponse> likers =
+        challengeLikeRepository
+            .findLikerMembers(challengeId, pageable)
+            .map(LikeMemberResponse::from);
+    return OffsetPagination.from(likers);
   }
 
   @Transactional

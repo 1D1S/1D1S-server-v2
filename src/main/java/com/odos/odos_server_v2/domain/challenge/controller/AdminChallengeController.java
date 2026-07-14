@@ -5,6 +5,7 @@ import com.odos.odos_server_v2.domain.challenge.dto.ChallengeDeleteAdminResponse
 import com.odos.odos_server_v2.domain.challenge.dto.ChallengeSummaryResponse;
 import com.odos.odos_server_v2.domain.challenge.service.AdminChallengeService;
 import com.odos.odos_server_v2.domain.shared.Enum.Category;
+import com.odos.odos_server_v2.domain.shared.dto.LikeMemberResponse;
 import com.odos.odos_server_v2.domain.shared.dto.OffsetPagination;
 import com.odos.odos_server_v2.response.ApiResponse;
 import com.odos.odos_server_v2.response.ErrorResponse;
@@ -235,5 +236,65 @@ public class AdminChallengeController {
     ChallengeDeleteAdminResponse result =
         adminChallengeService.deleteChallenge(challengeId, request);
     return ApiResponse.success(Message.ADMIN_CHALLENGE_DELETE_SUCCESS, result);
+  }
+
+  @Operation(
+      summary = "관리자 챌린지 좋아요 회원 목록 조회",
+      description = "해당 챌린지에 좋아요를 누른 회원 목록을 회원 ID 순으로 조회합니다.")
+  @io.swagger.v3.oas.annotations.responses.ApiResponses({
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "200",
+        description = "좋아요 회원 목록 조회 성공",
+        content =
+            @Content(
+                mediaType = "application/json",
+                examples =
+                    @ExampleObject(
+                        value =
+                            """
+                            {
+                              "message": "챌린지 좋아요 회원 목록 조회 성공했습니다.",
+                              "data": {
+                                "items": [
+                                  { "memberId": 1, "nickname": "노아", "profileImage": "https://odos-pic" },
+                                  { "memberId": 2, "nickname": "주나", "profileImage": null }
+                                ],
+                                "pageInfo": {
+                                  "page": 0,
+                                  "size": 20,
+                                  "totalElements": 2,
+                                  "totalPages": 1,
+                                  "hasNextPage": false
+                                }
+                              }
+                            }
+                            """))),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "403",
+        description = "요청자가 관리자가 아님",
+        content =
+            @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class))),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "404",
+        description = "존재하지 않는 챌린지",
+        content =
+            @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class),
+                examples =
+                    @ExampleObject(
+                        value =
+                            "{ \"code\": \"CHALLENGE_001\", \"message\": \"챌린지를 찾을 수 없습니다.\" }")))
+  })
+  @GetMapping("/{challengeId}/likes")
+  public ApiResponse<OffsetPagination<LikeMemberResponse>> getChallengeLikers(
+      @Parameter(description = "챌린지 ID", example = "1") @PathVariable Long challengeId,
+      @RequestParam(defaultValue = "0") int page,
+      @RequestParam(defaultValue = "20") int size) {
+    OffsetPagination<LikeMemberResponse> result =
+        adminChallengeService.getChallengeLikersByAdmin(challengeId, PageRequest.of(page, size));
+    return ApiResponse.success(Message.CHALLENGE_LIKE_MEMBERS_GET_SUCCESS, result);
   }
 }
