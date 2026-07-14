@@ -7,11 +7,13 @@ import com.odos.odos_server_v2.domain.diary.dto.DiaryDeleteAdminRequest;
 import com.odos.odos_server_v2.domain.diary.dto.DiaryDeleteAdminResponse;
 import com.odos.odos_server_v2.domain.diary.dto.DiaryResponse;
 import com.odos.odos_server_v2.domain.diary.entity.Diary;
+import com.odos.odos_server_v2.domain.diary.repository.DiaryLikeRepository;
 import com.odos.odos_server_v2.domain.diary.repository.DiaryRepository;
 import com.odos.odos_server_v2.domain.member.CurrentUserContext;
 import com.odos.odos_server_v2.domain.member.entity.Enum.MemberRole;
 import com.odos.odos_server_v2.domain.member.entity.Member;
 import com.odos.odos_server_v2.domain.member.repository.MemberRepository;
+import com.odos.odos_server_v2.domain.shared.dto.LikeMemberResponse;
 import com.odos.odos_server_v2.domain.shared.dto.OffsetPagination;
 import com.odos.odos_server_v2.domain.shared.service.ImageService;
 import com.odos.odos_server_v2.exception.CustomException;
@@ -33,6 +35,7 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class AdminDiaryService {
   private final DiaryRepository diaryRepository;
+  private final DiaryLikeRepository diaryLikeRepository;
   private final MemberRepository memberRepository;
   private final ChallengeService challengeService;
   private final ImageService imageService;
@@ -59,6 +62,18 @@ public class AdminDiaryService {
             .orElseThrow(() -> new CustomException(ErrorCode.DIARY_NOT_FOUND));
 
     return toDiaryResponse(admin, diary, commentRepository.countByDiaryId(diary.getId()));
+  }
+
+  @Transactional
+  public OffsetPagination<LikeMemberResponse> getDiaryLikersByAdmin(
+      Long diaryId, Pageable pageable) {
+    requireAdmin();
+    if (!diaryRepository.existsById(diaryId)) {
+      throw new CustomException(ErrorCode.DIARY_NOT_FOUND);
+    }
+    Page<LikeMemberResponse> likers =
+        diaryLikeRepository.findLikerMembers(diaryId, pageable).map(LikeMemberResponse::from);
+    return OffsetPagination.from(likers);
   }
 
   @Transactional
