@@ -95,9 +95,9 @@ public class SecurityConfig {
                     .successHandler(oAuth2LoginSuccessHandler)
                     .failureHandler(oAuth2LoginFailureHandler))
         .addFilterBefore(loggingFilter, CorsFilter.class)
-        .addFilterBefore(cookieMutationOriginFilter, JwtAuthenticationFilter.class)
         .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-        .addFilterBefore(new JwtTokenExceptionFilter(), JwtAuthenticationFilter.class);
+        .addFilterBefore(cookieMutationOriginFilter, JwtAuthenticationFilter.class)
+        .addFilterBefore(new JwtTokenExceptionFilter(), CookieMutationOriginFilter.class);
 
     return http.build();
   }
