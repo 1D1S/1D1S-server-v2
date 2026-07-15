@@ -1,5 +1,6 @@
 package com.odos.odos_server_v2.domain.security.jwt;
 
+import com.odos.odos_server_v2.exception.CustomException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -17,6 +18,9 @@ public class JwtTokenExceptionFilter extends OncePerRequestFilter {
 
     try {
       filterChain.doFilter(request, response);
+    } catch (CustomException e) {
+      log.warn("JWT rejected: {}", e.getErrorCode().getCode());
+      setErrorResponse(response, e.getErrorCode().getStatus().value(), e.getErrorCode().getCode());
     } catch (io.jsonwebtoken.ExpiredJwtException e) {
       log.warn("token expired : {}", e.getMessage());
       setErrorResponse(response, HttpServletResponse.SC_UNAUTHORIZED, "ACCESS_TOKEN_EXPIRED");

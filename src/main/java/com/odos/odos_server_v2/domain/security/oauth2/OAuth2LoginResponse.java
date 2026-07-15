@@ -11,4 +11,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class OAuth2LoginResponse {
   private boolean isProfileComplete;
+  private String nativeLoginCode;
+  private Long nativeLoginCodeExpiresInSeconds;
 }

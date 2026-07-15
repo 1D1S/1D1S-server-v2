@@ -40,7 +40,9 @@ class RefreshTokenServiceTest {
     LocalDateTime newExpiresAt = LocalDateTime.now().plusDays(14);
     RefreshToken oldToken =
         RefreshToken.active(member, "old-token", LocalDateTime.now().plusDays(7), "family-A");
-    when(refreshTokenRepository.findByRefreshToken("old-token")).thenReturn(Optional.of(oldToken));
+    when(refreshTokenRepository.findByFingerprintOrLegacyTokenForUpdate(
+            RefreshTokenFingerprint.of("old-token"), "old-token"))
+        .thenReturn(Optional.of(oldToken));
 
     refreshTokenService.rotate(member, "old-token", "new-token", newExpiresAt);
 
@@ -51,14 +53,19 @@ class RefreshTokenServiceTest {
   }
 
   @Test
-  void rotate_startsNewFamilyForLegacyTokenNotInDb() {
+  void rotate_rejectsTokenNotStoredInDatabase() {
     LocalDateTime newExpiresAt = LocalDateTime.now().plusDays(14);
-    when(refreshTokenRepository.findByRefreshToken("legacy-token")).thenReturn(Optional.empty());
+    when(refreshTokenRepository.findByFingerprintOrLegacyTokenForUpdate(
+            RefreshTokenFingerprint.of("legacy-token"), "legacy-token"))
+        .thenReturn(Optional.empty());
 
-    refreshTokenService.rotate(member, "legacy-token", "new-token", newExpiresAt);
+    CustomException exception =
+        assertThrows(
+            CustomException.class,
+            () -> refreshTokenService.rotate(member, "legacy-token", "new-token", newExpiresAt));
 
-    verify(refreshTokenRepository).save(tokenCaptor.capture());
-    assertTrue(tokenCaptor.getValue().getFamilyId() != null); // 새 family 부여
+    assertEquals(ErrorCode.REFRESH_TOKEN_NOT_FOUND, exception.getErrorCode());
+    verify(refreshTokenRepository, never()).save(any(RefreshToken.class));
     verify(refreshTokenRepository, never()).revokeAllActiveByFamily(any(), any());
   }
 
@@ -67,7 +74,8 @@ class RefreshTokenServiceTest {
     RefreshToken revokedToken =
         RefreshToken.active(member, "reused-token", LocalDateTime.now().plusDays(7), "family-A");
     revokedToken.revoke();
-    when(refreshTokenRepository.findByRefreshToken("reused-token"))
+    when(refreshTokenRepository.findByFingerprintOrLegacyTokenForUpdate(
+            RefreshTokenFingerprint.of("reused-token"), "reused-token"))
         .thenReturn(Optional.of(revokedToken));
 
     CustomException exception =
@@ -90,7 +98,8 @@ class RefreshTokenServiceTest {
     RefreshToken othersToken =
         RefreshToken.active(
             otherOwner, "others-token", LocalDateTime.now().plusDays(7), "family-B");
-    when(refreshTokenRepository.findByRefreshToken("others-token"))
+    when(refreshTokenRepository.findByFingerprintOrLegacyTokenForUpdate(
+            RefreshTokenFingerprint.of("others-token"), "others-token"))
         .thenReturn(Optional.of(othersToken));
 
     CustomException exception =
@@ -109,7 +118,8 @@ class RefreshTokenServiceTest {
     RefreshToken expiredToken =
         RefreshToken.active(
             member, "expired-token", LocalDateTime.now().minusMinutes(1), "family-A");
-    when(refreshTokenRepository.findByRefreshToken("expired-token"))
+    when(refreshTokenRepository.findByFingerprintOrLegacyTokenForUpdate(
+            RefreshTokenFingerprint.of("expired-token"), "expired-token"))
         .thenReturn(Optional.of(expiredToken));
 
     CustomException exception =

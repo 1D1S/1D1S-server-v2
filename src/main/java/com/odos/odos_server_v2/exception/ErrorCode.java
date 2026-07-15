@@ -21,6 +21,15 @@ public enum ErrorCode {
   INVALID_OAUTH_EMAIL(HttpStatus.BAD_REQUEST, "AUTH-011", "소셜 로그인에서 이메일을 가져올 수 없습니다."),
   REFRESH_TOKEN_REUSE_DETECTED(
       HttpStatus.UNAUTHORIZED, "AUTH-012", "재사용된 RefreshToken이 감지되어 세션이 무효화되었습니다."),
+  OAUTH_PROVIDER_TOKEN_INVALID(
+      HttpStatus.UNAUTHORIZED, "AUTH-013", "소셜 provider 토큰이 유효하지 않아 사용자 정보를 가져올 수 없습니다."),
+  NATIVE_SESSION_CODE_INVALID(HttpStatus.UNAUTHORIZED, "AUTH-014", "앱 로그인 세션 코드가 유효하지 않습니다."),
+  NATIVE_SESSION_CODE_EXPIRED(HttpStatus.UNAUTHORIZED, "AUTH-015", "앱 로그인 세션 코드가 만료되었습니다."),
+  NATIVE_PROVIDER_CREDENTIAL_INVALID(
+      HttpStatus.UNAUTHORIZED, "AUTH-016", "소셜 로그인 credential이 유효하지 않습니다."),
+  NATIVE_PROVIDER_CLAIM_MISMATCH(
+      HttpStatus.UNAUTHORIZED, "AUTH-017", "소셜 로그인 credential의 audience 또는 nonce가 일치하지 않습니다."),
+  NATIVE_PKCE_VERIFICATION_FAILED(HttpStatus.UNAUTHORIZED, "AUTH-018", "앱 로그인 PKCE 검증에 실패했습니다."),
 
   // member
   CATEGORY_EMPTY(HttpStatus.BAD_REQUEST, "USER-001", "관심 카테고리는 최소 1개 이상 선택해야 합니다."),

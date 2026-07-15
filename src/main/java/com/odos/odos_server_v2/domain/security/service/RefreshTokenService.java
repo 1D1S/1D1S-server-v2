@@ -2,6 +2,7 @@ package com.odos.odos_server_v2.domain.security.service;
 
 import com.odos.odos_server_v2.domain.member.entity.Member;
 import com.odos.odos_server_v2.domain.security.entity.RefreshToken;
+import com.odos.odos_server_v2.domain.security.entity.SessionType;
 import com.odos.odos_server_v2.domain.security.repository.RefreshTokenRepository;
 import com.odos.odos_server_v2.exception.CustomException;
 import com.odos.odos_server_v2.exception.ErrorCode;
@@ -18,30 +19,49 @@ public class RefreshTokenService {
 
   @Transactional
   public void saveActiveToken(Member member, String refreshToken, LocalDateTime expiresAt) {
-    if (refreshTokenRepository.findByRefreshToken(refreshToken).isPresent()) {
+    saveActiveToken(member, refreshToken, expiresAt, newFamilyId(), SessionType.WEBVIEW);
+  }
+
+  @Transactional
+  public void saveActiveToken(
+      Member member,
+      String refreshToken,
+      LocalDateTime expiresAt,
+      String familyId,
+      SessionType sessionType) {
+    String fingerprint = RefreshTokenFingerprint.of(refreshToken);
+    if (refreshTokenRepository
+        .findByFingerprintOrLegacyToken(fingerprint, refreshToken)
+        .isPresent()) {
       return;
     }
 
-    // 로그인 1회 = 새 세션 → 새 family_id 를 부여한다.
     refreshTokenRepository.save(
-        RefreshToken.active(member, refreshToken, expiresAt, newFamilyId()));
+        RefreshToken.active(member, fingerprint, expiresAt, familyId, sessionType));
   }
 
   /**
    * RefreshToken Rotation. 제시된 이전 토큰을 검증·폐기하고 같은 family 로 새 토큰을 활성 상태로 저장한다.
    *
    * <p>이미 revoke된 토큰이 다시 제시되면 유출로 간주(재사용 감지)하여 그 토큰이 속한 family(세션)의 활성 토큰만 무효화하고 예외를 던진다. 다른 기기(다른
-   * family)의 세션은 영향받지 않는다. DB에 없는 레거시 토큰은 서명이 유효한 것으로 보고 새 family 로 신규 토큰만 저장한다.
+   * family)의 세션은 영향받지 않는다. DB에 존재하지 않는 토큰은 서명이 유효하더라도 재발급에 사용할 수 없다.
    */
   @Transactional
   public void rotate(Member member, String oldToken, String newToken, LocalDateTime newExpiresAt) {
-    String familyId =
+    String oldFingerprint = RefreshTokenFingerprint.of(oldToken);
+    RefreshToken storedToken =
         refreshTokenRepository
-            .findByRefreshTokenForUpdate(oldToken)
-            .map(token -> rotateExistingToken(token, member.getId()))
-            .orElseGet(this::newFamilyId);
+            .findByFingerprintOrLegacyTokenForUpdate(oldFingerprint, oldToken)
+            .orElseThrow(() -> new CustomException(ErrorCode.REFRESH_TOKEN_NOT_FOUND));
+    String familyId = rotateExistingToken(storedToken, member.getId());
 
-    refreshTokenRepository.save(RefreshToken.active(member, newToken, newExpiresAt, familyId));
+    refreshTokenRepository.save(
+        RefreshToken.active(
+            member,
+            RefreshTokenFingerprint.of(newToken),
+            newExpiresAt,
+            familyId,
+            storedToken.getSessionType()));
   }
 
   /** 검증을 통과하면 이전 토큰을 폐기하고, 새 토큰이 상속할 family_id 를 반환한다. */
@@ -70,6 +90,22 @@ public class RefreshTokenService {
 
   @Transactional
   public void revokeCurrentToken(String refreshToken) {
-    refreshTokenRepository.findByRefreshToken(refreshToken).ifPresent(RefreshToken::revoke);
+    refreshTokenRepository
+        .findByFingerprintOrLegacyToken(RefreshTokenFingerprint.of(refreshToken), refreshToken)
+        .ifPresent(RefreshToken::revoke);
+  }
+
+  @Transactional
+  public void revokeCurrentToken(
+      String refreshToken, Long memberId, SessionType expectedSessionType) {
+    RefreshToken stored =
+        refreshTokenRepository
+            .findByFingerprintOrLegacyTokenForUpdate(
+                RefreshTokenFingerprint.of(refreshToken), refreshToken)
+            .orElseThrow(() -> new CustomException(ErrorCode.REFRESH_TOKEN_NOT_FOUND));
+    if (!stored.belongsTo(memberId) || stored.getSessionType() != expectedSessionType) {
+      throw new CustomException(ErrorCode.INVALID_REFRESH_TOKEN);
+    }
+    stored.revoke();
   }
 }

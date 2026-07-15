@@ -4,6 +4,8 @@ import com.odos.odos_server_v2.domain.member.entity.Member;
 import com.odos.odos_server_v2.domain.shared.entity.BaseTimeEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -40,6 +42,10 @@ public class RefreshToken extends BaseTimeEntity {
   @Column(name = "family_id", nullable = false, length = 36)
   private String familyId;
 
+  @Enumerated(EnumType.STRING)
+  @Column(name = "session_type", nullable = false, length = 16)
+  private SessionType sessionType;
+
   @Column(nullable = false)
   private boolean revoked;
 
@@ -50,10 +56,20 @@ public class RefreshToken extends BaseTimeEntity {
 
   public static RefreshToken active(
       Member member, String refreshToken, LocalDateTime expiresAt, String familyId) {
+    return active(member, refreshToken, expiresAt, familyId, SessionType.WEBVIEW);
+  }
+
+  public static RefreshToken active(
+      Member member,
+      String refreshToken,
+      LocalDateTime expiresAt,
+      String familyId,
+      SessionType sessionType) {
     return RefreshToken.builder()
         .member(member)
         .refreshToken(refreshToken)
         .familyId(familyId)
+        .sessionType(sessionType)
         .revoked(false)
         .expiresAt(expiresAt)
         .build();

@@ -1,5 +1,6 @@
 package com.odos.odos_server_v2.config;
 
+import com.odos.odos_server_v2.domain.security.filter.CookieMutationOriginFilter;
 import com.odos.odos_server_v2.domain.security.handler.MemberNotAdminAccessDeniedHandler;
 import com.odos.odos_server_v2.domain.security.jwt.JwtAuthenticationFilter;
 import com.odos.odos_server_v2.domain.security.jwt.JwtTokenExceptionFilter;
@@ -37,6 +38,7 @@ public class SecurityConfig {
   private final OAuth2LoginFailureHandler oAuth2LoginFailureHandler;
   private final MemberNotAdminAccessDeniedHandler memberNotAdminAccessDeniedHandler;
   private final LoggingFilter loggingFilter;
+  private final CookieMutationOriginFilter cookieMutationOriginFilter;
 
   @Bean
   public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -93,6 +95,7 @@ public class SecurityConfig {
                     .successHandler(oAuth2LoginSuccessHandler)
                     .failureHandler(oAuth2LoginFailureHandler))
         .addFilterBefore(loggingFilter, CorsFilter.class)
+        .addFilterBefore(cookieMutationOriginFilter, JwtAuthenticationFilter.class)
         .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
         .addFilterBefore(new JwtTokenExceptionFilter(), JwtAuthenticationFilter.class);
 

@@ -1,7 +1,11 @@
 package com.odos.odos_server_v2.domain.security.jwt;
 
 import com.odos.odos_server_v2.domain.member.entity.Member;
+import com.odos.odos_server_v2.domain.security.entity.SessionType;
+import com.odos.odos_server_v2.exception.CustomException;
+import com.odos.odos_server_v2.exception.ErrorCode;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -23,15 +27,16 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-@Component
 @Getter
 @Slf4j
 public class JwtTokenProvider {
+
+  public static final String ACCESS_TOKEN_SUBJECT = "AccessToken";
+  public static final String REFRESH_TOKEN_SUBJECT = "RefreshToken";
 
   private static final String LEGACY_ACCESS_TOKEN_COOKIE_NAME = "access_token";
   private static final String LEGACY_REFRESH_TOKEN_COOKIE_NAME = "refresh_token";
@@ -60,33 +65,49 @@ public class JwtTokenProvider {
   }
 
   public String createAccessToken(Member member) {
+    return createAccessToken(member, SessionType.WEBVIEW, null);
+  }
+
+  public String createAccessToken(Member member, SessionType sessionType, String sessionId) {
     Date now = new Date();
     Date expiry = new Date(now.getTime() + accessTokenExpirationPeriod);
 
-    return Jwts.builder()
-        .setSubject("AccessToken")
-        .claim("id", member.getId())
-        .claim("email", member.getEmail())
-        .claim("role", member.getRole().name())
-        .claim("provider", member.getSignupRoute().name())
-        .setIssuedAt(now)
-        .setExpiration(expiry)
-        .signWith(getSigningKey(), SignatureAlgorithm.HS256)
-        .compact();
+    var builder =
+        Jwts.builder()
+            .setSubject(ACCESS_TOKEN_SUBJECT)
+            .claim("id", member.getId())
+            .claim("email", member.getEmail())
+            .claim("role", member.getRole().name())
+            .claim("provider", member.getSignupRoute().name())
+            .claim("session_type", sessionType.name())
+            .setIssuedAt(now)
+            .setExpiration(expiry);
+    if (sessionId != null) {
+      builder.claim("sid", sessionId);
+    }
+    return builder.signWith(getSigningKey(), SignatureAlgorithm.HS256).compact();
   }
 
   public String createRefreshToken(Member member) {
+    return createRefreshToken(member, SessionType.WEBVIEW, null);
+  }
+
+  public String createRefreshToken(Member member, SessionType sessionType, String sessionId) {
     Date now = new Date();
     Date expiry = new Date(now.getTime() + refreshTokenExpirationPeriod);
 
-    return Jwts.builder()
-        .setSubject("RefreshToken")
-        .setId(UUID.randomUUID().toString())
-        .claim("id", member.getId())
-        .setIssuedAt(now)
-        .setExpiration(expiry)
-        .signWith(getSigningKey(), SignatureAlgorithm.HS256)
-        .compact();
+    var builder =
+        Jwts.builder()
+            .setSubject(REFRESH_TOKEN_SUBJECT)
+            .setId(UUID.randomUUID().toString())
+            .claim("id", member.getId())
+            .claim("session_type", sessionType.name())
+            .setIssuedAt(now)
+            .setExpiration(expiry);
+    if (sessionId != null) {
+      builder.claim("sid", sessionId);
+    }
+    return builder.signWith(getSigningKey(), SignatureAlgorithm.HS256).compact();
   }
 
   public void sendAccessAndRefreshToken(
@@ -148,29 +169,32 @@ public class JwtTokenProvider {
     response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
   }
 
-  public boolean isValidToken(String token) {
-    try {
-      Jwts.parserBuilder().setSigningKey(getSigningKey()).build().parseClaimsJws(token);
-      return true;
-    } catch (JwtException | IllegalArgumentException e) {
-      return false;
-    }
+  public Claims parseAccessToken(String token) {
+    return parseTypedToken(
+        token, ACCESS_TOKEN_SUBJECT, ErrorCode.EXPIRED_ACCESS_TOKEN, ErrorCode.INVALID_JWT);
   }
 
-  public boolean isExpired(String token) {
-    try {
-      return parseToken(token).getExpiration().before(new Date());
-    } catch (JwtException | IllegalArgumentException e) {
-      return true;
-    }
+  public Claims parseRefreshToken(String token) {
+    return parseTypedToken(
+        token,
+        REFRESH_TOKEN_SUBJECT,
+        ErrorCode.EXPIRED_REFRESH_TOKEN,
+        ErrorCode.INVALID_REFRESH_TOKEN);
   }
 
-  public Claims parseClaims(String token) {
-    return Jwts.parserBuilder()
-        .setSigningKey(getSigningKey())
-        .build()
-        .parseClaimsJws(token)
-        .getBody();
+  private Claims parseTypedToken(
+      String token, String expectedSubject, ErrorCode expiredCode, ErrorCode invalidCode) {
+    try {
+      Claims claims = parseToken(token);
+      if (!expectedSubject.equals(claims.getSubject())) {
+        throw new CustomException(invalidCode);
+      }
+      return claims;
+    } catch (ExpiredJwtException e) {
+      throw new CustomException(expiredCode);
+    } catch (JwtException | IllegalArgumentException e) {
+      throw new CustomException(invalidCode);
+    }
   }
 
   private Claims parseToken(String token) {
@@ -179,15 +203,6 @@ public class JwtTokenProvider {
         .build()
         .parseClaimsJws(token)
         .getBody();
-  }
-
-  public Optional<String> extractMemberId(String accessToken) {
-    try {
-      Object id = parseToken(accessToken).get("id");
-      return Optional.ofNullable(id).map(Object::toString);
-    } catch (JwtException | IllegalArgumentException e) {
-      return Optional.empty();
-    }
   }
 
   public Optional<LocalDateTime> extractExpiration(String token) {

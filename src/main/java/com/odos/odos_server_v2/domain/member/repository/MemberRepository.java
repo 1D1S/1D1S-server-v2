@@ -14,6 +14,8 @@ import org.springframework.stereotype.Repository;
 public interface MemberRepository extends JpaRepository<Member, Long> {
   Optional<Member> findByEmailAndSignupRoute(String email, SignupRoute signupRoute);
 
+  Optional<Member> findBySignupRouteAndSocialId(SignupRoute signupRoute, String socialId);
+
   Optional<Member> findByIdAndStatus(Long id, MemberStatus status);
 
   @Query(

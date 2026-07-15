@@ -7,10 +7,14 @@ import com.odos.odos_server_v2.domain.member.entity.Enum.SignupRoute;
 import com.odos.odos_server_v2.domain.member.entity.Member;
 import com.odos.odos_server_v2.domain.member.repository.MemberRepository;
 import com.odos.odos_server_v2.domain.member.service.MemberDeleteService;
+import com.odos.odos_server_v2.domain.security.dto.NativeSessionCodeResponse;
+import com.odos.odos_server_v2.domain.security.entity.SessionType;
 import com.odos.odos_server_v2.domain.security.jwt.JwtTokenProvider;
 import com.odos.odos_server_v2.domain.security.jwt.MemberPrincipal;
 import com.odos.odos_server_v2.domain.security.oauth2.OAuth2LoginResponse;
-import com.odos.odos_server_v2.domain.security.service.RefreshTokenService;
+import com.odos.odos_server_v2.domain.security.service.NativeSessionService;
+import com.odos.odos_server_v2.domain.security.service.SessionTokenIssuer;
+import com.odos.odos_server_v2.domain.security.service.SessionTokenIssuer.IssuedSession;
 import com.odos.odos_server_v2.exception.CustomException;
 import com.odos.odos_server_v2.exception.ErrorCode;
 import com.odos.odos_server_v2.response.ApiResponse;
@@ -31,7 +35,8 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
   private final ObjectMapper objectMapper;
   private final MemberRepository memberRepository;
   private final MemberDeleteService memberDeleteService;
-  private final RefreshTokenService refreshTokenService;
+  private final SessionTokenIssuer sessionTokenIssuer;
+  private final NativeSessionService nativeSessionService;
 
   @Override
   public void onAuthenticationSuccess(
@@ -46,27 +51,25 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
             .findByEmailAndSignupRoute(email, signupRoute)
             .orElseThrow(() -> new CustomException(ErrorCode.OAUTH_USER_NOT_FOUND));
 
-    String accessToken = jwtTokenProvider.createAccessToken(member);
-    String refreshToken = jwtTokenProvider.createRefreshToken(member);
-    refreshTokenService.saveActiveToken(
-        member,
-        refreshToken,
-        jwtTokenProvider
-            .extractExpiration(refreshToken)
-            .orElseThrow(() -> new CustomException(ErrorCode.INVALID_REFRESH_TOKEN)));
+    String nativeCodeChallenge = request.getParameter("nativeCodeChallenge");
+    OAuth2LoginResponse.OAuth2LoginResponseBuilder responseBuilder =
+        OAuth2LoginResponse.builder().isProfileComplete(member.isProfileComplete());
+    if (nativeCodeChallenge != null) {
+      if (!nativeCodeChallenge.matches("^[A-Za-z0-9_-]{43}$")) {
+        throw new CustomException(ErrorCode.NATIVE_PKCE_VERIFICATION_FAILED);
+      }
+      NativeSessionCodeResponse loginCode =
+          nativeSessionService.issueCode(member.getId(), nativeCodeChallenge);
+      responseBuilder
+          .nativeLoginCode(loginCode.code())
+          .nativeLoginCodeExpiresInSeconds(loginCode.expiresInSeconds());
+    } else {
+      IssuedSession issued = sessionTokenIssuer.issue(member, SessionType.WEBVIEW);
+      jwtTokenProvider.sendAccessAndRefreshToken(
+          response, issued.accessToken(), issued.refreshToken());
+    }
 
-    jwtTokenProvider.sendAccessAndRefreshToken(response, accessToken, refreshToken);
-
-    boolean isProfileComplete =
-        member.getNickname() != null
-            // && member.getMemberProfileImageUrl() != null
-            && member.getJob() != null
-            && member.getBirth() != null
-            && member.getGender() != null
-            && member.getIsPublic() != null;
-
-    OAuth2LoginResponse dto =
-        OAuth2LoginResponse.builder().isProfileComplete(isProfileComplete).build();
+    OAuth2LoginResponse dto = responseBuilder.build();
 
     response.setContentType("application/json;charset=UTF-8");
     ApiResponse<OAuth2LoginResponse> apiResponse = ApiResponse.success(LOGIN_SUCCESS, dto);
