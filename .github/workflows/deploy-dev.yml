@@ -87,9 +87,25 @@ jobs:
             # 2. 이미지 Pull & 컨테이너 재시작
             export ECR_REGISTRY=${{ env.ECR_REGISTRY }}
             docker compose -p 1d1s-dev -f docker-compose.dev.yml pull app
-            docker compose -p 1d1s-dev -f docker-compose.dev.yml up -d --no-deps app
+            docker compose -p 1d1s-dev -f docker-compose.dev.yml up -d --force-recreate --no-deps app
+
+            # 3. Spring 애플리케이션 실제 기동 확인. 실패하면 Actions 로그에
+            # 컨테이너 상태와 최근 로그를 남겨 배포 성공으로 오판하지 않는다.
+            healthy=false
+            for attempt in $(seq 1 30); do
+              if curl -fsS --max-time 3 http://127.0.0.1:18081/swagger-ui/index.html >/dev/null; then
+                healthy=true
+                break
+              fi
+              sleep 2
+            done
+            if [ "$healthy" != "true" ]; then
+              docker ps -a --filter name=oneday-onestreak-dev
+              docker logs --tail 200 oneday-onestreak-dev
+              exit 1
+            fi
             
-            # 3. Nginx 설정 교체 (api-dev.conf로 고정)
+            # 4. Nginx 설정 교체 (api-dev.conf로 고정)
             sudo mv ./nginx.conf /etc/nginx/conf.d/api-dev.conf
             sudo nginx -t && sudo systemctl reload nginx
             
