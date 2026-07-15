@@ -272,52 +272,40 @@ public class ChallengeService {
         challenge.getChallengeType());
   }
 
+  // 상세는 비로그인(게스트)도 조회 가능하다. memberId==null 이면 개인화 필드는 기본값
+  // (myStatus=NONE, likedByMe=false, 내 목표 목록 비움/원본 미리보기)로 채운다.
+  // 비공개(PRIVATE)는 assertPrivateChallengeReadable 에서, 예약 노출 전 공식 챌린지는 아래 가드에서
+  // 게스트를 자연 차단한다(각각 403/404).
   public ChallengeResponse getChallenge(Long challengeId, Long memberId) {
     Challenge challenge =
         challengeRepository
             .findById(challengeId)
             .orElseThrow(() -> new CustomException(ErrorCode.CHALLENGE_NOT_FOUND));
-    Member member =
-        memberRepository
-            .findById(memberId)
-            .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
 
-    // 예약 노출 전 공식 챌린지는 존재를 드러내지 않는다(404).
-    if (isNotYetVisible(challenge)) {
+    // 예약 노출 전 공식 챌린지는 존재를 드러내지 않는다(404). 단, 관리자는 확인 가능.
+    if (isNotYetVisible(challenge) && !isAdmin(memberId)) {
       throw new CustomException(ErrorCode.CHALLENGE_NOT_FOUND);
     }
 
-    if (challenge.getChallengeType() == ChallengeType.PRIVATE) {
-      ParticipantStatus status = getMemberStatus(challengeId, memberId);
-      if (status != ParticipantStatus.HOST && status != ParticipantStatus.PARTICIPANT) {
-        throw new CustomException(ErrorCode.PRIVATE_CHALLENGE);
-      }
-    }
+    assertPrivateChallengeReadable(challenge, memberId);
 
-    return toChallengeResponse(challenge, member);
+    return toChallengeResponse(challenge, memberId);
   }
 
   /** 특정 챌린지 통계: 참여율 + 완료 목표수 + 기간 내 날짜별 일지 추이. 권한은 챌린지 상세 조회 정책과 동일. */
   public ChallengeStatisticsResponse getChallengeStatistics(Long challengeId, Long memberId) {
+    // 통계는 개인화 필드가 없어 게스트(memberId==null)도 조회 가능. 비공개/예약 가드는 상세와 동일하게 유지한다.
     Challenge challenge =
         challengeRepository
             .findById(challengeId)
             .orElseThrow(() -> new CustomException(ErrorCode.CHALLENGE_NOT_FOUND));
-    memberRepository
-        .findById(memberId)
-        .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
 
-    // 예약 노출 전 공식 챌린지는 존재를 드러내지 않는다(404).
-    if (isNotYetVisible(challenge)) {
+    // 예약 노출 전 공식 챌린지는 존재를 드러내지 않는다(404). 단, 관리자는 확인 가능.
+    if (isNotYetVisible(challenge) && !isAdmin(memberId)) {
       throw new CustomException(ErrorCode.CHALLENGE_NOT_FOUND);
     }
 
-    if (challenge.getChallengeType() == ChallengeType.PRIVATE) {
-      ParticipantStatus status = getMemberStatus(challengeId, memberId);
-      if (status != ParticipantStatus.HOST && status != ParticipantStatus.PARTICIPANT) {
-        throw new CustomException(ErrorCode.PRIVATE_CHALLENGE);
-      }
-    }
+    assertPrivateChallengeReadable(challenge, memberId);
 
     double participationRate = getParticipationRate(challenge);
     long completedGoalCount =
@@ -449,6 +437,18 @@ public class ChallengeService {
         .findById(memberId)
         .map(member -> member.getRole() == MemberRole.ADMIN)
         .orElse(false);
+  }
+
+  // 비공개 챌린지 읽기 접근 정책: 참여자(HOST/PARTICIPANT) 또는 관리자만 허용(읽기 전용).
+  // 상세/통계/일지 목록 등 관리자 화면이 필요로 하는 읽기 경로에서 공통으로 사용한다.
+  private void assertPrivateChallengeReadable(Challenge challenge, Long memberId) {
+    if (challenge.getChallengeType() != ChallengeType.PRIVATE || isAdmin(memberId)) {
+      return;
+    }
+    ParticipantStatus status = getMemberStatus(challenge.getId(), memberId);
+    if (status != ParticipantStatus.HOST && status != ParticipantStatus.PARTICIPANT) {
+      throw new CustomException(ErrorCode.PRIVATE_CHALLENGE);
+    }
   }
 
   // 관리자만 예약 노출 전(visibleFrom 미래) 공식 챌린지를 목록에서 볼 수 있다.
@@ -645,7 +645,7 @@ public class ChallengeService {
     }
     entityManager.flush();
     entityManager.refresh(participant);
-    return toChallengeResponse(challenge, member);
+    return toChallengeResponse(challenge, memberId);
   }
 
   @Transactional
@@ -1075,9 +1075,10 @@ public class ChallengeService {
         .toList();
   }
 
-  public ChallengeResponse toChallengeResponse(Challenge challenge, Member member) {
+  // memberId 는 게스트면 null. getMemberStatus·좋아요·호스트 비교가 모두 null-safe 하므로
+  // 개인화 필드는 기본값(NONE/false/빈 목록)으로 채워진다.
+  public ChallengeResponse toChallengeResponse(Challenge challenge, Long memberId) {
     Long challengeId = challenge.getId();
-    Long memberId = member.getId();
     // 챌린지 목표
     // 참여자(HOST/PARTICIPANT)는 본인의 challenge_goal(일지와 연결되는 목표)을 보고,
     // 참여 전(NONE 등)에는 고정목표 챌린지의 원본 목표(fixed_challenge_goal)를 미리보기로 노출한다.
@@ -1102,7 +1103,7 @@ public class ChallengeService {
     }
     // 참여자
     List<ParticipantStatus> participantStatuses;
-    if (challenge.getHostMember().getId().equals(member.getId())) {
+    if (challenge.getHostMember().getId().equals(memberId)) {
       participantStatuses =
           List.of(ParticipantStatus.HOST, ParticipantStatus.PARTICIPANT, ParticipantStatus.PENDING);
     } else {
@@ -1210,6 +1211,9 @@ public class ChallengeService {
   }
 
   private ParticipantStatus getMemberStatus(Long challengeId, Long memberId) {
+    if (memberId == null) {
+      return ParticipantStatus.NONE; // 게스트: 미참여로 취급
+    }
     Optional<Participant> participant =
         participantRepository.findFirstByMemberIdAndChallengeIdOrderByIdAsc(memberId, challengeId);
     if (participant.isEmpty()) {

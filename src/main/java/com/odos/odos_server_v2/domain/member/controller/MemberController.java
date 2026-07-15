@@ -3,6 +3,7 @@ package com.odos.odos_server_v2.domain.member.controller;
 import com.odos.odos_server_v2.domain.member.CurrentUserContext;
 import com.odos.odos_server_v2.domain.member.dto.MyPageDto;
 import com.odos.odos_server_v2.domain.member.dto.NicknameRequest;
+import com.odos.odos_server_v2.domain.member.dto.PhoneNumberRequest;
 import com.odos.odos_server_v2.domain.member.dto.ProfileImageRequest;
 import com.odos.odos_server_v2.domain.member.dto.SideBarDto;
 import com.odos.odos_server_v2.domain.member.repository.MemberRepository;
@@ -18,6 +19,7 @@ import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -352,6 +354,70 @@ public class MemberController {
     Long memberId = CurrentUserContext.getCurrentMemberId();
     memberService.editProfileImage(memberId, profileImageRequest.getObjectKey());
     return ApiResponse.success(Message.UPDATE_PROFILE_IMAGE);
+  }
+
+  @Operation(
+      summary = "휴대폰 번호 변경",
+      description = "로그인한 회원의 휴대폰 번호를 입력/변경한다. 하이픈 유무는 무관하며 숫자만으로 정규화되어 저장된다.")
+  @ApiResponses({
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "200",
+        description = "휴대폰 번호 변경 성공했습니다.",
+        content =
+            @Content(
+                mediaType = "application/json",
+                examples =
+                    @ExampleObject(
+                        value =
+                            """
+                            { "message": "휴대폰 번호 변경 성공했습니다." }
+                            """))),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "400",
+        description = "휴대폰 번호 형식 오류",
+        content =
+            @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class),
+                examples =
+                    @ExampleObject(
+                        value =
+                            """
+                            { "code": "400", "message": "phoneNumber: 휴대폰 번호 형식이 올바르지 않습니다. (예: 010-1234-5678)" }
+                            """))),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "401",
+        description = "인증되지 않은 접근",
+        content =
+            @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class),
+                examples =
+                    @ExampleObject(
+                        value =
+                            """
+                            { "code": "AUTH-001", "message": "인증되지 않은 접근입니다." }
+                            """))),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "404",
+        description = "회원을 찾을 수 없음",
+        content =
+            @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class),
+                examples =
+                    @ExampleObject(
+                        value =
+                            """
+                            { "code": "USER-003", "message": "회원을 찾을 수 없습니다." }
+                            """)))
+  })
+  @PatchMapping("/phone-number")
+  public ApiResponse<Void> editPhoneNumber(
+      @Valid @RequestBody PhoneNumberRequest phoneNumberRequest) {
+    Long memberId = CurrentUserContext.getCurrentMemberId();
+    memberService.editPhoneNumber(memberId, phoneNumberRequest.getPhoneNumber());
+    return ApiResponse.success(Message.UPDATE_PHONE_NUMBER);
   }
 
   @Operation(summary = "다른 회원 프로필 조회", description = "특정 회원의 프로필 정보를 조회한다.")

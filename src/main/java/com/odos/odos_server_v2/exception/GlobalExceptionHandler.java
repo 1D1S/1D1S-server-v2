@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.Hidden;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -63,6 +64,22 @@ public class GlobalExceptionHandler {
     log.warn("요청 값 검증 실패: {}", detail);
     return ResponseEntity.status(HttpStatus.BAD_REQUEST)
         .body(new ErrorResponse("400", detail.isBlank() ? "요청 값이 올바르지 않습니다." : detail));
+  }
+
+  // DB 유니크/무결성 제약 위반은 서버 버그가 아니라 요청 충돌이므로 500 이 아닌 409 로 응답한다.
+  // (앱 레벨 existsBy 검사를 통과한 동시성 경합 등에서 최종 방어선으로 동작)
+  @ExceptionHandler(DataIntegrityViolationException.class)
+  public ResponseEntity<ErrorResponse> handleDataIntegrityViolation(
+      DataIntegrityViolationException ex) {
+    log.warn("데이터 무결성 제약 위반", ex);
+    Throwable root = ex.getMostSpecificCause();
+    String detail = root == null ? "" : String.valueOf(root.getMessage());
+    if (detail.contains("uk_member_phone_number")) {
+      ErrorCode code = ErrorCode.PHONE_NUMBER_ALREADY_EXISTS;
+      return ResponseEntity.status(code.getStatus()).body(ErrorResponse.of(code));
+    }
+    return ResponseEntity.status(HttpStatus.CONFLICT)
+        .body(new ErrorResponse("409", "요청이 기존 데이터와 충돌합니다."));
   }
 
   // 예상치 못한 500은 스택트레이스만으론 어떤 요청에서 터졌는지 알 수 없어 진단이 어렵다.

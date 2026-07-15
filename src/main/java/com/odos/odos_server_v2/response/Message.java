@@ -16,6 +16,7 @@ public class Message {
   public static String DIARY_DELETE_SUCCESS = "다이어리 삭제를 성공했습니다.";
   public static String DIARY_ADDED_LIKE = "다이어리에 좋아요 누르기 성공했습니다.";
   public static String DIARY_CANCELED_LIKE = "다이어리에 좋아요 누르기 취소 성공했습니다.";
+  public static String DIARY_LIKE_MEMBERS_GET_SUCCESS = "다이어리 좋아요 회원 목록 조회 성공했습니다.";
   public static String DIARY_VIEW_RANDOM = "다이어리 랜덤 조회 성공했습니다.";
   public static String DIARY_REPORT_CREATED = "다이어리 신고 생성 성공했습니다.";
   public static String DIARY_GET_MY_ALL_SUCCESS = "다이어리 중 작성자 본인 조회 성공했습니다.";
@@ -41,6 +42,7 @@ public class Message {
   public static String GET_CHALLENGE_LIST = "챌린지 리스트 불러오기 성공했습니다.";
   public static String ADD_CHALLENGE_LIKE = "챌린지 좋아요 성공했습니다.";
   public static String CANCEL_CHALLENGE_LIKE = "챌린지 좋아요 취소 성공했습니다.";
+  public static String CHALLENGE_LIKE_MEMBERS_GET_SUCCESS = "챌린지 좋아요 회원 목록 조회 성공했습니다.";
   public static String GET_CHALLENGES_BY_MEMBER = "진행중인 챌린지 불러오기 성공했습니다.";
   public static String GET_MY_CHALLENGE = "내 챌린지 목록 조회 성공했습니다.";
   public static String GET_MY_TODAY_CHALLENGE = "오늘의 기록 조회 성공했습니다.";
@@ -67,6 +69,7 @@ public class Message {
   public static String UPDATE_NICKNAME = "닉네임 변경 성공했습니다.";
   public static String NICKNAME_AVAILABLE = "사용 가능한 닉네임입니다.";
   public static String UPDATE_PROFILE_IMAGE = "프로필 이미지 변경 성공했습니다.";
+  public static String UPDATE_PHONE_NUMBER = "휴대폰 번호 변경 성공했습니다.";
   public static String GET_OTHERS_PROFILE = "다른 사람 프로필 조회 성공했습니다.";
   public static String MEMBER_DELETE = "회원 탈퇴 요청 성공했습니다.";
   public static String MEMBER_GRANT_ADMIN = "관리자 권한 부여 성공했습니다.";
