@@ -13,13 +13,20 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface RefreshTokenRepository extends JpaRepository<RefreshToken, Long> {
-  Optional<RefreshToken> findByRefreshToken(String refreshToken);
+  @Query(
+      "select r from RefreshToken r "
+          + "where r.refreshToken = :fingerprint or r.refreshToken = :legacyToken")
+  Optional<RefreshToken> findByFingerprintOrLegacyToken(
+      @Param("fingerprint") String fingerprint, @Param("legacyToken") String legacyToken);
 
   // 회전 동시성 방어: 같은 토큰으로 동시 회전 요청이 오면 행 락으로 직렬화한다.
   // (선행 요청이 revoke 후 커밋되면 후행 요청은 revoked=true 를 읽어 재사용 감지로 넘어간다.)
   @Lock(LockModeType.PESSIMISTIC_WRITE)
-  @Query("select r from RefreshToken r where r.refreshToken = :refreshToken")
-  Optional<RefreshToken> findByRefreshTokenForUpdate(@Param("refreshToken") String refreshToken);
+  @Query(
+      "select r from RefreshToken r "
+          + "where r.refreshToken = :fingerprint or r.refreshToken = :legacyToken")
+  Optional<RefreshToken> findByFingerprintOrLegacyTokenForUpdate(
+      @Param("fingerprint") String fingerprint, @Param("legacyToken") String legacyToken);
 
   @Modifying
   @Query(

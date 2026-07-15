@@ -1,9 +1,7 @@
 package com.odos.odos_server_v2.domain.security.oauth2.service;
 
-import com.odos.odos_server_v2.domain.member.entity.Enum.MemberRole;
 import com.odos.odos_server_v2.domain.member.entity.Enum.SignupRoute;
 import com.odos.odos_server_v2.domain.member.entity.Member;
-import com.odos.odos_server_v2.domain.member.repository.MemberRepository;
 import com.odos.odos_server_v2.domain.security.jwt.MemberPrincipal;
 import com.odos.odos_server_v2.domain.security.oauth2.info.OAuth2UserInfo;
 import com.odos.odos_server_v2.domain.security.oauth2.info.OAuth2UserInfoFactory;
@@ -21,14 +19,13 @@ import org.springframework.security.oauth2.client.userinfo.OAuth2UserService;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
 @RequiredArgsConstructor
 @Slf4j
 @Service
 public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequest, OAuth2User> {
-  private final MemberRepository memberRepository;
+  private final SocialMemberService socialMemberService;
 
   // 소셜 provider userinfo 조회용 RestTemplate. 타임아웃 미설정 시 느린 provider 가 로그인 스레드를
   // 무한정 잡는다. DefaultOAuth2UserService 기본과 동일한 에러 핸들러 + connect/read 타임아웃.
@@ -44,7 +41,6 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
     return delegate;
   }
 
-  @Transactional
   @Override
   public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
     DefaultOAuth2UserService delegate = timeoutBoundedUserService();
@@ -61,25 +57,9 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
       throw new CustomException(ErrorCode.INVALID_OAUTH_EMAIL);
     }
 
-    Member member =
-        memberRepository
-            .findByEmailAndSignupRoute(email, signupRoute)
-            .orElseGet(() -> createMember(email, signupRoute, userInfo.getId()));
+    Member member = socialMemberService.findOrCreate(email, signupRoute, userInfo.getId());
 
     return new MemberPrincipal(
         member.getId(), member.getEmail(), member.getRole().name(), member.getSignupRoute());
-  }
-
-  private Member createMember(String email, SignupRoute signupRoute, String socialId) {
-    Member newMember =
-        Member.builder()
-            .email(email)
-            .signupRoute(signupRoute)
-            .socialId(socialId)
-            .role(MemberRole.GUEST)
-            .build();
-
-    Member saved = memberRepository.save(newMember);
-    return saved;
   }
 }

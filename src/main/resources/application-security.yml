@@ -45,6 +45,10 @@ jwt:
     refresh-token-name: ${JWT_REFRESH_COOKIE_NAME:refreshToken}
     domain: ${JWT_COOKIE_DOMAIN:}
 
+native-auth:
+  google-audience: ${GOOGLE_SERVER_CLIENT_ID:${GOOGLE_CLIENT_ID}}
+  kakao-audience: ${KAKAO_NATIVE_APP_KEY:${KAKAO_CLIENT_ID}}
+
 notification:
   web-push:
     enabled: ${WEB_PUSH_ENABLED:true}

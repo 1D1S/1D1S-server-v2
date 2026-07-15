@@ -198,4 +198,9 @@ public class Member {
   public void updateAdminRole() {
     this.role = MemberRole.ADMIN;
   }
+
+  /** 소셜 로그인 이후 필수 프로필 정보가 모두 채워졌는지 여부. */
+  public boolean isProfileComplete() {
+    return nickname != null && job != null && birth != null && gender != null && isPublic != null;
+  }
 }
