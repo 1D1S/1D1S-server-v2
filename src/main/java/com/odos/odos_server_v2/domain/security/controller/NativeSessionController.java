@@ -22,8 +22,11 @@ import com.odos.odos_server_v2.exception.ErrorCode;
 import com.odos.odos_server_v2.response.ApiResponse;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
+import java.net.URI;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.MediaType;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -35,6 +38,13 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/auth/native")
 @RequiredArgsConstructor
 public class NativeSessionController {
+  private static final Set<String> WEBVIEW_RETURN_HOSTS =
+      Set.of(
+          "1day1streak.com",
+          "dev.1day1streak.com",
+          "local.1day1streak.com",
+          "local.dev.1day1streak.com");
+
   private final NativeSessionService nativeSessionService;
   private final NativeLoginService nativeLoginService;
   private final TokenReissueService tokenReissueService;
@@ -73,13 +83,14 @@ public class NativeSessionController {
     return success(LOGIN_SUCCESS);
   }
 
-  @PostMapping(value = "/bootstrap", produces = MediaType.TEXT_HTML_VALUE)
-  public String bootstrap(
+  @PostMapping("/bootstrap")
+  public ResponseEntity<Void> bootstrap(
       @Valid @RequestBody NativeSessionBootstrapRequest request, HttpServletResponse response) {
+    URI returnUri = validateReturnUrl(request.returnUrl());
     ReissuedTokens tokens = nativeSessionService.bootstrap(request.code());
     jwtTokenProvider.addAccessTokenCookie(response, tokens.accessToken());
     jwtTokenProvider.addRefreshTokenCookie(response, tokens.refreshToken());
-    return "<!doctype html><html><head><meta name=\"viewport\" content=\"width=device-width\"></head><body></body></html>";
+    return ResponseEntity.status(HttpStatus.SEE_OTHER).location(returnUri).build();
   }
 
   @GetMapping("/web-session-status")
@@ -94,5 +105,22 @@ public class NativeSessionController {
     if (principal == null || principal.getSessionType() != SessionType.NATIVE) {
       throw new CustomException(ErrorCode.UNAUTHORIZED);
     }
+  }
+
+  private URI validateReturnUrl(String value) {
+    try {
+      URI uri = URI.create(value);
+      boolean valid =
+          "https".equalsIgnoreCase(uri.getScheme())
+              && WEBVIEW_RETURN_HOSTS.contains(uri.getHost())
+              && (uri.getPort() == -1 || uri.getPort() == 443)
+              && (uri.getPath() == null || uri.getPath().isEmpty() || "/".equals(uri.getPath()))
+              && uri.getRawQuery() == null
+              && uri.getRawFragment() == null;
+      if (valid) return uri;
+    } catch (IllegalArgumentException ignored) {
+      // Handled as the same public validation error below.
+    }
+    throw new CustomException(ErrorCode.NATIVE_BOOTSTRAP_RETURN_URL_INVALID);
   }
 }

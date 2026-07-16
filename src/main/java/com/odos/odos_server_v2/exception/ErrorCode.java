@@ -30,6 +30,8 @@ public enum ErrorCode {
   NATIVE_PROVIDER_CLAIM_MISMATCH(
       HttpStatus.UNAUTHORIZED, "AUTH-017", "소셜 로그인 credential의 audience 또는 nonce가 일치하지 않습니다."),
   NATIVE_PKCE_VERIFICATION_FAILED(HttpStatus.UNAUTHORIZED, "AUTH-018", "앱 로그인 PKCE 검증에 실패했습니다."),
+  NATIVE_BOOTSTRAP_RETURN_URL_INVALID(
+      HttpStatus.BAD_REQUEST, "AUTH-019", "앱 로그인 완료 주소가 유효하지 않습니다."),
 
   // member
   CATEGORY_EMPTY(HttpStatus.BAD_REQUEST, "USER-001", "관심 카테고리는 최소 1개 이상 선택해야 합니다."),
