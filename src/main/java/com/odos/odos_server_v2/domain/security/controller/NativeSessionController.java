@@ -24,6 +24,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -77,6 +78,14 @@ public class NativeSessionController {
     ReissuedTokens tokens = nativeSessionService.bootstrap(request.code());
     jwtTokenProvider.addAccessTokenCookie(response, tokens.accessToken());
     jwtTokenProvider.addRefreshTokenCookie(response, tokens.refreshToken());
+    return success(LOGIN_SUCCESS);
+  }
+
+  @GetMapping("/web-session-status")
+  public ApiResponse<Void> webSessionStatus(@AuthenticationPrincipal MemberPrincipal principal) {
+    if (principal == null || principal.getSessionType() != SessionType.WEBVIEW) {
+      throw new CustomException(ErrorCode.UNAUTHORIZED);
+    }
     return success(LOGIN_SUCCESS);
   }
 
