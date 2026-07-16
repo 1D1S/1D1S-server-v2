@@ -138,7 +138,8 @@ public enum ErrorCode {
   BANNER_REQUIRED_FIELD_MISSING(
       HttpStatus.BAD_REQUEST,
       "BANNER-002",
-      "배너 필수 항목(title/subtitle/imageUrl/linkUrl/기간)이 누락되었습니다.");
+      "배너 필수 항목(title/subtitle/imageUrl/linkUrl/기간)이 누락되었습니다."),
+  BANNER_NOT_FOUND(HttpStatus.NOT_FOUND, "BANNER-003", "존재하지 않는 배너입니다.");
 
   private final HttpStatus status;
   private final String code;
