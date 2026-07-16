@@ -37,6 +37,16 @@ public class BannerService {
     return BannerResponse.from(saved);
   }
 
+  @Transactional
+  public void delete(Long id) {
+    requireAdmin();
+    Banner banner =
+        bannerRepository
+            .findById(id)
+            .orElseThrow(() -> new CustomException(ErrorCode.BANNER_NOT_FOUND));
+    bannerRepository.delete(banner);
+  }
+
   public List<BannerResponse> getTodayBanners() {
     requireAdmin();
     return bannerRepository.findTodayBanners(LocalDate.now(KST)).stream()

@@ -167,6 +167,44 @@ class BannerPostgresTest {
   }
 
   @Test
+  void adminDeletesBanner() {
+    Member admin = saveMember("admin6@t.com", MemberRole.ADMIN);
+    authenticateAs(admin);
+    BannerResponse created = bannerService.create(validRequest());
+
+    bannerService.delete(created.id());
+
+    assertThat(bannerRepository.findById(created.id())).isEmpty();
+  }
+
+  @Test
+  void deleteRejectsUnknownBanner() {
+    Member admin = saveMember("admin7@t.com", MemberRole.ADMIN);
+    authenticateAs(admin);
+
+    assertThatThrownBy(() -> bannerService.delete(999_999L))
+        .isInstanceOf(CustomException.class)
+        .extracting(e -> ((CustomException) e).getErrorCode())
+        .isEqualTo(ErrorCode.BANNER_NOT_FOUND);
+  }
+
+  @Test
+  void userCannotDeleteBanner() {
+    Member admin = saveMember("admin8@t.com", MemberRole.ADMIN);
+    authenticateAs(admin);
+    BannerResponse created = bannerService.create(validRequest());
+
+    Member user = saveMember("user4@t.com", MemberRole.USER);
+    authenticateAs(user);
+
+    assertThatThrownBy(() -> bannerService.delete(created.id()))
+        .isInstanceOf(CustomException.class)
+        .extracting(e -> ((CustomException) e).getErrorCode())
+        .isEqualTo(ErrorCode.MEMBER_NOT_ADMIN);
+    assertThat(bannerRepository.findById(created.id())).isPresent();
+  }
+
+  @Test
   void userCannotCreateBanner() {
     Member user = saveMember("user@t.com", MemberRole.USER);
     authenticateAs(user);
