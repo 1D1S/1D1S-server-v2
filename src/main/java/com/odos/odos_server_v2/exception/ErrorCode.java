@@ -129,7 +129,11 @@ public enum ErrorCode {
   POPUP_NOT_FOUND(HttpStatus.NOT_FOUND, "POPUP-001", "존재하지 않는 팝업입니다."),
   INVALID_POPUP_PERIOD(HttpStatus.BAD_REQUEST, "POPUP-002", "팝업 게시 기간이 올바르지 않습니다. (시작일 <= 종료일)"),
   POPUP_REQUIRED_FIELD_MISSING(
-      HttpStatus.BAD_REQUEST, "POPUP-003", "팝업 필수 항목(imageUrl/ctaText/linkUrl/기간)이 누락되었습니다.");
+      HttpStatus.BAD_REQUEST, "POPUP-003", "팝업 필수 항목(imageUrl/ctaText/linkUrl/기간)이 누락되었습니다."),
+
+  // notice
+  NOTICE_NOT_FOUND(HttpStatus.NOT_FOUND, "NOTICE-001", "존재하지 않는 공지입니다."),
+  NOTICE_REQUIRED_FIELD_MISSING(HttpStatus.BAD_REQUEST, "NOTICE-002", "공지 필수 항목(제목/내용)이 누락되었습니다.");
 
   private final HttpStatus status;
   private final String code;
