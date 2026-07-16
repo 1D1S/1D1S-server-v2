@@ -108,5 +108,24 @@ jobs:
             # 4. Nginx 설정 교체 (api-dev.conf로 고정)
             sudo mv ./nginx.conf /etc/nginx/conf.d/api-dev.conf
             sudo nginx -t && sudo systemctl reload nginx
-            
+
             docker image prune -f
+
+      - name: Notify Discord
+        if: always()
+        env:
+          DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
+          CHANNEL_ID: '1351796500279197757'
+          STATUS: ${{ job.status }}
+          COMMIT_MSG: ${{ github.event.head_commit.message }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          [ "$STATUS" = "success" ] && icon="✅ DEV 배포 완료" || icon="❌ DEV 배포 실패"
+          body=$(jq -n --arg c "$icon
+          \`${{ github.sha }}\` by ${{ github.actor }}
+          $(printf '%s' "$COMMIT_MSG" | head -1)
+          $RUN_URL" '{content: $c}')
+          curl -sS -X POST "https://discord.com/api/v10/channels/$CHANNEL_ID/messages" \
+            -H "Authorization: Bot $DISCORD_BOT_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d "$body"
