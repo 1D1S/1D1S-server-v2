@@ -23,6 +23,7 @@ import com.odos.odos_server_v2.response.ApiResponse;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -72,13 +73,13 @@ public class NativeSessionController {
     return success(LOGIN_SUCCESS);
   }
 
-  @PostMapping("/bootstrap")
-  public ApiResponse<Void> bootstrap(
+  @PostMapping(value = "/bootstrap", produces = MediaType.TEXT_HTML_VALUE)
+  public String bootstrap(
       @Valid @RequestBody NativeSessionBootstrapRequest request, HttpServletResponse response) {
     ReissuedTokens tokens = nativeSessionService.bootstrap(request.code());
     jwtTokenProvider.addAccessTokenCookie(response, tokens.accessToken());
     jwtTokenProvider.addRefreshTokenCookie(response, tokens.refreshToken());
-    return success(LOGIN_SUCCESS);
+    return "<!doctype html><html><head><meta name=\"viewport\" content=\"width=device-width\"></head><body></body></html>";
   }
 
   @GetMapping("/web-session-status")
