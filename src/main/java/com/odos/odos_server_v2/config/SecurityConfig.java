@@ -128,7 +128,15 @@ public class SecurityConfig {
     config.addAllowedHeader("*");
     config.setAllowCredentials(true);
 
+    CorsConfiguration nativeBootstrapConfig = new CorsConfiguration(config);
+    // WKWebView의 네이티브 loadRequest POST는 웹 문서에서 시작된 fetch가
+    // 아니므로 Origin을 "null"로 보낸다. bootstrap은 추측 불가능한
+    // 일회용 코드만 소비하고 쿠키를 심는 전용 엔드포인트이므로 이 경로에
+    // 한해서만 null origin을 허용한다. 일반 API의 CORS 정책은 그대로다.
+    nativeBootstrapConfig.addAllowedOrigin("null");
+
     UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+    source.registerCorsConfiguration("/auth/native/bootstrap", nativeBootstrapConfig);
     source.registerCorsConfiguration("/**", config);
     return source;
   }
