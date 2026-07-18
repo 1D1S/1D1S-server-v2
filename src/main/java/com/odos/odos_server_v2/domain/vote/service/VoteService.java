@@ -1,5 +1,21 @@
 package com.odos.odos_server_v2.domain.vote.service;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
+import lombok.RequiredArgsConstructor;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.odos.odos_server_v2.domain.member.entity.Member;
 import com.odos.odos_server_v2.domain.member.repository.MemberRepository;
 import com.odos.odos_server_v2.domain.vote.dto.AdminVoteDetailResponse;
@@ -19,19 +35,6 @@ import com.odos.odos_server_v2.domain.vote.repository.VoteRepository;
 import com.odos.odos_server_v2.domain.vote.repository.VoteResponseRepository;
 import com.odos.odos_server_v2.exception.CustomException;
 import com.odos.odos_server_v2.exception.ErrorCode;
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.time.LocalDate;
-import java.time.ZoneId;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -140,7 +143,8 @@ public class VoteService {
     }
     List<Long> optionIds = request.getOptionIds();
     Set<Long> uniqueIds = new HashSet<>(optionIds);
-    if (uniqueIds.size() != optionIds.size()
+    if (uniqueIds.isEmpty()
+        ||  uniqueIds.size() != optionIds.size()
         || (vote.getSelectionType() == VoteSelectionType.SINGLE && uniqueIds.size() != 1)) {
       throw new CustomException(ErrorCode.INVALID_VOTE_SELECTION);
     }
