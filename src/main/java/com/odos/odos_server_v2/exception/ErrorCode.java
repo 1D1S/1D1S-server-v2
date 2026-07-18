@@ -1,6 +1,7 @@
 package com.odos.odos_server_v2.exception;
 
 import lombok.Getter;
+
 import org.springframework.http.HttpStatus;
 
 @Getter
@@ -139,7 +140,17 @@ public enum ErrorCode {
       HttpStatus.BAD_REQUEST,
       "BANNER-002",
       "배너 필수 항목(title/subtitle/imageUrl/linkUrl/기간)이 누락되었습니다."),
-  BANNER_NOT_FOUND(HttpStatus.NOT_FOUND, "BANNER-003", "존재하지 않는 배너입니다.");
+  BANNER_NOT_FOUND(HttpStatus.NOT_FOUND, "BANNER-003", "존재하지 않는 배너입니다."),
+
+  // vote
+  VOTE_NOT_FOUND(HttpStatus.NOT_FOUND, "VOTE-001", "존재하지 않는 투표입니다."),
+  INVALID_VOTE_PERIOD(HttpStatus.BAD_REQUEST, "VOTE-002", "투표 기간이 올바르지 않습니다. (시작일 <= 종료일)"),
+  DUPLICATE_VOTE_OPTION(HttpStatus.BAD_REQUEST, "VOTE-003", "중복된 투표 항목은 등록할 수 없습니다."),
+  VOTE_NOT_OPEN(HttpStatus.BAD_REQUEST, "VOTE-004", "현재 참여할 수 있는 투표가 아닙니다."),
+  VOTE_ALREADY_SUBMITTED(HttpStatus.CONFLICT, "VOTE-005", "이미 참여한 투표입니다."),
+  INVALID_VOTE_SELECTION(HttpStatus.BAD_REQUEST, "VOTE-006", "투표의 단일/다중 선택 설정과 선택 항목 수가 맞지 않습니다."),
+  INVALID_VOTE_OPTION(HttpStatus.BAD_REQUEST, "VOTE-007", "해당 투표에 속하지 않는 항목이 포함되어 있습니다."),
+  VOTE_RESULT_PRIVATE(HttpStatus.FORBIDDEN, "VOTE-008", "관리자 설문용 투표의 결과는 공개되지 않습니다.");
 
   private final HttpStatus status;
   private final String code;

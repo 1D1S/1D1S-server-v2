@@ -135,4 +135,12 @@ public class Message {
   public static String GET_STAT_PERIODS = "통계 기간 목록 조회 성공했습니다.";
   public static String GET_STAT_SUMMARY = "기간 요약 통계 조회 성공했습니다.";
   public static String GET_STAT_FRIEND_COMPARISON = "친구 대비 비교 통계 조회 성공했습니다.";
+
+  // vote
+  public static String CREATE_VOTE = "투표 등록 성공했습니다.";
+  public static String GET_VOTE_LIST = "투표 목록 조회 성공했습니다.";
+  public static String GET_TODAY_VOTES = "오늘의 투표 조회 성공했습니다.";
+  public static String GET_VOTE_DETAIL = "투표 상세 조회 성공했습니다.";
+  public static String SUBMIT_VOTE = "투표 참여 성공했습니다.";
+  public static String GET_VOTE_RESULT = "투표 결과 조회 성공했습니다.";
 }
