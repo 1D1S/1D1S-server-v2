@@ -1,12 +1,10 @@
 package com.odos.odos_server_v2.domain.vote.dto;
 
-import java.math.BigDecimal;
-
-import lombok.Builder;
-import lombok.Getter;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.math.BigDecimal;
+import lombok.Builder;
+import lombok.Getter;
 
 @Getter
 @Builder

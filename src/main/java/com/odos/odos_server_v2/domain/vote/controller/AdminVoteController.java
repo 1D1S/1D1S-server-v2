@@ -1,16 +1,5 @@
 package com.odos.odos_server_v2.domain.vote.controller;
 
-import java.util.List;
-
-import lombok.RequiredArgsConstructor;
-
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
 import com.odos.odos_server_v2.domain.vote.dto.AdminVoteDetailResponse;
 import com.odos.odos_server_v2.domain.vote.dto.VoteCreateRequest;
 import com.odos.odos_server_v2.domain.vote.dto.VoteSummaryResponse;
@@ -26,6 +15,14 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import java.util.List;
+import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @Tag(name = "Admin Vote API", description = "관리자 투표 API (ADMIN 권한 필요)")
 @RestController
@@ -84,7 +81,9 @@ public class AdminVoteController {
         responseCode = "200",
         description = "전체 투표 목록 조회 성공. 최신 시작일 순",
         content = @Content(schema = @Schema(implementation = VoteSummaryResponse.class))),
-    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "인증 실패"),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "401",
+        description = "인증 실패"),
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
         responseCode = "403",
         description = "관리자가 아닌 회원 (USER-009)")
@@ -135,7 +134,9 @@ public class AdminVoteController {
         responseCode = "404",
         description = "투표 없음 (VOTE-001)",
         content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
-    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "인증 실패"),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "401",
+        description = "인증 실패"),
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
         responseCode = "403",
         description = "관리자가 아닌 회원 (USER-009)")

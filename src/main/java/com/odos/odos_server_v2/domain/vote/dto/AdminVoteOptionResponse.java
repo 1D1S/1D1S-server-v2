@@ -2,7 +2,6 @@ package com.odos.odos_server_v2.domain.vote.dto;
 
 import java.math.BigDecimal;
 import java.util.List;
-
 import lombok.Builder;
 import lombok.Getter;
 

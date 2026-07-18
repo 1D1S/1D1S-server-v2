@@ -1,16 +1,5 @@
 package com.odos.odos_server_v2.domain.vote.controller;
 
-import java.util.List;
-
-import lombok.RequiredArgsConstructor;
-
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
 import com.odos.odos_server_v2.domain.member.CurrentUserContext;
 import com.odos.odos_server_v2.domain.vote.dto.VoteDetailResponse;
 import com.odos.odos_server_v2.domain.vote.dto.VoteSubmitRequest;
@@ -27,6 +16,14 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import java.util.List;
+import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @Tag(name = "Vote API", description = "사용자 투표 API")
 @RestController
@@ -177,8 +174,7 @@ public class VoteController {
         content = @Content(schema = @Schema(implementation = VoteDetailResponse.class))),
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
         responseCode = "400",
-        description =
-            "투표 기간 아님(VOTE-004), 선택 방식 불일치(VOTE-006), 다른 투표의 항목 포함(VOTE-007)"),
+        description = "투표 기간 아님(VOTE-004), 선택 방식 불일치(VOTE-006), 다른 투표의 항목 포함(VOTE-007)"),
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
         responseCode = "404",
         description = "투표 또는 회원 없음 (VOTE-001, USER-003)"),

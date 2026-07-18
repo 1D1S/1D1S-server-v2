@@ -1,14 +1,12 @@
 package com.odos.odos_server_v2.domain.vote.dto;
 
-import java.time.LocalDate;
-import java.util.List;
-
-import lombok.Builder;
-import lombok.Getter;
-
 import com.odos.odos_server_v2.domain.vote.entity.Vote;
 import com.odos.odos_server_v2.domain.vote.entity.VoteSelectionType;
 import com.odos.odos_server_v2.domain.vote.entity.VoteType;
+import java.time.LocalDate;
+import java.util.List;
+import lombok.Builder;
+import lombok.Getter;
 
 @Getter
 @Builder

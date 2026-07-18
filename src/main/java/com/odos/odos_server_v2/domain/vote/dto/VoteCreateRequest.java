@@ -1,11 +1,5 @@
 package com.odos.odos_server_v2.domain.vote.dto;
 
-import java.time.LocalDate;
-import java.util.List;
-
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-
 import com.odos.odos_server_v2.domain.vote.entity.VoteSelectionType;
 import com.odos.odos_server_v2.domain.vote.entity.VoteType;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -13,6 +7,10 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import java.time.LocalDate;
+import java.util.List;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor

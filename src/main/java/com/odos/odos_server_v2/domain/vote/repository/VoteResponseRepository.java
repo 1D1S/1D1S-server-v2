@@ -1,11 +1,9 @@
 package com.odos.odos_server_v2.domain.vote.repository;
 
+import com.odos.odos_server_v2.domain.vote.entity.VoteResponse;
 import java.util.List;
-
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
-
-import com.odos.odos_server_v2.domain.vote.entity.VoteResponse;
 
 public interface VoteResponseRepository extends JpaRepository<VoteResponse, Long> {
   boolean existsByVoteIdAndMemberId(Long voteId, Long memberId);
