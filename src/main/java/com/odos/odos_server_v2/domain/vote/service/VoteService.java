@@ -144,7 +144,7 @@ public class VoteService {
     List<Long> optionIds = request.getOptionIds();
     Set<Long> uniqueIds = new HashSet<>(optionIds);
     if (uniqueIds.isEmpty()
-        ||  uniqueIds.size() != optionIds.size()
+        || uniqueIds.size() != optionIds.size()
         || (vote.getSelectionType() == VoteSelectionType.SINGLE && uniqueIds.size() != 1)) {
       throw new CustomException(ErrorCode.INVALID_VOTE_SELECTION);
     }
