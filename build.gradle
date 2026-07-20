@@ -88,8 +88,8 @@ dependencies {
 	implementation 'io.micrometer:micrometer-registry-prometheus'
 
 	// redis
-	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
-	implementation 'io.projectreactor:reactor-core'
+//	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+//	implementation 'io.projectreactor:reactor-core'
 
 	// supabase
 	runtimeOnly 'org.postgresql:postgresql'
