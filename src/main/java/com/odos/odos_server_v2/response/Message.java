@@ -96,6 +96,8 @@ public class Message {
   public static String NOTIFICATION_ENDPOINT_UPSERT_SUCCESS = "알림 수신 단말 등록 성공했습니다.";
   public static String NOTIFICATION_ENDPOINT_DELETE_SUCCESS = "알림 수신 단말 삭제 성공했습니다.";
   public static String NOTIFICATION_WEB_PUSH_PUBLIC_KEY_SUCCESS = "웹푸시 공개키 조회 성공했습니다.";
+  public static String DEVICE_TOKEN_REGISTERED = "디바이스 토큰 등록 성공했습니다.";
+  public static String DEVICE_TOKEN_DELETED = "디바이스 토큰 삭제 성공했습니다.";
   public static String COMMENT_REPORT_CREATED = "댓글 신고 생성 성공했습니다.";
 
   // friend

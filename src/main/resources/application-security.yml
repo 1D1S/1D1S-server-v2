@@ -48,6 +48,17 @@ jwt:
 native-auth:
   google-audience: ${GOOGLE_SERVER_CLIENT_ID:${GOOGLE_CLIENT_ID}}
   kakao-audience: ${KAKAO_NATIVE_APP_KEY:${KAKAO_CLIENT_ID}}
+  # Apple ID token의 aud 허용값. web(Services ID)과 app(bundle id)이 다르면 콤마로 나열. 비어 있으면 애플 로그인만 비활성(부팅 정상).
+  apple-audience: ${APPLE_AUDIENCE:${APPLE_CLIENT_ID:}}
+
+# Apple client_secret(JWT) 생성용. 값이 비면 애플 토큰 교환/폐기 기능만 비활성(부팅 정상).
+apple:
+  team-id: ${APPLE_TEAM_ID:}
+  client-id: ${APPLE_CLIENT_ID:}
+  key-id: ${APPLE_KEY_ID:}
+  # .p8 파일 내용 전체(-----BEGIN PRIVATE KEY----- 포함). 파일 경로가 아니라 내용을 넣는다.
+  private-key: ${APPLE_PRIVATE_KEY:}
+  redirect-uri: ${APPLE_REDIRECT_URI:}
 
 notification:
   web-push:
@@ -55,3 +66,7 @@ notification:
     subject: ${WEB_PUSH_SUBJECT:mailto:dev@example.com}
     public-key: ${WEB_PUSH_PUBLIC_KEY:}
     private-key: ${WEB_PUSH_PRIVATE_KEY:}
+
+# FCM(Firebase Admin SDK). 서비스계정 JSON의 "내용" 또는 "파일 경로". 비면 FCM 발송만 비활성(부팅 정상).
+firebase:
+  service-account-json: ${FIREBASE_SERVICE_ACCOUNT_JSON:}
