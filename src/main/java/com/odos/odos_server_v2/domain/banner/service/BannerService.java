@@ -49,6 +49,11 @@ public class BannerService {
 
   public List<BannerResponse> getTodayBanners() {
     requireAdmin();
+    return getActiveBanners();
+  }
+
+  // 오늘(KST) 게시 기간에 포함된 배너. 인증/권한과 무관한 조회이므로 게스트 노출 엔드포인트에서 재사용한다.
+  public List<BannerResponse> getActiveBanners() {
     return bannerRepository.findTodayBanners(LocalDate.now(KST)).stream()
         .map(BannerResponse::from)
         .toList();
