@@ -8,6 +8,7 @@ import com.odos.odos_server_v2.domain.challenge.entity.ChallengePoke;
 import com.odos.odos_server_v2.domain.challenge.entity.Enum.ChallengeStatus;
 import com.odos.odos_server_v2.domain.challenge.entity.Enum.ChallengeType;
 import com.odos.odos_server_v2.domain.challenge.entity.Enum.GoalType;
+import com.odos.odos_server_v2.domain.challenge.entity.Enum.MyChallengeScope;
 import com.odos.odos_server_v2.domain.challenge.entity.Enum.ParticipantSortType;
 import com.odos.odos_server_v2.domain.challenge.entity.Enum.ParticipantStatus;
 import com.odos.odos_server_v2.domain.challenge.entity.Enum.ParticipationType;
@@ -1045,17 +1046,60 @@ public class ChallengeService {
 
     List<ChallengeSummaryResponse> result =
         member.getParticipants().stream()
-            .filter(
-                p ->
-                    (p.getStatus() == ParticipantStatus.HOST
-                            || p.getStatus() == ParticipantStatus.PARTICIPANT)
-                        && !p.getChallenge().getStartDate().isAfter(now)
-                        && !p.getChallenge().getEndDate().isBefore(now))
+            .filter(p -> isOngoingParticipation(p, now))
             .map(Participant::getChallenge)
             .map(ch -> toChallengeSummary(ch, currentMemberId))
             .toList();
 
     return result;
+  }
+
+  // 실제 참여로 간주하는 상태(신청 대기/거절/미신청 제외). 전체보기·과거참여 노출 대상.
+  private static final List<ParticipantStatus> MY_PARTICIPATION_STATUSES =
+      List.of(ParticipantStatus.HOST, ParticipantStatus.PARTICIPANT, ParticipantStatus.LEAVE);
+
+  /**
+   * "내 챌린지 전체보기"용 조회. 종료·과거참여(LEAVE)까지 포함할 수 있도록 scope 로 상태/기간 필터를 파라미터화한다. myPage 요약이 쓰는 {@link
+   * #getMemberChallenge}(진행중 프리뷰)는 그대로 두고 이 메서드만 확장 endpoint(GET /challenges/my)에서 사용한다.
+   *
+   * <p>정렬은 클라이언트 책임이므로 서버는 필터링된 데이터만 반환한다. participant(member_id, challenge_id) 유니크 제약(V36)으로 챌린지당
+   * 참여행이 1건이라 dedupe 는 불필요하다.
+   */
+  public List<MyChallengeResponse> getMyChallenges(Long memberId, MyChallengeScope scope) {
+    Member member =
+        memberRepository
+            .findById(memberId)
+            .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+
+    MyChallengeScope effectiveScope = scope == null ? MyChallengeScope.ALL : scope;
+    LocalDate now = LocalDate.now();
+
+    return member.getParticipants().stream()
+        .filter(p -> MY_PARTICIPATION_STATUSES.contains(p.getStatus()))
+        .filter(p -> matchesScope(p, effectiveScope, now))
+        .map(
+            p ->
+                MyChallengeResponse.builder()
+                    .participationStatus(p.getStatus())
+                    .challenge(toChallengeSummary(p.getChallenge(), memberId))
+                    .build())
+        .toList();
+  }
+
+  // 진행중 참여: HOST/PARTICIPANT 이면서 오늘이 챌린지 게시기간 내.
+  private boolean isOngoingParticipation(Participant p, LocalDate now) {
+    return (p.getStatus() == ParticipantStatus.HOST
+            || p.getStatus() == ParticipantStatus.PARTICIPANT)
+        && !p.getChallenge().getStartDate().isAfter(now)
+        && !p.getChallenge().getEndDate().isBefore(now);
+  }
+
+  private boolean matchesScope(Participant p, MyChallengeScope scope, LocalDate now) {
+    return switch (scope) {
+      case ALL -> true;
+      case ONGOING -> isOngoingParticipation(p, now);
+      case ENDED -> !isOngoingParticipation(p, now); // 종료됐거나 과거참여(LEAVE)
+    };
   }
 
   private List<MemberInfo> pickRandomParticipants(Long challengeId, int size) {
