@@ -40,6 +40,20 @@ public interface DiaryRepository extends JpaRepository<Diary, Long> {
   @EntityGraph(attributePaths = {"member", "challenge"})
   List<Diary> findDiariesByMember_IdAndIsDeletedFalse(Long memberId);
 
+  /**
+   * 위젯/스트릭용: 회원이 일지를 쓴 날짜 목록(중복 제거, 삭제 제외). 엔티티를 통째로 로드하는 {@link
+   * #findDiariesByMember_IdAndIsDeletedFalse(Long)} 와 달리 날짜 컬럼만 투영하므로, 주기 호출되는 위젯에서 가볍다.
+   * idx_diary_member_completed_date(member_id, completed_date) 로 커버된다.
+   */
+  @Query(
+      """
+      select distinct d.completedDate
+      from Diary d
+      where d.member.id = :memberId
+        and d.isDeleted = false
+      """)
+  List<LocalDate> findCompletedDatesByMemberId(@Param("memberId") Long memberId);
+
   long countByChallengeIdAndIsAllGoalsCompletedTrueAndIsDeletedFalse(Long challengeId);
 
   /** 챌린지 랭킹용: 챌린지 내 멤버별 일지 작성 날짜를 한 번에 조회(스트릭 계산용, 참여자당 반복 조회 방지). */

@@ -27,6 +27,7 @@ import com.odos.odos_server_v2.exception.CustomException;
 import com.odos.odos_server_v2.exception.ErrorCode;
 import java.time.LocalDate;
 import java.time.YearMonth;
+import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.Comparator;
@@ -45,6 +46,9 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 @Transactional(readOnly = true)
 public class MemberService {
+  // 오늘 판정 기준 시간대. 컨테이너 TZ(Asia/Seoul)에 의존하지 않도록 명시한다.
+  private static final ZoneId KST = ZoneId.of("Asia/Seoul");
+
   private final MemberRepository memberRepository;
   private final ChallengeGoalRepository challengeGoalRepository;
   private final DiaryRepository diaryRepository;
@@ -250,6 +254,20 @@ public class MemberService {
     LocalDate today = LocalDate.now();
     return (int) challengeGoalRepository.countTodayInProgressGoals(memberId, today);
   }
+
+  /**
+   * 위젯용 경량 스트릭: 현재 스트릭 일수 + 오늘(KST) 일지 작성 여부. {@link #getStreakByMemberId}(달력·목표수까지 만드는 마이페이지용)와 달리
+   * 일지 날짜만 한 번 조회해 계산하므로 주기 호출되는 위젯에 적합하다. 스트릭 산식은 마이페이지와 동일한 {@link #calculateCurrentStreak} 를 그대로
+   * 재사용해 두 화면의 값이 어긋나지 않게 한다.
+   */
+  public WidgetStreak getWidgetStreak(Long memberId) {
+    Set<LocalDate> dates = new HashSet<>(diaryRepository.findCompletedDatesByMemberId(memberId));
+    LocalDate today = LocalDate.now(KST);
+    return new WidgetStreak(calculateCurrentStreak(dates, today), dates.contains(today));
+  }
+
+  /** 위젯 스트릭 계산 결과(현재 스트릭 일수, 오늘 작성 여부). */
+  public record WidgetStreak(int currentStreak, boolean todayWritten) {}
 
   private int[] calculateStreaks(List<Diary> diaryList) {
 

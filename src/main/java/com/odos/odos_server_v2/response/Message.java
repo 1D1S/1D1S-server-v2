@@ -143,4 +143,7 @@ public class Message {
   public static String GET_VOTE_DETAIL = "투표 상세 조회 성공했습니다.";
   public static String SUBMIT_VOTE = "투표 참여 성공했습니다.";
   public static String GET_VOTE_RESULT = "투표 결과 조회 성공했습니다.";
+
+  // widget
+  public static String GET_WIDGET_SUMMARY = "위젯 요약 조회 성공했습니다.";
 }
