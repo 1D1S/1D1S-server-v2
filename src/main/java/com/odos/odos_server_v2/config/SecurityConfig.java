@@ -62,6 +62,8 @@ public class SecurityConfig {
                     .permitAll()
                     .requestMatchers(HttpMethod.GET, "/comments/**")
                     .permitAll()
+                    .requestMatchers(HttpMethod.GET, "/banners")
+                    .permitAll()
                     .requestMatchers("/actuator/prometheus")
                     .permitAll()
                     .requestMatchers(
