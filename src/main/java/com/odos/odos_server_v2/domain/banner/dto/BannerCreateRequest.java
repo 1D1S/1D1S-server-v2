@@ -31,4 +31,7 @@ public class BannerCreateRequest {
 
   @Schema(description = "게시 종료일", example = "2026-07-09")
   private LocalDate endDate;
+
+  @Schema(description = "배너 태그(선택, 칩 표시용)", example = "이벤트", nullable = true)
+  private String tag;
 }
