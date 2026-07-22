@@ -43,4 +43,7 @@ public class Banner extends BaseTimeEntity {
 
   @Column(name = "end_date", nullable = false)
   private LocalDate endDate;
+
+  @Column(length = 50)
+  private String tag;
 }

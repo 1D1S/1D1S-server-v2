@@ -74,6 +74,7 @@ public class BannerService {
         .linkUrl(request.getLinkUrl())
         .startDate(request.getStartDate())
         .endDate(request.getEndDate())
+        .tag(request.getTag())
         .build();
   }
 

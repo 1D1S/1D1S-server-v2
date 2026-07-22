@@ -14,7 +14,8 @@ public record BannerResponse(
     @Schema(description = "배너 클릭 이동 링크", example = "https://1day1streak.com/event/1")
         String linkUrl,
     @Schema(description = "게시 시작일", example = "2026-07-01") LocalDate startDate,
-    @Schema(description = "게시 종료일", example = "2026-07-09") LocalDate endDate) {
+    @Schema(description = "게시 종료일", example = "2026-07-09") LocalDate endDate,
+    @Schema(description = "배너 태그(없으면 null)", example = "이벤트", nullable = true) String tag) {
 
   public static BannerResponse from(Banner banner) {
     return new BannerResponse(
@@ -24,6 +25,7 @@ public record BannerResponse(
         banner.getImageUrl(),
         banner.getLinkUrl(),
         banner.getStartDate(),
-        banner.getEndDate());
+        banner.getEndDate(),
+        banner.getTag());
   }
 }
