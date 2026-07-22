@@ -51,6 +51,7 @@ public class Message {
   public static String GET_CHALLENGE_PREVIEW = "챌린지 미리보기 조회 성공했습니다.";
   public static String GET_CHALLENGE_STATISTICS = "챌린지 통계 조회 성공했습니다.";
   public static String CHALLENGE_POKE = "챌린지원 찌르기 성공했습니다.";
+  public static String CHALLENGE_CHECK_POKE = "챌린지원 찌르기 조회 성공했습니다.";
 
   // admin challenge
   public static String ADMIN_CHALLENGE_GET_ALL_SUCCESS = "챌린지 목록 조회 성공했습니다.";

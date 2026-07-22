@@ -925,7 +925,7 @@ public class ChallengeService {
   }
 
   @Transactional
-  public ChallengePokeResponse pokeChallengeMembers(
+  public List<ChallengePokeResponse> pokeChallengeMembers(
       Long challengeId, Long actorId, ChallengePokeRequest request) {
     Challenge challenge =
         challengeRepository
@@ -982,7 +982,6 @@ public class ChallengeService {
     }
 
     challengePokeRepository.saveAll(pokes);
-
     for (ChallengePoke poke : pokes) {
       notificationService.notifyChallengePoke(
           actorId,
@@ -991,8 +990,43 @@ public class ChallengeService {
           challenge.getTitle(),
           actor.getNickname());
     }
+    return ChallengePokeResponse.from(pokes, true);
+  }
 
-    return new ChallengePokeResponse(receiverIds.stream().toList());
+  public List<ChallengePokeResponse> checkPokedStatus(Long challengeId, Long memberId) {
+    challengeRepository
+        .findById(challengeId)
+        .orElseThrow(() -> new CustomException(ErrorCode.CHALLENGE_NOT_FOUND));
+
+    memberRepository
+        .findById(memberId)
+        .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+
+    if (!isActiveParticipant(challengeId, memberId)) {
+      throw new CustomException(ErrorCode.PARTICIPANT_NOT_FOUND);
+    }
+
+    List<Participant> participants =
+        participantRepository.findByChallengeIdAndStatusIn(
+            challengeId, List.of(ParticipantStatus.PARTICIPANT, ParticipantStatus.HOST));
+
+    Set<Long> pokedReceiverIds =
+        challengePokeRepository
+            .findChallengePokesByChallengeIdAndActorIdAndPokedDate(
+                challengeId, memberId, LocalDate.now())
+            .stream()
+            .map(poke -> poke.getReceiver().getId())
+            .collect(java.util.stream.Collectors.toSet());
+
+    List<ChallengePokeResponse> responses = new ArrayList<>();
+    for (Participant participant : participants) {
+      Long receiverId = participant.getMember().getId();
+      if (receiverId.equals(memberId)) {
+        continue;
+      }
+      responses.add(new ChallengePokeResponse(receiverId, pokedReceiverIds.contains(receiverId)));
+    }
+    return responses;
   }
 
   /**
