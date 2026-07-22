@@ -91,6 +91,9 @@ dependencies {
 //	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 //	implementation 'io.projectreactor:reactor-core'
 
+	// FCM (Firebase Admin SDK, HTTP v1)
+	implementation 'com.google.firebase:firebase-admin:9.4.3'
+
 	// supabase
 	runtimeOnly 'org.postgresql:postgresql'
 }

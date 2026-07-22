@@ -13,14 +13,20 @@ import org.springframework.security.oauth2.jwt.JwtException;
 abstract class AbstractOidcCredentialVerifier implements NativeSocialCredentialVerifier {
   private final SignupRoute provider;
   private final JwtDecoder jwtDecoder;
-  private final String audience;
+  private final Set<String> audiences;
   private final Set<String> issuers;
 
   protected AbstractOidcCredentialVerifier(
       SignupRoute provider, JwtDecoder jwtDecoder, String audience, Set<String> issuers) {
+    this(provider, jwtDecoder, Set.of(audience), issuers);
+  }
+
+  // Apple의 web(Services ID)과 app(bundle id)은 aud가 서로 다를 수 있어 복수 audience를 허용한다.
+  protected AbstractOidcCredentialVerifier(
+      SignupRoute provider, JwtDecoder jwtDecoder, Set<String> audiences, Set<String> issuers) {
     this.provider = provider;
     this.jwtDecoder = jwtDecoder;
-    this.audience = audience;
+    this.audiences = audiences;
     this.issuers = issuers;
   }
 
@@ -42,7 +48,7 @@ abstract class AbstractOidcCredentialVerifier implements NativeSocialCredentialV
       throw new CustomException(ErrorCode.NATIVE_PROVIDER_CREDENTIAL_INVALID);
     }
 
-    if (!jwt.getAudience().contains(audience)
+    if (jwt.getAudience().stream().noneMatch(audiences::contains)
         || jwt.getIssuer() == null
         || !issuers.contains(jwt.getIssuer().toString())) {
       throw new CustomException(ErrorCode.NATIVE_PROVIDER_CLAIM_MISMATCH);
