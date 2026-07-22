@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -19,6 +20,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestResolver;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
@@ -49,9 +51,15 @@ public class SecurityConfig {
         .logout(AbstractHttpConfigurer::disable)
         .exceptionHandling(
             exception ->
-                exception.defaultAccessDeniedHandlerFor(
-                    memberNotAdminAccessDeniedHandler,
-                    PathPatternRequestMatcher.withDefaults().matcher("/admin/**")))
+                exception
+                    .defaultAccessDeniedHandlerFor(
+                        memberNotAdminAccessDeniedHandler,
+                        PathPatternRequestMatcher.withDefaults().matcher("/admin/**"))
+                    // 위젯은 앱이 저장된 토큰으로 주기 호출한다. 인증 실패 시 로그인 리다이렉트 대신
+                    // 명확한 401 을 돌려줘야 앱이 위젯을 빈 상태로 처리할 수 있다.
+                    .defaultAuthenticationEntryPointFor(
+                        new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED),
+                        PathPatternRequestMatcher.withDefaults().matcher("/widget/**")))
         .sessionManagement(
             session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
         .authorizeHttpRequests(
