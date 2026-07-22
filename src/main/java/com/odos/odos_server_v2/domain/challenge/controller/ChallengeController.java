@@ -3,6 +3,7 @@ package com.odos.odos_server_v2.domain.challenge.controller;
 import com.odos.odos_server_v2.domain.challenge.dto.*;
 import com.odos.odos_server_v2.domain.challenge.entity.Enum.ChallengeStatus;
 import com.odos.odos_server_v2.domain.challenge.entity.Enum.ChallengeType;
+import com.odos.odos_server_v2.domain.challenge.entity.Enum.MyChallengeScope;
 import com.odos.odos_server_v2.domain.challenge.entity.Enum.ParticipantSortType;
 import com.odos.odos_server_v2.domain.challenge.entity.Enum.ParticipantStatus;
 import com.odos.odos_server_v2.domain.challenge.service.ChallengeService;
@@ -901,7 +902,15 @@ public class ChallengeController {
         Message.GET_RANDOM_CHALLENGES, challengeService.getRandomChallenges(memberId, size));
   }
 
-  @Operation(summary = "내 챌린지 목록 조회", description = "로그인한 회원 본인이 참여 중인 챌린지 목록을 조회한다.")
+  @Operation(
+      summary = "내 챌린지 목록 조회(전체보기)",
+      description =
+          "로그인한 회원 본인의 챌린지 목록을 조회한다. scope 로 범위를 지정한다. "
+              + "ALL(기본): 참여 이력 전체(HOST/PARTICIPANT/LEAVE, 기간 무관, 종료·과거참여 포함). "
+              + "ONGOING: 현재 진행 중(HOST·PARTICIPANT & 오늘이 게시기간 내). "
+              + "ENDED: 그 외(종료됐거나 과거참여 LEAVE). "
+              + "각 항목은 챌린지 요약(challenge)과 내 참여 상태(participationStatus)를 함께 반환한다. "
+              + "정렬은 클라이언트가 수행한다.")
   @ApiResponses({
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
         responseCode = "200",
@@ -909,7 +918,7 @@ public class ChallengeController {
         content =
             @Content(
                 mediaType = "application/json",
-                schema = @Schema(implementation = ChallengeSummaryResponse.class),
+                schema = @Schema(implementation = MyChallengeResponse.class),
                 examples =
                     @ExampleObject(
                         value =
@@ -918,35 +927,24 @@ public class ChallengeController {
                               "message": "내 챌린지 목록 조회 성공했습니다.",
                               "data": [
                                 {
-                                  "challengeId": 1,
-                                  "title": "30일 코딩 챌린지",
-                                  "thumbnailImage": "https://..",
-                                  "category": "DEV",
-                                  "startDate": "2025-09-01",
-                                  "endDate": "2025-09-30",
-                                  "participationType": "GROUP",
-                                  "maxParticipantCnt": 10,
-                                  "challengeType": "FIXED",
-                                  "participantCnt": 5,
-                                  "likeInfo": { "likedByMe": false, "likeCnt": 3 },
-                                  "randomParticipants": [
-                                                  {
-                                                    "memberId": 2,
-                                                    "nickname": "내손안에흙염룡",
-                                                    "profileImg": null
-                                                  },
-                                                  {
-                                                    "memberId": 1,
-                                                    "nickname": "asdf",
-                                                    "profileImg": null
-                                                  },
-                                                  {
-                                                    "memberId": 5,
-                                                    "nickname": "김철수",
-                                                    "profileImg": null
-                                                  }
-                                                ],
-                                  "deleted": false
+                                  "participationStatus": "PARTICIPANT",
+                                  "challenge": {
+                                    "challengeId": 1,
+                                    "title": "30일 코딩 챌린지",
+                                    "thumbnailImage": "https://..",
+                                    "category": "DEV",
+                                    "startDate": "2025-09-01",
+                                    "endDate": "2025-09-30",
+                                    "participationType": "GROUP",
+                                    "maxParticipantCnt": 10,
+                                    "challengeType": "FIXED",
+                                    "participantCnt": 5,
+                                    "likeInfo": { "likedByMe": false, "likeCnt": 3 },
+                                    "randomParticipants": [
+                                      { "memberId": 2, "nickname": "내손안에흙염룡", "profileImg": null }
+                                    ],
+                                    "deleted": false
+                                  }
                                 }
                               ]
                             }
@@ -979,10 +977,13 @@ public class ChallengeController {
                             """)))
   })
   @GetMapping("/my")
-  public ApiResponse<List<ChallengeSummaryResponse>> myChallenge() {
+  public ApiResponse<List<MyChallengeResponse>> myChallenge(
+      @Parameter(description = "조회 범위 (ALL 기본 / ONGOING / ENDED)")
+          @RequestParam(value = "scope", required = false, defaultValue = "ALL")
+          MyChallengeScope scope) {
     Long memberId = CurrentUserContext.getCurrentMemberIdOrNull();
     return ApiResponse.success(
-        Message.GET_MY_CHALLENGE, challengeService.getMemberChallenge(memberId, memberId));
+        Message.GET_MY_CHALLENGE, challengeService.getMyChallenges(memberId, scope));
   }
 
   @Operation(
